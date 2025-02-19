@@ -1,0 +1,29 @@
+from sqlalchemy import (Column,
+                        DateTime,
+                        BigInteger,
+                        func,
+                        ForeignKey,
+                        Index,
+                        String,
+                        SmallInteger,
+                        Numeric)
+from sqlalchemy.orm import relationship, Mapped
+from app.core.db.base_class import Base
+from app.core.models.model_base import ModelBase
+from app.core.models.user import User
+
+
+class Wallet(Base, ModelBase):
+    id = Column(BigInteger, primary_key=True)
+    user_id = Column(ForeignKey('user.id'), index=True, nullable=False)
+    user: Mapped["User"] = relationship(
+        "User",
+        backref="user",
+        foreign_keys=[user_id])
+
+    currency = Column(ForeignKey('currency.id'), nullable=False)
+
+    value = Column(Numeric(18, 4, asdecimal=False), nullable=False)
+
+    created_at = Column(DateTime(timezone=True), index=True, default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())

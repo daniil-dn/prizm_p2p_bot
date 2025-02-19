@@ -1,0 +1,45 @@
+version: '3.5'
+
+networks:
+  default:
+    name: copy_bot
+
+services:
+  #  app:
+  #    image: copy_bot
+  #    restart: always
+  #    depends_on:
+  #      - db
+  #    command: python app/main.py bot
+  #    networks:
+  #      - default
+
+  db:
+    image: postgres:13
+    restart: always
+    ports:
+      - "5438:5432"
+    volumes:
+      - copy_db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PORT=5434
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=prizm_p2p_bot_db
+
+    networks:
+      - default
+
+  redis:
+    image: redis
+    ports:
+      - "6392:6379"
+    volumes:
+      - redis_data:/data
+    command: >
+      --requirepass redis12345
+
+
+volumes:
+  redis_data: { }
+  copy_db: { }
