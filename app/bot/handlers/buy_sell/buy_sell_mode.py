@@ -3,7 +3,6 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, StartMode
 
-from app.bot.ui import get_select_orders_kb
 from app.core.models import User
 from app.bot.handlers.buy_sell.state import BuyState
 
@@ -15,4 +14,4 @@ async def buy_sell_mode_cb(cb: CallbackQuery, bot: Bot, state: FSMContext, user_
                            dialog_manager: DialogManager) -> None:
     await state.clear()
     mode = cb.data.split('_')[1]
-    await dialog_manager.start(state=BuyState.value, mode=StartMode.RESET_STACK, data={"mode": mode})
+    await dialog_manager.start(state=BuyState.from_value, mode=StartMode.RESET_STACK, data={"mode": mode})

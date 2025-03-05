@@ -1,14 +1,18 @@
+from logging import getLogger
 from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
 
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, delete
+
 from app.core.db.base_class import Base
 
 ModelType = TypeVar("ModelType", bound=Base)
 CreateSchemaType = TypeVar("CreateSchemaType", bound=BaseModel)
 UpdateSchemaType = TypeVar("UpdateSchemaType", bound=BaseModel)
+
+logger = getLogger(__name__)
 
 
 class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
@@ -53,8 +57,8 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         return db_obj
 
     async def lock_row(self, db: AsyncSession, *, id: int) -> ModelType:
-        crud_log.debug(f'Lock {self.model} for update id:{id}')
-        q = select(self.model).filter(self.model.id == id).with_for_update()
+        logger.debug(f'Lock {self.model} for update id:{id}')
+        q = select(self.model).filter(self.model.id == int(id)).with_for_update()
         res = await db.execute(q)
         return res.scalar()
 

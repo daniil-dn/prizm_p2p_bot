@@ -12,5 +12,5 @@ async def support_msg(message: Message, bot: Bot, state: FSMContext) -> None:
     await bot.send_message(
         # todo
         message.from_user.id,
-        """Тут контакты поддержки"""
+        """👉 https://t.me/Nikita_Kononenko"""
     )

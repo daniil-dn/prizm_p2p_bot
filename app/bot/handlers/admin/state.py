@@ -1,0 +1,8 @@
+from aiogram.fsm.state import StatesGroup, State
+
+
+class AdminSettingsState(StatesGroup):
+    new_order_time = State()
+    new_value_commission = State()
+    new_pay_order_time = State()
+

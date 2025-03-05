@@ -4,10 +4,10 @@ from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
-from app.core.dao.base import CRUDBase
 # app
 from app.core.models import User
 from app.core import dto
+from app.core.dao.base import CRUDBase
 
 logger = getLogger(__name__)
 

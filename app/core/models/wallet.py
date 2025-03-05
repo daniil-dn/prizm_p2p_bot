@@ -3,10 +3,7 @@ from sqlalchemy import (Column,
                         BigInteger,
                         func,
                         ForeignKey,
-                        Index,
-                        String,
-                        SmallInteger,
-                        Numeric)
+                        Numeric, String)
 from sqlalchemy.orm import relationship, Mapped
 from app.core.db.base_class import Base
 from app.core.models.model_base import ModelBase
@@ -23,7 +20,7 @@ class Wallet(Base, ModelBase):
 
     currency = Column(ForeignKey('currency.id'), nullable=False)
 
-    value = Column(Numeric(18, 4, asdecimal=False), nullable=False)
+    value = Column(String)
 
     created_at = Column(DateTime(timezone=True), index=True, default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

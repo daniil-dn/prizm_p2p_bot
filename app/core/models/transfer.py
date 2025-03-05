@@ -1,4 +1,4 @@
-from sqlalchemy import Column, DateTime, BigInteger, func, ForeignKey, Index, \
+from sqlalchemy import Column, DateTime, BigInteger, func, ForeignKey, \
     Numeric
 
 from sqlalchemy.orm import relationship, Mapped

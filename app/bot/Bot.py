@@ -1,5 +1,8 @@
 import aiogram
+from aiogram.fsm.storage.base import DefaultKeyBuilder
 from aiogram_dialog import Dialog, setup_dialogs
+from aiogram.fsm.storage.redis import RedisStorage
+from redis.asyncio.client import Redis
 
 from app.bot.handlers import get_routers
 from app.bot.middlewares import DbSessionMiddleware, ExistsUserMiddleware
@@ -14,7 +17,11 @@ class Bot:
     def __init__(self, token):
         self.token = token
         self.bot = aiogram.Bot(token)
-        self.dp = aiogram.Dispatcher()
+        redis = Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=settings.REDIS_DEFAULT_DB,
+                      password=settings.REDIS_PASSWORD)
+
+        self.dp = aiogram.Dispatcher(storage=RedisStorage(redis=redis,  key_builder=DefaultKeyBuilder(with_destiny=True)),
+)
 
     async def start_pooling(self):
         self.dp.include_routers(*get_routers())

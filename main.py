@@ -7,6 +7,7 @@ from app.bot import Bot
 from app.core.config import settings
 
 from app.core.logs.utils import config_logging
+from app.prizm_check_scheduler import Scheduler
 
 config_logging()
 
@@ -22,3 +23,8 @@ if __name__ == "__main__":
     if target == "bot":
         bot = Bot(settings.BOT_TOKEN)
         asyncio.run(bot.start_pooling())
+
+    elif target == "prizm_check_scheduler":
+        asyncio.run(Scheduler().start())
+    else:
+        logger.error("No target procceded")

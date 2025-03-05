@@ -13,6 +13,14 @@ BASE_DIR = Path(__file__).resolve().parent
 class Settings(BaseSettings):
     """SERVER CONFIG"""
     DEBUG: bool = None
+
+    # API
+    COINMARKETCAP_API_KEY: str
+    # WALLET
+    PRIZM_WALLET_ADDRESS: str
+    PRIZM_WALLET_SECRET_ADDRESS: str
+    PRIZM_API_URL: str
+
     BOT_TOKEN: str
     CHANNEL_TO_CHECK: str
 
@@ -62,6 +70,12 @@ class Settings(BaseSettings):
             return f"postgresql://{user}:{password}@{host}:{port}/{db}"
         else:
             return None
+
+    """REDIS CONFIG"""
+    REDIS_HOST: str
+    REDIS_PASSWORD: str
+    REDIS_PORT: str
+    REDIS_DEFAULT_DB: str
 
     class Config:
         case_sensitive = True
