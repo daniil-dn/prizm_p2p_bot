@@ -17,8 +17,8 @@ class OrderInDB(OrderBase):
     to_currency: Optional[str]
     status: Optional[int]
     mode: Optional[str]
-    from_value: Optional[Decimal]
-    to_value: Optional[Decimal]
+    prizm_value: Optional[Decimal]
+    rub_value: Optional[Decimal]
     commission_percent: Optional[Decimal]
     order_request_id: Optional[int]
     updated_at: datetime
@@ -30,8 +30,8 @@ class OrderCreate(BaseModel):
     to_user_id: Optional[int]
     from_currency: Optional[str]
     to_currency: Optional[str]
-    from_value: Optional[Decimal]
-    to_value: Optional[Decimal]
+    prizm_value: Optional[Decimal]
+    rub_value: Optional[Decimal]
     commission_percent: Optional[Decimal]
     status: Optional[int]
     mode: Optional[str]
@@ -44,7 +44,7 @@ class OrderUpdate(OrderBase):
     rate: Optional[Decimal] = None
     status: Optional[int] = None
     mode: Optional[str] = None
-    from_value: Optional[Decimal] = None
-    to_value: Optional[Decimal] = None
-    commission_percent: Optional[Decimal] = None
+    prizm_value: Optional[Decimal] = None
+    rub_value: Optional[Decimal] = None
+    comm11ission_percent: Optional[Decimal] = None
     order_request_id: Optional[int]

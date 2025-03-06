@@ -13,7 +13,8 @@ class SettingsBase(BaseModel):
 class SettingsInDB(SettingsBase):
     order_wait_minutes: int
     pay_wait_time: int
-    commission_percent: int
+    commission_percent: Decimal
+    prizm_rate_diff: Decimal
 
 
 class SettingsCreate(BaseModel):
@@ -23,4 +24,5 @@ class SettingsCreate(BaseModel):
 class SettingsUpdate(SettingsBase):
     order_wait_minutes: Optional[int] = None
     pay_wait_time: Optional[int] = None
-    commission_percent: Optional[int] = None
+    commission_percent: Optional[Decimal] = None
+    prizm_rate_diff: Optional[Decimal] = None

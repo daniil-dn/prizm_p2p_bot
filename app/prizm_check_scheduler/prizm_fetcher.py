@@ -22,14 +22,17 @@ class PrizmWalletFetcher:
         url = f"{self.base_url}?account={account}&requestType=getBlockchainTransactions"
         async with aiohttp.ClientSession() as session:
             async with session.post(url) as response:
-                return await response.json(content_type=None)
-        # return json.loads(MOCK_TRANSACTIONS)
+                res = await response.json(content_type=None)
+            await session.close()
+        return res
 
     async def read_message(self, secret_phrase, transaction):
         async with aiohttp.ClientSession() as session:
             url = f"{self.base_url}?requestType=readMessage&secretPhrase={secret_phrase}&transaction={transaction}"
             async with session.get(url) as response:
-                return await response.json(content_type=None)
+                res = await response.json(content_type=None)
+            await session.close()
+        return res
 
     async def send_money(self, recipient, secret_phrase, amount_nqt, deadline):
         async with aiohttp.ClientSession() as session:
@@ -41,4 +44,6 @@ class PrizmWalletFetcher:
                 'deadline': deadline
             }
             async with session.post(url, params=params) as response:
-                return await response.json(content_type=None)
+                res = await response.json(content_type=None)
+            await session.close()
+        return res

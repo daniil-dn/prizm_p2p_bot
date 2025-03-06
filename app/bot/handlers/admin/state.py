@@ -5,4 +5,5 @@ class AdminSettingsState(StatesGroup):
     new_order_time = State()
     new_value_commission = State()
     new_pay_order_time = State()
+    new_prizm_rate_diff_value = State()
 

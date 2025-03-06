@@ -14,7 +14,7 @@ from aiogram_dialog import (
     Window
 )
 
-from app.bot.handlers.new_order.getters import get_mode
+from app.bot.handlers.new_order.getters import get_mode, get_prizm_rate
 from app.bot.handlers.new_order.handlers import on_back, on_from_value_selected, on_to_value_selected, cancel_logic, \
     on_rate_selected, on_sell_card_info_selected
 from app.bot.handlers.new_order.state import NewOrderState
@@ -50,8 +50,8 @@ def get_to_value() -> Window:
     return Window(
         Case(
             {
-                'buy': Const("Укажите до какой суммы покупка PRIZM"),
-                'sell': Const("Укажите до какой суммы продажа PRIZM"),
+                'buy': Const("Укажите до какой суммы покупка в PRIZM"),
+                'sell': Const("Укажите до какой суммы продажа в PRIZM"),
             },
             selector='mode',
         ),
@@ -67,25 +67,34 @@ def get_to_value() -> Window:
 
 def get_rate() -> Window:
     return Window(
-        Const("Укажите желаемую стоимость PRIZM"),
+        Format(
+            "Укажите желаемую стоимость PRIZM.\nТекущий курс <b>{prizm_rate}</b>.\nРазница указанного курса не должна отличаться более чем на <b>{prizm_rate_diff_percent}</b>%"),
 
         TextInput(id="rate", on_success=on_rate_selected, on_error=error,
                   type_factory=float),
         Button(Const("❌ Отмена"), id="cancel", on_click=cancel_logic),
         Button(Const("❌ Назад"), id="back", on_click=Back(show_mode=ShowMode.DELETE_AND_SEND)),
-
-        state=NewOrderState.rate
+        getter=get_prizm_rate,
+        state=NewOrderState.rate,
+        parse_mode='html'
     )
 
 
 def get_sell_card_info() -> Window:
     return Window(
-        Const("Укажите способ платежа"),
+        Case(
+            {
+                'buy': Const("Укажите адрес кошелька PRIZM\nПример адреса кошелька: <b> PRIZM-****-****-****-****</b>"),
+                'sell': Const("Укажите реквизиты для получения рублей"),
+            },
+            selector='mode',
+        ),
 
         TextInput(id="sell_card_info", on_success=on_sell_card_info_selected, on_error=error,
                   type_factory=str),
         Button(Const("❌ Отмена"), id="cancel", on_click=cancel_logic),
         Button(Const("❌ Назад"), id="back", on_click=Back(show_mode=ShowMode.DELETE_AND_SEND)),
-
-        state=NewOrderState.sell_card_info
+        getter=get_mode,
+        state=NewOrderState.sell_card_info,
+        parse_mode='html'
     )

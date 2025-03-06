@@ -21,4 +21,6 @@ async def admin_menu_cb(cb: CallbackQuery, bot: Bot, state: FSMContext, user_db:
     elif admin_command == 'new-order-wait-time':
         await dialog_manager.start(state=AdminSettingsState.new_order_time, mode=StartMode.RESET_STACK)
     elif admin_command == 'new-pay-order-wait-time':
-        await dialog_manager.start(state=AdminSettingsState.new_value_commission, mode=StartMode.RESET_STACK)
+        await dialog_manager.start(state=AdminSettingsState.new_pay_order_time, mode=StartMode.RESET_STACK)
+    elif admin_command == 'new-rate-diff':
+        await dialog_manager.start(state=AdminSettingsState.new_prizm_rate_diff_value, mode=StartMode.RESET_STACK)

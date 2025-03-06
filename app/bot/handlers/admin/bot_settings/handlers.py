@@ -9,7 +9,7 @@ from redis.utils import dict_merge
 
 from app.bot.handlers.new_order.state import NewOrderState
 from app.bot.handlers.common import start_cmd
-from app.bot.ui import order_seller_accept_kb
+from app.bot.ui import order_seller_accept_kb, admin_panel_commot_kb
 from app.core.config import settings
 from app.core.dao import crud_order_request, crud_order, crud_settings
 from app.core.dao.crud_wallet import crud_wallet
@@ -34,7 +34,7 @@ async def on_new_wait_order_time(message: Message, text_widget: ManagedTextInput
     new_value = text_widget.get_value()
     async with dialog_manager.middleware_data['session'] as session:
         await crud_settings.update(session, obj_in={"id": 1, "order_wait_minutes": new_value})
-    await message.answer("Ваши изменения применены")
+    await message.answer("Ваши изменения применены", reply_markup=admin_panel_commot_kb())
     await dialog_manager.done(show_mode=ShowMode.DELETE_AND_SEND)
 
 
@@ -43,8 +43,8 @@ async def on_new_commission_percent_value(message: Message, text_widget: Managed
     """Обработчик выбора количества гостей."""
     new_value = text_widget.get_value()
     async with dialog_manager.middleware_data['session'] as session:
-        await crud_settings.update(session, obj_in={"id": 1, "commission_percent": new_value})
-    await message.answer("Ваши изменения применены")
+        await crud_settings.update(session, obj_in={"id": 1, "commission_percent": new_value / 100})
+    await message.answer("Ваши изменения применены", reply_markup=admin_panel_commot_kb())
     await dialog_manager.done(show_mode=ShowMode.DELETE_AND_SEND)
 
 
@@ -54,5 +54,15 @@ async def on_pay_order_time_value(message: Message, text_widget: ManagedTextInpu
     new_value = text_widget.get_value()
     async with dialog_manager.middleware_data['session'] as session:
         await crud_settings.update(session, obj_in={"id": 1, "pay_wait_time": new_value})
-    await message.answer("Ваши изменения применены")
+    await message.answer("Ваши изменения применены", reply_markup=admin_panel_commot_kb())
+    await dialog_manager.done(show_mode=ShowMode.DELETE_AND_SEND)
+
+
+async def on_prizm_rate_diff_value(message: Message, text_widget: ManagedTextInput,
+                                   dialog_manager: DialogManager, data):
+    """Обработчик выбора количества гостей."""
+    new_value = text_widget.get_value()
+    async with dialog_manager.middleware_data['session'] as session:
+        await crud_settings.update(session, obj_in={"id": 1, "prizm_rate_diff": new_value / 100})
+    await message.answer("Ваши изменения применены", reply_markup=admin_panel_commot_kb())
     await dialog_manager.done(show_mode=ShowMode.DELETE_AND_SEND)

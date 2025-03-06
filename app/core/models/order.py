@@ -37,8 +37,8 @@ class Order(Base, ModelBase):
 
     order_request_id = Column(ForeignKey('order_request.id'), nullable=False)
 
-    from_value = Column(Numeric(18, 4, asdecimal=False), nullable=False)
-    to_value = Column(Numeric(18, 4, asdecimal=False), nullable=False)
+    prizm_value = Column(Numeric(18, 4, asdecimal=False), nullable=False)
+    rub_value = Column(Numeric(18, 4, asdecimal=False), nullable=False)
 
     commission_percent = Column(Numeric(18, 2, asdecimal=False), nullable=False)
 

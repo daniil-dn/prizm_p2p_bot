@@ -10,7 +10,6 @@ router = Router()
 async def support_msg(message: Message, bot: Bot, state: FSMContext) -> None:
     await state.clear()
     await bot.send_message(
-        # todo
         message.from_user.id,
         """👉 https://t.me/Nikita_Kononenko"""
     )

@@ -1,8 +1,18 @@
 from aiogram_dialog import DialogManager
 
-from app.core.dao import crud_order_request
+from app.core.config import settings
+from app.core.dao import crud_settings
+from app.utils.coinmarketcap import get_currency_rate
 
 
 async def get_mode(dialog_manager: DialogManager, **kwargs):
     """Получение списка столов с учетом выбранной вместимости."""
     return {"mode": dialog_manager.start_data['mode']}
+
+
+async def get_prizm_rate(dialog_manager: DialogManager, **kwargs):
+    rate = await get_currency_rate("PZM", "RUB", settings.COINMARKETCAP_API_KEY)
+    async with dialog_manager.middleware_data['session'] as session:
+        admin_settings = await crud_settings.get_by_id(session, id=1)
+
+    return {"prizm_rate": str(rate)[:7], "prizm_rate_diff_percent": admin_settings.prizm_rate_diff * 100}

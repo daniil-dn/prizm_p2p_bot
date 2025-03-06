@@ -12,7 +12,7 @@ from app.bot.handlers.new_order.state import NewOrderState
 from app.bot.handlers.common import start_cmd
 from app.bot.ui import order_seller_accept_kb
 from app.core.config import settings
-from app.core.dao import crud_order_request, crud_order
+from app.core.dao import crud_order_request, crud_order, crud_settings
 from app.core.dao.crud_wallet import crud_wallet
 from app.core.dto import OrderCreate, WalletCreate, OrderRequestCreate
 from app.core.models import OrderRequest, Order
@@ -46,36 +46,18 @@ async def on_to_value_selected(message: Message, text_widget: ManagedTextInput, 
 
 
 async def on_rate_selected(message: Message, text_widget: ManagedTextInput, dialog_manager: DialogManager, data):
-    """Обработчик выбора количества гостей."""
     dialog_manager.dialog_data['rate'] = user_rate = text_widget.get_value()
     rate = await get_currency_rate("PZM", "RUB", settings.COINMARKETCAP_API_KEY)
-    # todo admin
-    if rate_difference(rate, user_rate, 20):
-        await message.answer(f'Указанный курс отличается от биржевого на 20%. Текущий курс {rate}')
+    async with dialog_manager.middleware_data['session'] as session:
+        admin_settings = await crud_settings.get_by_id(session, id=1)
+        prizm_rate_diff_percent = admin_settings.prizm_rate_diff * 100
+
+    if rate_difference(rate, user_rate, prizm_rate_diff_percent):
+        await message.answer(parse_mode='html',
+                             text=f'Указанный курс отличается от биржевого на <b>{prizm_rate_diff_percent}</b>%.\nТекущий курс: <b>{str(rate)[:7]}</b>')
         return
 
-    if dialog_manager.start_data['mode'] == 'sell':
-        await dialog_manager.switch_to(state=NewOrderState.sell_card_info, show_mode=ShowMode.DELETE_AND_SEND)
-    else:
-        value_rate = dialog_manager.dialog_data['rate']
-        min_limit_rub = dialog_manager.dialog_data['from_value'] * value_rate
-        max_limit_rub = dialog_manager.dialog_data['to_value'] * value_rate
-        async with dialog_manager.middleware_data['session'] as session:
-            order_request = OrderRequestCreate(
-                user_id=message.from_user.id,
-                from_currency="RUB",
-                to_currency="PRIZM",
-                min_limit=dialog_manager.dialog_data['from_value'],
-                max_limit=dialog_manager.dialog_data['to_value'],
-                min_limit_rub=min_limit_rub,
-                max_limit_rub=max_limit_rub,
-                rate=dialog_manager.dialog_data['rate'],
-                status=OrderRequest.IN_PROGRESS
-            )
-            await crud_order_request.create(session, obj_in=order_request)
-            text = "Ваш ордер на покупку PRIZM создан и размещен на бирже"
-            await message.bot.send_message(message.from_user.id, text=text)
-            await dialog_manager.done(show_mode=ShowMode.DELETE_AND_SEND)
+    await dialog_manager.next(show_mode=ShowMode.DELETE_AND_SEND)
 
 
 async def on_sell_card_info_selected(message: Message, text_widget: ManagedTextInput, dialog_manager: DialogManager,
@@ -86,10 +68,17 @@ async def on_sell_card_info_selected(message: Message, text_widget: ManagedTextI
     min_limit_rub = dialog_manager.dialog_data['from_value'] * value_rate
     max_limit_rub = dialog_manager.dialog_data['to_value'] * value_rate
     async with dialog_manager.middleware_data['session'] as session:
+        admin_settings = await crud_settings.get_by_id(session, id=1)
         if dialog_manager.start_data['mode'] == 'sell':
+            from_currency = "PRIZM"
+            to_currency = "RUB"
             wallet_currency = 'RUB'
+            order_request_status = OrderRequest.WAIT_PRIZM
         else:
+            from_currency = "RUB"
+            to_currency = "PRIZM"
             wallet_currency = 'PRIZM'
+            order_request_status = OrderRequest.IN_PROGRESS
         wallet = await crud_wallet.get_by_user_id_currency(session, currency=wallet_currency,
                                                            user_id=dialog_manager.middleware_data['user_db'].id)
         if not wallet:
@@ -100,19 +89,25 @@ async def on_sell_card_info_selected(message: Message, text_widget: ManagedTextI
 
         order_request = OrderRequestCreate(
             user_id=message.from_user.id,
-            from_currency="PRIZM",
-            to_currency="RUB",
+            from_currency=from_currency,
+            to_currency=to_currency,
             min_limit=dialog_manager.dialog_data['from_value'],
             max_limit=dialog_manager.dialog_data['to_value'],
             min_limit_rub=min_limit_rub,
             max_limit_rub=max_limit_rub,
             rate=dialog_manager.dialog_data['rate'],
-            status=OrderRequest.WAIT_PRIZM
+            status=order_request_status
         )
         order_request = await crud_order_request.create(session, obj_in=order_request)
-
-    text = (f"Переведите {dialog_manager.dialog_data['to_value']} PRIZM "
-            f"на кошелек сервиса: \n{settings.PRIZM_WALLET_ADDRESS}\n "
-            f"Комментарий платежа: request:{order_request.user_id}:{order_request.id}")
-    await message.bot.send_message(message.from_user.id, text=text)
+    if dialog_manager.start_data['mode'] == 'sell':
+        text = (f"Переведите {dialog_manager.dialog_data['to_value']} PRIZM. Без комментария платеж потеряется!\n"
+                f"На кошелек сервиса:\n<b>{settings.PRIZM_WALLET_ADDRESS}</b>\n"
+                f"Комментарий платежа:\n<b>request:{order_request.user_id}:{order_request.id}</b>\n\n"
+                f"⏳Перевод надо совершить в течении {admin_settings.pay_wait_time} минут.")
+        await message.bot.send_message(message.from_user.id, text=text, parse_mode='html')
+        await message.bot.send_message(message.from_user.id, settings.PRIZM_WALLET_ADDRESS)
+        await message.bot.send_message(message.from_user.id, f"request:{order_request.user_id}:{order_request.id}")
+    else:
+        text = f"Ваш ордер №{order_request.id} на покупку PRIZM создан и размещен на бирже"
+        await message.bot.send_message(message.from_user.id, text=text)
     await dialog_manager.done(show_mode=ShowMode.DELETE_AND_SEND)

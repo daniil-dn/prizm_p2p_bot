@@ -4,9 +4,7 @@ from logging import getLogger
 
 from aiogram import Bot
 
-from app.bot.handlers.orders import accept_order_payment_cb
-from app.bot.handlers.orders.accept_order_payment import accept_card_transfer_recieved_cb
-from app.bot.ui import sent_card_transfer, recieved_card_transfer
+from app.bot.ui import sent_card_transfer
 from app.core.config import settings
 from app.core.dao import crud_transaction, crud_order, crud_order_request, crud_user
 from app.core.dao.crud_wallet import crud_wallet
@@ -18,7 +16,7 @@ from app.prizm_check_scheduler.prizm_fetcher import PrizmWalletFetcher
 logger = getLogger(__name__)
 
 
-class Scheduler():
+class Scheduler:
     async def start(self):
         while True:
             await self.check_prizm_wallet()
@@ -44,6 +42,7 @@ class Scheduler():
                                                                               transaction['transaction'])
                     decrypted_message = decrypted_message_data['decryptedMessage'] if decrypted_message_data.get(
                         "errorCode") is None else None
+                    # decrypted_message = "request:6185258473:51"
                     from_message_order_id = None
                     from_user_id = None
                     txn_type = None
@@ -85,19 +84,19 @@ class Scheduler():
                         await crud_user.update(db=session, db_obj=user, obj_in={"balance": user_balance})
 
                         if order and order.mode == "sell" and order.status != Order.IN_PROGRESS:
-                            if user_balance >= order.to_value:
+                            if user_balance >= order.prizm_value:
                                 await crud_order.update(db=session, db_obj=order, obj_in={"status": Order.IN_PROGRESS})
                                 await bot.send_message(transfer_user_id,
-                                                       f"Вы перевели PRIZM в бота. Ждите перевода на карту")
+                                                       f"Ордер №{order.id}. Вы перевели PRIZM в бота. Ждите перевода на карту")
                                 buyer_wallet = await crud_wallet.get_by_user_id_currency(db=session,
                                                                                          user_id=order.from_user_id,
                                                                                          currency=order.from_currency)
                                 await bot.send_message(order.from_user_id,
-                                                       f"Продавец перевел PRIZM. Переведите {order.to_value} {order.from_currency} на карту: {buyer_wallet.value}",
+                                                       f"Продавец перевел PRIZM. Переведите {order.rub_value} 'RUB' на карту: {buyer_wallet.value}",
                                                        reply_markup=sent_card_transfer(order.id))
                             else:
                                 await bot.send_message(transfer_user_id,
-                                                       f"Вы внесли недостаточное кол-во монет PRIZM {order.from_value}. Вы перевели {user_balance}")
+                                                       f"Вы внесли недостаточное кол-во монет PRIZM {order.prizm_value}. Вы перевели {user_balance}")
 
 
                     elif txn_type and txn_type == "order_request":
@@ -113,7 +112,7 @@ class Scheduler():
                                                                                 "max_limit_rub": min(user_balance_rub,
                                                                                                      order_request.max_limit_rub)})
                         await bot.send_message(order_request.user_id,
-                                               f"Ваш Ордер размещен. Лимит корректирован от суммы платежа. Текущий лимит от {order_request.min_limit} до {order_request.max_limit}")
+                                               f"Ваш Ордер №{order_request.id} размещен. Лимит корректирован от суммы платежа. Текущий лимит от {order_request.min_limit} до {order_request.max_limit}")
 
                 else:
                     logger.info(f"Транзакция {transaction['transaction']} уже существует в БД.")

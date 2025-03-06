@@ -14,4 +14,4 @@ async def buy_sell_mode_cb(cb: CallbackQuery, bot: Bot, state: FSMContext, user_
                            dialog_manager: DialogManager) -> None:
     await state.clear()
     mode = cb.data.split('_')[1]
-    await dialog_manager.start(state=BuyState.from_value, mode=StartMode.RESET_STACK, data={"mode": mode})
+    await dialog_manager.start(state=BuyState.exact_value, mode=StartMode.RESET_STACK, data={"mode": mode})
