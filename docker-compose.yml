@@ -6,7 +6,6 @@ networks:
 
 services:
   app:
-    image: prizm-p2p-bot
     restart: always
     depends_on:
       - db
@@ -14,7 +13,6 @@ services:
     networks:
       - default
   scheduler:
-    image: prizm-p2p-scheduler
     restart: always
     depends_on:
       - db
