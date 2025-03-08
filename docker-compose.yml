@@ -10,7 +10,7 @@ services:
     restart: always
     depends_on:
       - db
-    command: python app/main.py bot
+    command: python main.py bot
     networks:
       - default
   scheduler:
@@ -18,7 +18,7 @@ services:
     restart: always
     depends_on:
       - db
-    command: python app/main.py prizm_check_scheduler
+    command: python main.py prizm_check_scheduler
     networks:
       - default
 
