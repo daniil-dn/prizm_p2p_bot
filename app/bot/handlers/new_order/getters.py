@@ -6,7 +6,6 @@ from app.utils.coinmarketcap import get_currency_rate
 
 
 async def get_mode(dialog_manager: DialogManager, **kwargs):
-    """Получение списка столов с учетом выбранной вместимости."""
     return {"mode": dialog_manager.start_data['mode']}
 
 

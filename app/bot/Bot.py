@@ -1,6 +1,6 @@
 import aiogram
 from aiogram.fsm.storage.base import DefaultKeyBuilder
-from aiogram_dialog import Dialog, setup_dialogs
+from aiogram_dialog import setup_dialogs
 from aiogram.fsm.storage.redis import RedisStorage
 from redis.asyncio.client import Redis
 

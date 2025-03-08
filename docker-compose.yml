@@ -5,14 +5,22 @@ networks:
     name: copy_bot
 
 services:
-  #  app:
-  #    image: copy_bot
-  #    restart: always
-  #    depends_on:
-  #      - db
-  #    command: python app/main.py bot
-  #    networks:
-  #      - default
+  app:
+    image: prizm-p2p-bot
+    restart: always
+    depends_on:
+      - db
+    command: python app/main.py bot
+    networks:
+      - default
+  scheduler:
+    image: prizm-p2p-scheduler
+    restart: always
+    depends_on:
+      - db
+    command: python app/main.py prizm_check_scheduler
+    networks:
+      - default
 
   db:
     image: postgres:13

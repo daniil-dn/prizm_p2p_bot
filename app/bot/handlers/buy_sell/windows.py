@@ -1,19 +1,17 @@
-from datetime import date, timedelta, timezone
-from aiogram_dialog import Window, ShowMode
+from aiogram_dialog import ShowMode
 from typing import Any
-from aiogram_dialog.widgets.kbd import Button, Group, ScrollingGroup, Select, Calendar, CalendarConfig, Back, Cancel, \
-    Next, StubScroll, LastPage, NextPage, CurrentPage, PrevPage, FirstPage, Row, Column, NumberedPager
-from aiogram_dialog.widgets.text import Const, Format, Case, Text
+from aiogram_dialog.widgets.kbd import Group, Select, Back, \
+    StubScroll, LastPage, NextPage, PrevPage, FirstPage, Row, Column, NumberedPager
+from aiogram_dialog.widgets.text import Const, Format, Case
 from aiogram_dialog.widgets.input import TextInput
 from aiogram_dialog.widgets.kbd import Button
 from aiogram.types import Message
 from aiogram_dialog import (
-    Dialog,
     DialogManager,
     Window
 )
 
-from app.bot.handlers.buy_sell.getters import get_orders_getter, get_mode
+from app.bot.handlers.buy_sell.getters import get_orders_getter, get_mode, get_order_accept_wait_time
 from app.bot.handlers.buy_sell.handlers import cancel_logic, \
     process_order_request_selected, \
     on_card_info_input, on_back, on_accept_order_request_input, on_value_selected
@@ -68,11 +66,11 @@ def get_wallet_info() -> Window:
 def orders_list() -> Window:
     """Окно выбора количества гостей."""
     return Window(
-        Const("Поиск ордеров по вашему запросу:"),
+        Format("Поиск ордеров по вашему запросу:\n{all_orders_text}"),
         Group(
             Column(
                 Select(
-                    Format("{item[order_text]}"),
+                    Format("✅{item[order_text]}"),
                     id="order_select",
                     item_id_getter=lambda item: str(item["id"]),
                     items="orders",
@@ -111,9 +109,11 @@ def orders_list() -> Window:
 
 def get_exactly_value() -> Window:
     return Window(
-        Button(Const("✅Подтвердить"), id="accept_order", on_click=on_accept_order_request_input),
+        Format("Подтвердите ордер. У вас есть {wait_time} минут на подтверждение"),
+        Button(text=Const("✅Подтвердить"), id="accept_order", on_click=on_accept_order_request_input),
         Button(Const("❌ Отмена"), id="cancel", on_click=cancel_logic),
         Button(Const("❌ Назад"), id="back", on_click=Back(show_mode=ShowMode.DELETE_AND_SEND)),
 
-        state=BuyState.order_exact_value,
+        state=BuyState.accept_order_request,
+        getter=get_order_accept_wait_time
     )

@@ -2,7 +2,6 @@ from aiogram import Router, Bot, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, StartMode
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.bot.handlers.admin.state import AdminSettingsState
 from app.bot.middlewares.check_admin import check_admin

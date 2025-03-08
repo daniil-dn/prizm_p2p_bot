@@ -1,5 +1,4 @@
 from aiogram import Router, Bot, F
-from aiogram.filters import CommandStart, Command, Filter
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 

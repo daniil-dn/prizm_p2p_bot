@@ -1,15 +1,9 @@
-from datetime import date, timedelta, timezone
-
-from aiogram import F
-from aiogram_dialog import Window, ShowMode
 from typing import Any
-from aiogram_dialog.widgets.kbd import Button, Group, ScrollingGroup, Select, Calendar, CalendarConfig, Back, Cancel, \
-    Next, StubScroll, LastPage, NextPage, CurrentPage, PrevPage, FirstPage, Row, Column, NumberedPager
-from aiogram_dialog.widgets.text import Const, Format, Case
+from aiogram_dialog.widgets.kbd import Button
+from aiogram_dialog.widgets.text import Const
 from aiogram_dialog.widgets.input import TextInput
 from aiogram.types import Message
 from aiogram_dialog import (
-    Dialog,
     DialogManager,
     Window
 )

@@ -1,7 +1,6 @@
 from aiogram import Router, Bot, F
-from aiogram.filters import CommandStart, Command, Filter
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import CallbackQuery
 
 from app.bot.ui import admin_panel_commot_kb
 from app.core.models import User

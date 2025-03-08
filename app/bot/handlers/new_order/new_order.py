@@ -1,15 +1,12 @@
 from aiogram import Router, Bot, F
-from aiogram.filters import CommandStart, Command, Filter
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager, StartMode
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.bot.handlers.new_order.state import NewOrderState
 from app.bot.ui import new_order_sell_buy_kb
-from app.core.dao import crud_order, crud_user
-from app.core.dao.crud_wallet import crud_wallet
-from app.core.models import User, Order
+from app.core.models import User
 
 router = Router()
 

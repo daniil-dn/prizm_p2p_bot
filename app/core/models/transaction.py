@@ -1,11 +1,8 @@
 from sqlalchemy import Column, DateTime, BigInteger, func, ForeignKey, \
     Numeric, String, JSON
 
-from sqlalchemy.orm import relationship, Mapped
-
 from app.core.db.base_class import Base
 from app.core.models.model_base import ModelBase
-from app.core.models.user import User
 
 
 class Transaction(Base, ModelBase):

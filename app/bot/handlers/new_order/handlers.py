@@ -1,21 +1,18 @@
-from datetime import date
-from decimal import Decimal
 from logging import getLogger
 
 from aiogram.types import CallbackQuery, Message
 from aiogram_dialog import DialogManager, ShowMode
 from aiogram_dialog.widgets.kbd import Button
 from aiogram_dialog.widgets.input import ManagedTextInput
-from redis.utils import dict_merge
 
-from app.bot.handlers.new_order.state import NewOrderState
 from app.bot.handlers.common import start_cmd
-from app.bot.ui import order_seller_accept_kb
+from app.bot.ui import get_menu_kb
+from app.bot.ui.texts import get_start_text
 from app.core.config import settings
-from app.core.dao import crud_order_request, crud_order, crud_settings
+from app.core.dao import crud_order_request, crud_settings
 from app.core.dao.crud_wallet import crud_wallet
-from app.core.dto import OrderCreate, WalletCreate, OrderRequestCreate
-from app.core.models import OrderRequest, Order
+from app.core.dto import WalletCreate, OrderRequestCreate
+from app.core.models import OrderRequest, User
 from app.utils.coinmarketcap import get_currency_rate, rate_difference
 
 logger = getLogger(__name__)
@@ -25,7 +22,7 @@ async def cancel_logic(callback: CallbackQuery, button: Button, dialog_manager: 
     await callback.message.answer("Вы отменили создание ордера")
     await dialog_manager.done()
     await start_cmd(callback.message, callback.bot, dialog_manager.middleware_data['state'],
-                    dialog_manager.middleware_data['user_db'])
+                    dialog_manager.middleware_data['user_db'], dialog_manager)
 
 
 async def on_back(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
@@ -33,13 +30,11 @@ async def on_back(callback: CallbackQuery, button: Button, dialog_manager: Dialo
 
 
 async def on_from_value_selected(message: Message, text_widget: ManagedTextInput, dialog_manager: DialogManager, data):
-    """Обработчик выбора количества гостей."""
     dialog_manager.dialog_data['from_value'] = text_widget.get_value()
     await dialog_manager.next(show_mode=ShowMode.DELETE_AND_SEND)
 
 
 async def on_to_value_selected(message: Message, text_widget: ManagedTextInput, dialog_manager: DialogManager, data):
-    """Обработчик выбора количества гостей."""
     dialog_manager.dialog_data['to_value'] = text_widget.get_value()
 
     await dialog_manager.next(show_mode=ShowMode.DELETE_AND_SEND)
@@ -62,11 +57,11 @@ async def on_rate_selected(message: Message, text_widget: ManagedTextInput, dial
 
 async def on_sell_card_info_selected(message: Message, text_widget: ManagedTextInput, dialog_manager: DialogManager,
                                      data):
-    """Обработчик выбора количества гостей."""
     sell_card_info = text_widget.get_value()
     value_rate = dialog_manager.dialog_data['rate']
     min_limit_rub = dialog_manager.dialog_data['from_value'] * value_rate
     max_limit_rub = dialog_manager.dialog_data['to_value'] * value_rate
+    user_db = dialog_manager.middleware_data['user_db']
     async with dialog_manager.middleware_data['session'] as session:
         admin_settings = await crud_settings.get_by_id(session, id=1)
         if dialog_manager.start_data['mode'] == 'sell':
@@ -108,6 +103,11 @@ async def on_sell_card_info_selected(message: Message, text_widget: ManagedTextI
         await message.bot.send_message(message.from_user.id, settings.PRIZM_WALLET_ADDRESS)
         await message.bot.send_message(message.from_user.id, f"request:{order_request.user_id}:{order_request.id}")
     else:
-        text = f"Ваш ордер №{order_request.id} на покупку PRIZM создан и размещен на бирже"
-        await message.bot.send_message(message.from_user.id, text=text)
+        text = (f"Ваш ордер №{order_request.id} на покупку PRIZM создан и размещен на бирже\n"
+                f"Ордер: №{order_request.id}\nКурс 1pzm - {order_request.rate}руб\nЛимит: {order_request.min_limit_rub} - {order_request.max_limit_rub}руб\nЧисло сделок:{user_db.order_count} Число отказов: {user_db.cancel_order_count}\n\n") + get_start_text(
+            user_db.balance, user_db.order_count,
+            user_db.cancel_order_count)
+
+        await message.bot.send_message(message.from_user.id, text=text,
+                                       reply_markup=get_menu_kb(is_admin=user_db.role == User.ADMIN_ROLE))
     await dialog_manager.done(show_mode=ShowMode.DELETE_AND_SEND)

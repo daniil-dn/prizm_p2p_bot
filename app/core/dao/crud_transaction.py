@@ -1,11 +1,11 @@
 from logging import getLogger
-from typing import List, Optional
+from typing import Optional
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 # app
-from app.core.models import Wallet, Transaction
+from app.core.models import Transaction
 from app.core import dto
 from app.core.dao.base import CRUDBase
 

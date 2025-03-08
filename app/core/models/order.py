@@ -12,8 +12,8 @@ class Order(Base, ModelBase):
     ACCEPTED = 2
     IN_PROGRESS = 3
     WAIT_DONE_TRANSFER = 4
-    DONE = 4
-    CANCELED = 4
+    DONE = 5
+    CANCELED = 6
 
     __table_args__ = (
         Index('ix_seller_buyer', "from_user_id", "to_user_id"),
@@ -45,5 +45,5 @@ class Order(Base, ModelBase):
     status = Column(SmallInteger, nullable=False)
     mode = Column(String, nullable=False)
 
-    created_at = Column(DateTime(timezone=True), index=True, default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    created_at = Column(index=True, default=func.now())
+    updated_at = Column(onupdate=func.now())

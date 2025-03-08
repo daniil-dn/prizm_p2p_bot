@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, DateTime, BigInteger, func, Numeric, SmallInteger, Integer
+from sqlalchemy import Column, Numeric, Integer
 
 from app.core.db.base_class import Base
 from app.core.models.model_base import ModelBase

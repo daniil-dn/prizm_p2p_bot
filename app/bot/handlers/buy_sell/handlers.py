@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import datetime
 from decimal import Decimal
 
 from aiogram.types import CallbackQuery, Message
@@ -19,14 +19,15 @@ async def cancel_logic(callback: CallbackQuery, button: Button, dialog_manager: 
     await callback.message.answer("Вы отменили поиск ордеров")
     await dialog_manager.done()
     await start_cmd(callback.message, callback.bot, dialog_manager.middleware_data['state'],
-                    dialog_manager.middleware_data['user_db'])
+                    dialog_manager.middleware_data['user_db'], dialog_manager)
 
 
 async def on_back(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    if dialog_manager.start_data['mode'] == 'sell':
-        await dialog_manager.switch_to(state=BuyState.to_value, show_mode=ShowMode.DELETE_AND_SEND)
-    else:
-        await dialog_manager.back(show_mode=ShowMode.DELETE_AND_SEND)
+    await dialog_manager.back(show_mode=ShowMode.DELETE_AND_SEND)
+    # if dialog_manager.start_data['mode'] == 'sell':
+    #     await dialog_manager.switch_to(state=BuyState.exact_value, show_mode=ShowMode.DELETE_AND_SEND)
+    # else:
+    #     await dialog_manager.back(show_mode=ShowMode.DELETE_AND_SEND)
 
 
 async def on_value_selected(message: Message, text_widget: ManagedTextInput, dialog_manager: DialogManager, data):
@@ -58,50 +59,76 @@ async def on_card_info_input(message: Message, text_widget: ManagedTextInput, di
 
 async def process_order_request_selected(callback: CallbackQuery, widget, dialog_manager: DialogManager, item_id: str):
     dialog_manager.dialog_data['order_id'] = item_id
+    dialog_manager.dialog_data['current_time'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     await dialog_manager.next(show_mode=ShowMode.DELETE_AND_SEND)
 
 
 async def on_accept_order_request_input(cb: CallbackQuery, button, dialog_manager: DialogManager):
     input_value = dialog_manager.dialog_data['exact_value']
+    start_wait_time = datetime.strptime(dialog_manager.dialog_data['current_time'], "%Y-%m-%d %H:%M:%S")
+    order_request_id = dialog_manager.dialog_data['order_id']
+    current_time = datetime.now()
 
     async with dialog_manager.middleware_data['session'] as session:
         settings = await crud_settings.get_by_id(session, id=1)
-        order_request = await crud_order_request.lock_row(session, id=dialog_manager.dialog_data['order_id'])
-        if order_request.status in (OrderRequest.LOCK, OrderRequest.CLOSED):
-            await cb.message.answer(f"Заявка №{order_request.id} заблокирован. Выберите другую заявку")
+        if (current_time - start_wait_time).total_seconds() > settings.order_wait_minutes * 60:
+            await cb.message.answer("Время ожидания истекло. Выберите другую заявку")
             await dialog_manager.switch_to(BuyState.orders_list, show_mode=ShowMode.DELETE_AND_SEND)
             return
-        if not order_request.min_limit_rub <= input_value <= order_request.max_limit_rub:
-            await cb.message.answer(
-                f"Неверная сумма, введите еще раз от {order_request.min_limit_rub} до {order_request.max_limit_rub}")
+        order_request = await crud_order_request.lock_row(session, id=order_request_id)
+        if order_request.status != OrderRequest.IN_PROGRESS:
+            await cb.message.answer(f"Заявка №{order_request.id} заблокирована. Выберите другую заявку")
+            await dialog_manager.switch_to(BuyState.orders_list, show_mode=ShowMode.DELETE_AND_SEND)
             return
 
-        await crud_order_request.update(session, db_obj=order_request, obj_in={'status': OrderRequest.LOCK})
-        prizm_value = dialog_manager.dialog_data['exact_value']
-        value_commission = prizm_value * settings.commission_percent
-        rub_value = dialog_manager.dialog_data['exact_value'] / order_request.rate
+    await crud_order_request.update(session, db_obj=order_request, obj_in={'status': OrderRequest.LOCK})
+    prizm_value = dialog_manager.dialog_data['exact_value']
+    value_commission = prizm_value * settings.commission_percent
+    rub_value = dialog_manager.dialog_data['exact_value'] * order_request.rate
 
-        order = OrderCreate(
-            from_user_id=order_request.user_id,
-            to_user_id=dialog_manager.middleware_data['user_db'].id,
-            from_currency=order_request.from_currency,
-            to_currency=order_request.to_currency,
-            prizm_value=prizm_value,
-            rub_value=rub_value,
-            commission_percent=Decimal(settings.commission_percent),
-            status=Order.CREATED,
-            mode=dialog_manager.start_data['mode'],
-            order_request_id=order_request.id
-        )
-        order = await crud_order.create(session, obj_in=order)
+    order = OrderCreate(
+        from_user_id=order_request.user_id,
+        to_user_id=dialog_manager.middleware_data['user_db'].id,
+        from_currency=order_request.from_currency,
+        to_currency=order_request.to_currency,
+        prizm_value=prizm_value,
+        rub_value=rub_value,
+        commission_percent=Decimal(settings.commission_percent),
+        status=Order.CREATED,
+        mode=dialog_manager.start_data['mode'],
+        order_request_id=order_request.id
+    )
+    order = await crud_order.create(session, obj_in=order)
 
-        if dialog_manager.start_data['mode'] == 'sell':
-            success_text = f"Заявка №{order.id}. Продажа PRIZM\nСумма в prizm: {prizm_value}\nРублей: {rub_value}\n Общая сумма оплаты PRIZM {prizm_value}. Ждите подтверждения покупателя"
-            seller_text = f"Новая заявка №{order.id} на покупку PRIZM\nСумма в рублях: {rub_value}\nКоличество покупаемых монет: {prizm_value}\nВы получите {prizm_value - value_commission} призм. Комиссия сервиса {settings.commission_percent * 100}%.\nКурс в ордере {order_request.rate}"
-        else:
-            success_text = f"Заявка №{order.id}. Покупка PRIZM\nСумма в рублях: {rub_value}\nКоличество покупаемых монет: {prizm_value}\nВы получите {prizm_value - value_commission} призм \nКомиссия сервиса {settings.commission_percent * 100}%.\n Общая сумма оплаты PRIZM {prizm_value} (с комиссией сервиса). Ждите подтверждения продавца"
-            seller_text = f"Новая заявка №{order.id} на продажу PRIZM\nСумма в рублях: {from_value}\n Количество покупаемых монет: {prizm_value}\nКурс в ордере {order_request.rate}"
-        await cb.message.answer(success_text)
-        await cb.message.bot.send_message(order_request.user_id, seller_text,
-                                          reply_markup=order_seller_accept_kb(order.id))
+    if dialog_manager.start_data['mode'] == 'sell':
+        success_text = (f"Ордер №{order.id}.\n"
+                        f"Продажа PRIZM\n"
+                        f"Сумма в PRIZM: {prizm_value}\n"
+                        f"Рублей: {rub_value}\n"
+                        f"Общая сумма оплаты PRIZM {prizm_value}.\n"
+                        f"Ждите подтверждения покупателя")
+        seller_text = (f"Новый Ордер №{order.id} на покупку PRIZM\n"
+                       f"Сумма в рублях: {rub_value}\n"
+                       f"Количество покупаемых монет: {prizm_value}\n"
+                       f"Вы получите {prizm_value - value_commission} призм. \n"
+                       f"Комиссия сервиса {settings.commission_percent * 100}%.\n"
+                       f"Курс в ордере {order_request.rate}\n\n"
+                       f"У Вас {settings.order_wait_minutes} минут чтобы подтвердить заявку.")
+    else:
+        success_text = (f"Ордер №{order.id}. Покупка PRIZM\n"
+                        f"Сумма в рублях: {rub_value}\n"
+                        f"Количество покупаемых монет: {prizm_value}\n"
+                        f"Вы получите {prizm_value - value_commission} призм \n"
+                        f"Комиссия сервиса {settings.commission_percent * 100}%.\n"
+                        f"Общая сумма оплаты PRIZM {prizm_value} (с комиссией сервиса).\n"
+                        f"Ждите подтверждения продавца")
+        seller_text = (f"Новый Ордер №{order.id} на продажу PRIZM\n"
+                       f"Сумма в рублях: {rub_value}\n"
+                       f"Количество покупаемых монет: {prizm_value}\n"
+                       f"Курс в ордере {order_request.rate}\n\n"
+                       f"У Вас {settings.order_wait_minutes} минут чтобы подтвердить заявку.")
+    await cb.message.answer(success_text)
+    await cb.message.bot.send_message(order_request.user_id, seller_text,
+                                      reply_markup=order_seller_accept_kb(order.id))
+
     await dialog_manager.done(show_mode=ShowMode.DELETE_AND_SEND)

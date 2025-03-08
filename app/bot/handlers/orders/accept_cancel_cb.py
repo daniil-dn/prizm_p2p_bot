@@ -1,10 +1,8 @@
 from aiogram import Router, Bot, F
-from aiogram.filters import CommandStart, Command, Filter
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import CallbackQuery
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.bot.handlers.common import start_cmd
 from app.bot.ui import sent_card_transfer, get_menu_kb
 from app.bot.ui.texts import get_start_text
 from app.core.config import settings
@@ -25,7 +23,6 @@ async def accept_cancel_order_cb(cb: CallbackQuery, bot: Bot, state: FSMContext,
             await cb.message.edit_reply_markup(reply_markup=None)
             return
 
-        # todo проверка времени
         if cb.data.split('_')[2] == "accept":
             if order.mode == "sell":
                 await bot.send_message(
@@ -39,7 +36,8 @@ async def accept_cancel_order_cb(cb: CallbackQuery, bot: Bot, state: FSMContext,
                     f"Без комментария платеж потеряется!\n"
                     f"На кошелек сервиса: <b>{settings.PRIZM_WALLET_ADDRESS}</b>\n"
                     f"Комментарий платежа: <b>order:{order.to_user_id}:{order.id}</b>\n\n"
-                    f"⏳Перевод надо совершить в течении {admin_settings.pay_wait_time} минут."
+                    f"⏳Перевод надо совершить в течении {admin_settings.pay_wait_time} минут.",
+                    parse_mode="html"
                 )
                 await bot.send_message(order.to_user_id, settings.PRIZM_WALLET_ADDRESS)
                 await bot.send_message(order.to_user_id, f"order:{order.to_user_id}:{order.id}")
@@ -48,7 +46,8 @@ async def accept_cancel_order_cb(cb: CallbackQuery, bot: Bot, state: FSMContext,
                                                                              user_id=order.from_user_id)
                 await bot.send_message(
                     order.to_user_id,
-                    f"Переведите {order.rub_value} RUB на реквизиты {from_user_wallet.value}",
+                    f"Переведите {order.rub_value} RUB на реквизиты {from_user_wallet.value} \n"
+                    f"⏳Перевод надо совершить в течении {admin_settings.pay_wait_time} минут.",
                     reply_markup=sent_card_transfer(order.id)
                 )
                 await bot.send_message(

@@ -11,12 +11,12 @@ def order_seller_accept_kb(order_id) -> InlineKeyboardMarkup:
 def sent_card_transfer(order_id) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.button(text='✅ Оплатил', callback_data=f"sent_card_transfer_{order_id}")
-    # builder.button(text='❌ Отмена', callback_data=f"cancel_card_transfer_{order_id}")
+    builder.button(text='💬Поддержка', url="https://t.me/Nikita_Kononenko")
     return builder.as_markup()
 
 
 def recieved_card_transfer(order_id) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.button(text='✅ Получил', callback_data=f"card_transfer_recieved_{order_id}")
-    # builder.button(text='❌ Отмена', callback_data=f"cancel_card_transfer_{order_id}")
+    builder.button(text='💬Поддержка', url="https://t.me/Nikita_Kononenko")
     return builder.as_markup()

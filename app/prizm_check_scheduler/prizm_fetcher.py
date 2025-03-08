@@ -1,12 +1,4 @@
-import json
-import ssl
-import requests
 import aiohttp
-import certifi
-from aiohttp import request
-
-from mock_data import MOCK_TRANSACTIONS
-
 
 class PrizmWalletFetcher:
     def __init__(self, base_url):

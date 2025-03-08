@@ -1,7 +1,6 @@
 from logging import getLogger
 
 import aiohttp
-import asyncio
 
 logger = getLogger(__name__)
 

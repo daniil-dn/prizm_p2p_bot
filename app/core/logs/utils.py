@@ -1,7 +1,6 @@
 import logging
 import time
 
-from app.core.config import settings
 from logging import config
 
 

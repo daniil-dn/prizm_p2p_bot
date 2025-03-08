@@ -1,15 +1,10 @@
-from datetime import date, timedelta, timezone
-
-from aiogram import F
-from aiogram_dialog import Window, ShowMode
+from aiogram_dialog import ShowMode
 from typing import Any
-from aiogram_dialog.widgets.kbd import Button, Group, ScrollingGroup, Select, Calendar, CalendarConfig, Back, Cancel, \
-    Next, StubScroll, LastPage, NextPage, CurrentPage, PrevPage, FirstPage, Row, Column, NumberedPager
+from aiogram_dialog.widgets.kbd import Button, Back
 from aiogram_dialog.widgets.text import Const, Format, Case
 from aiogram_dialog.widgets.input import TextInput
 from aiogram.types import Message
 from aiogram_dialog import (
-    Dialog,
     DialogManager,
     Window
 )
@@ -26,15 +21,24 @@ async def error(
         manager: DialogManager,
         error_: ValueError
 ):
-    await message.answer("Введите корректную сумму")
+    await message.answer("Введите корректную сумму.")
+
+
+async def error_rate(
+        message: Message,
+        dialog_: Any,
+        manager: DialogManager,
+        error_: ValueError
+):
+    await message.answer("Введите курс с точкой")
 
 
 def get_from_value() -> Window:
     return Window(
         Case(
             {
-                'buy': Const("Укажите от какой суммы покупка PRIZM"),
-                'sell': Const("Укажите от какой суммы продажа PRIZM"),
+                'buy': Const("Укажите от какой суммы покупка в PRIZM"),
+                'sell': Const("Укажите от какой суммы продажа в PRIZM"),
             },
             selector='mode',
         ),
@@ -68,9 +72,9 @@ def get_to_value() -> Window:
 def get_rate() -> Window:
     return Window(
         Format(
-            "Укажите желаемую стоимость PRIZM.\nТекущий курс <b>{prizm_rate}</b>.\nРазница указанного курса не должна отличаться более чем на <b>{prizm_rate_diff_percent}</b>%"),
+            "Укажите желаемую стоимость PRIZM в рублях.\nТекущий курс <b>{prizm_rate}</b> PZM/RUB https://coinmarketcap.com/currencies/prizm .\nРазница указанного вами курса не должна отличаться более чем на <b>{prizm_rate_diff_percent}</b>%"),
 
-        TextInput(id="rate", on_success=on_rate_selected, on_error=error,
+        TextInput(id="rate", on_success=on_rate_selected, on_error=error_rate,
                   type_factory=float),
         Button(Const("❌ Отмена"), id="cancel", on_click=cancel_logic),
         Button(Const("❌ Назад"), id="back", on_click=Back(show_mode=ShowMode.DELETE_AND_SEND)),

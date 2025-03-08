@@ -1,4 +1,3 @@
-from aiogram import Bot
 from functools import wraps
 
 from app.core.models import User
