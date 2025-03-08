@@ -3,6 +3,7 @@ version: '3.5'
 networks:
   default:
     name: copy_bot
+    external: true
 
 services:
   app:
@@ -32,7 +33,7 @@ services:
     environment:
       - POSTGRES_PORT=5434
       - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_PASSWORD=lQ1IEcHimk9aWKV
       - POSTGRES_DB=prizm_p2p_bot_db
 
     networks:
@@ -45,7 +46,7 @@ services:
     volumes:
       - redis_data:/data
     command: >
-      --requirepass redis12345
+      --requirepass lQ1IEcHimk9aWKV
     networks:
       - default
 
