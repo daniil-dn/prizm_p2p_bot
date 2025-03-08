@@ -18,7 +18,7 @@ services:
     restart: always
     depends_on:
       - db
-    command: python main.py prizm_check_scheduler
+    command: python smain.py prizm_check_scheduler
     networks:
       - default
 
@@ -46,7 +46,8 @@ services:
       - redis_data:/data
     command: >
       --requirepass redis12345
-
+    networks:
+      - default
 
 volumes:
   redis_data: { }
