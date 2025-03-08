@@ -6,6 +6,7 @@ networks:
 
 services:
   app:
+    build: .
     restart: always
     depends_on:
       - db
@@ -13,6 +14,7 @@ services:
     networks:
       - default
   scheduler:
+    build: .
     restart: always
     depends_on:
       - db
