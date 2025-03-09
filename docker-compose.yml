@@ -6,6 +6,7 @@ networks:
     external: true
 
 services:
+
   app:
     build: .
     restart: always
@@ -14,6 +15,8 @@ services:
     command: python main.py bot
     networks:
       - default
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
   scheduler:
     build: .
     restart: always
@@ -22,7 +25,8 @@ services:
     command: python main.py prizm_check_scheduler
     networks:
       - default
-
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
   db:
     image: postgres:13
     restart: always
