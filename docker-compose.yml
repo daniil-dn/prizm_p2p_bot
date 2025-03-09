@@ -22,7 +22,6 @@ services:
     command: python main.py prizm_check_scheduler
     networks:
       - default
-      -
   db:
     image: postgres:13
     restart: always
@@ -31,7 +30,7 @@ services:
     volumes:
       - copy_db:/var/lib/postgresql/data
     environment:
-      - POSTGRES_PORT=5434
+      - POSTGRES_PORT=5438
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=lQ1IEcHimk9aWKV
       - POSTGRES_DB=prizm_p2p_bot_db
