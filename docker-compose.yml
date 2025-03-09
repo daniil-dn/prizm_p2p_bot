@@ -3,7 +3,6 @@ version: '3.5'
 networks:
   default:
     name: p2p_prizm_bot
-    external: true
 
 services:
 
@@ -15,8 +14,6 @@ services:
     command: python main.py bot
     networks:
       - default
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
   scheduler:
     build: .
     restart: always
@@ -25,8 +22,7 @@ services:
     command: python main.py prizm_check_scheduler
     networks:
       - default
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      -
   db:
     image: postgres:13
     restart: always
