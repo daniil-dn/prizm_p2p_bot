@@ -1,10 +1,5 @@
 version: '3.5'
 
-networks:
-  default:
-    name: copy_bot
-    external: true
-
 services:
   app:
     build: .
