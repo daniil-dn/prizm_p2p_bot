@@ -14,8 +14,8 @@ class Transaction(Base, ModelBase):
     value = Column(Numeric(18, 4, asdecimal=False), nullable=False)
     fee = Column(Numeric(18, 4, asdecimal=False), nullable=False)
 
-    order_id = Column(ForeignKey('order.id'), index=True, nullable=True)
-    order_request_id = Column(ForeignKey('order_request.id'), index=True, nullable=True)
+    order_id = Column(BigInteger, index=True, nullable=True)
+    order_request_id = Column(BigInteger, index=True, nullable=True)
     user_id = Column(BigInteger, index=True, nullable=True)
 
     message_text = Column(String, nullable=True)
