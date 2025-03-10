@@ -84,6 +84,10 @@ class Scheduler:
 
                         if txn_type and txn_type == "order":
                             order = await crud_order.get_by_id(db=session, id=int(from_message_order_id))
+                            if not order:
+                                logger.error(
+                                    f"Возникли проблемы с транзакцией {transaction.transaction_id}. Такого ордера не существует: {transaction.order_id}")
+                                continue
                             transfer_user_id = order.to_user_id
                             user = await crud_user.lock_row(db=session, id=transfer_user_id)
                             user_balance = user.balance + exist_transaction.value
@@ -109,24 +113,37 @@ class Scheduler:
                         elif txn_type and txn_type == "order_request":
                             order_request = await crud_order_request.get_by_id(db=session,
                                                                                id=int(from_message_order_id))
-                            user = await crud_user.lock_row(db=session, id=order_request.user_id)
-                            user_balance = user.balance + exist_transaction.value
-                            await crud_user.update(db=session, db_obj=user, obj_in={"balance": user_balance})
-                            user_balance_rub = order_request.max_limit * order_request.rate
-                            order_request = await crud_order_request.update(db=session, db_obj=order_request,
-                                                                            obj_in={"status": OrderRequest.IN_PROGRESS,
+                            if order_request:
+                                user = await crud_user.lock_row(db=session, id=order_request.user_id)
+                                user_balance = user.balance + exist_transaction.value
+                                await crud_user.update(db=session, db_obj=user, obj_in={"balance": user_balance})
+                                user_balance_rub = order_request.max_limit * order_request.rate
+                                order_request = await crud_order_request.update(db=session, db_obj=order_request,
+                                                                                obj_in={
+                                                                                    "status": OrderRequest.IN_PROGRESS,
                                                                                     "max_limit": min(user_balance,
                                                                                                      order_request.max_limit),
                                                                                     "max_limit_rub": min(
                                                                                         user_balance_rub,
                                                                                         order_request.max_limit_rub)})
-                            await bot.send_message(order_request.user_id,
-                                                   f"Ваш Ордер №{order_request.id} размещен. Лимит скорректирован от суммы платежа. Текущий лимит от {order_request.min_limit} до {order_request.max_limit} PRIZM\n\n"
-                                                   f"Ордер: №{order_request.id}\nКурс 1pzm - {order_request.rate}руб\nЛимит: {order_request.min_limit_rub} - {order_request.max_limit_rub}руб\nЧисло сделок:{user.order_count} Число отказов: {user.cancel_order_count}\n\n" + get_start_text(
-                                                       user.balance, user.order_count,
-                                                       user.cancel_order_count),
-                                                   reply_markup=get_menu_kb(is_admin=user.role == User.ADMIN_ROLE))
+                                text = (
+                                    f"Ваш Ордер №{order_request.id} размещен. Лимит скорректирован от суммы платежа. Текущий лимит от {order_request.min_limit} до {order_request.max_limit} PRIZM\n\n"
+                                    f"Ордер: №{order_request.id}\nКурс 1pzm - {order_request.rate}руб\nЛимит: {order_request.min_limit_rub} - {order_request.max_limit_rub}руб\nЧисло сделок:{user.order_count} Число отказов: {user.cancel_order_count}\n\n")
 
+                            else:
+                                logger.error(
+                                    f"Возникли проблемы с транзакцией {transaction.transaction_id}. Такого ордер request не существует: {transaction.order_id}. Error: {str(err)}")
+                                text = "Возникли проблемы с транзакцией. Обратитесь в поддержку"
+                            try:
+                                await bot.send_message(order_request.user_id,
+                                                       text + get_start_text(
+                                                           user.balance, user.order_count,
+                                                           user.cancel_order_count),
+                                                       reply_markup=get_menu_kb(is_admin=user.role == User.ADMIN_ROLE))
+                            except Exception as err:
+                                logger.error(
+                                    f"OrderRequest не существует. Error: {str(err)}")
+                                continue
 
                     else:
                         logger.info(f"Транзакция {transaction['transaction']} уже существует в БД.")
