@@ -19,7 +19,7 @@ def check_card_format(text):
 
 def check_wallet_format(text):
     # Регулярное выражение для проверки формата кошелька
-    pattern = r'^[A-Z]{5}-[0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{5}$'
+    pattern = r'^[A-Z]{5}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{5}$'
 
     # Выполняем проверку
     return bool(re.match(pattern, text))
