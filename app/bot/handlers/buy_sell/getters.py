@@ -47,7 +47,10 @@ async def get_orders_getter(dialog_manager: DialogManager, **kwargs):
 
 
 async def get_mode(dialog_manager: DialogManager, **kwargs):
-    return {"mode": dialog_manager.start_data['mode']}
+    mode = dialog_manager.start_data['mode']
+    if dialog_manager.dialog_data['card_method'] == "sbp":
+        mode = "sbp"
+    return {"mode": mode}
 
 
 async def get_order_accept_wait_time(dialog_manager: DialogManager, **kwargs):
