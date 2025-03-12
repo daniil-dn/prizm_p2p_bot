@@ -23,3 +23,9 @@ async def admin_menu_cb(cb: CallbackQuery, bot: Bot, state: FSMContext, user_db:
         await dialog_manager.start(state=AdminSettingsState.new_pay_order_time, mode=StartMode.RESET_STACK)
     elif admin_command == 'new-rate-diff':
         await dialog_manager.start(state=AdminSettingsState.new_prizm_rate_diff_value, mode=StartMode.RESET_STACK)
+
+    elif admin_command == 'add-admin-by-username':
+        await dialog_manager.start(state=AdminSettingsState.add_admin_by_username, mode=StartMode.RESET_STACK)
+
+    elif admin_command == 'remove-admin-by-username':
+        await dialog_manager.start(state=AdminSettingsState.remove_admin_by_username, mode=StartMode.RESET_STACK)

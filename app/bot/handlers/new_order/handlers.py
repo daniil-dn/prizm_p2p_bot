@@ -95,10 +95,13 @@ async def on_sell_card_info_selected(message: Message, text_widget: ManagedTextI
         )
         order_request = await crud_order_request.create(session, obj_in=order_request)
     if dialog_manager.start_data['mode'] == 'sell':
-        text = (f"Переведите {dialog_manager.dialog_data['to_value']} PRIZM. Без комментария платеж потеряется!\n"
-                f"На кошелек сервиса:\n<b>{settings.PRIZM_WALLET_ADDRESS}</b>\n"
-                f"Комментарий платежа:\n<b>request:{order_request.user_id}:{order_request.id}</b>\n\n"
-                f"⏳Перевод надо совершить в течении {admin_settings.pay_wait_time} минут.")
+        value_with_commission = dialog_manager.dialog_data['to_value'] + dialog_manager.dialog_data[
+            'to_value'] * admin_settings.commission_percent
+        text = (
+            f"Переведите {value_with_commission} PZM c коммиссией сервиса {admin_settings.commission_percent * 100}%\nБез комментария платеж потеряется!\n"
+            f"На кошелек сервиса:\n<b>{settings.PRIZM_WALLET_ADDRESS}</b>\n"
+            f"Комментарий платежа:\n<b>request:{order_request.user_id}:{order_request.id}</b>\n\n"
+            f"⏳Перевод надо совершить в течении {admin_settings.pay_wait_time} минут.")
         await message.bot.send_message(message.from_user.id, text=text, parse_mode='html')
         await message.bot.send_message(message.from_user.id, settings.PRIZM_WALLET_ADDRESS)
         await message.bot.send_message(message.from_user.id, f"request:{order_request.user_id}:{order_request.id}")

@@ -10,6 +10,10 @@ def admin_panel_commot_kb() -> InlineKeyboardMarkup:
     builder.button(text='💳Изменить время ожидания оплаты', callback_data=f"admin_panel_command_new-pay-order-wait-time")
     builder.button(text='⏳Изменить время подтверждения ордера',
                    callback_data=f"admin_panel_command_new-order-wait-time")
+    builder.button(text='🧑‍🏭Добавить админа',
+                   callback_data=f"admin_panel_command_add-admin-by-username")
+    builder.button(text='🗑Удалить админа',
+                   callback_data=f"admin_panel_command_remove-admin-by-username")
     builder.button(text='🔙Назад',
                    callback_data=f"start_bot")
 

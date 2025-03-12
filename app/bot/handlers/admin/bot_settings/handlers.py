@@ -5,7 +5,8 @@ from aiogram_dialog.widgets.input import ManagedTextInput
 
 from app.bot.handlers.common import start_cmd
 from app.bot.ui import admin_panel_commot_kb
-from app.core.dao import crud_settings
+from app.core.dao import crud_settings, crud_user
+from app.core.models import User
 
 
 async def cancel_logic(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
@@ -51,4 +52,32 @@ async def on_prizm_rate_diff_value(message: Message, text_widget: ManagedTextInp
     async with dialog_manager.middleware_data['session'] as session:
         await crud_settings.update(session, obj_in={"id": 1, "prizm_rate_diff": new_value / 100})
     await message.answer("Ваши изменения применены", reply_markup=admin_panel_commot_kb())
+    await dialog_manager.done(show_mode=ShowMode.DELETE_AND_SEND)
+
+
+async def on_add_admin_username_value(message: Message, text_widget: ManagedTextInput,
+                                      dialog_manager: DialogManager, data):
+    new_value = text_widget.get_value()
+    async with dialog_manager.middleware_data['session'] as session:
+        user_by_username = await crud_user.get_by_username(session, username=new_value)
+        if not user_by_username:
+            await message.answer("Пользователь не найден")
+            return
+        await crud_user.update(session, db_obj=user_by_username, obj_in={"role": User.ADMIN_ROLE})
+
+    await message.answer(f"Ваши изменения применены. {new_value} админ", reply_markup=admin_panel_commot_kb())
+    await dialog_manager.done(show_mode=ShowMode.DELETE_AND_SEND)
+
+
+async def on_remove_admin_username_value(message: Message, text_widget: ManagedTextInput,
+                                         dialog_manager: DialogManager, data):
+    new_value = text_widget.get_value()
+    async with dialog_manager.middleware_data['session'] as session:
+        user_by_username = await crud_user.get_by_username(session, username=new_value)
+        if not user_by_username:
+            await message.answer("Пользователь не найден")
+            return
+        await crud_user.update(session, db_obj=user_by_username, obj_in={"role": User.USER_ROLE})
+
+    await message.answer(f"Ваши изменения применены. {new_value} не админ", reply_markup=admin_panel_commot_kb())
     await dialog_manager.done(show_mode=ShowMode.DELETE_AND_SEND)

@@ -23,7 +23,7 @@ async def accept_order_payment_cb(cb: CallbackQuery, bot: Bot, state: FSMContext
                                   session: AsyncSession) -> None:
     async with session:
         order = await crud_order.get_by_id(session, id=int(cb.data.split('_')[-1]))
-        await crud_order.update(db=session, db_obj=order, obj_in={"status": Order.IN_PROGRESS})
+        order = await crud_order.update(db=session, db_obj=order, obj_in={"status": Order.WAIT_DONE_TRANSFER})
     card_info_user_text = f"Проверьте перевод средств на карту. Ордер: №{order.id} "
     if order.mode == "buy":
         await bot.send_message(order.from_user_id, card_info_user_text, reply_markup=recieved_card_transfer(order.id))
@@ -39,21 +39,25 @@ async def accept_card_transfer_recieved_cb(cb: CallbackQuery, bot: Bot, state: F
                                            session: AsyncSession) -> None:
     # await cb.message.edit_reply_markup(reply_markup=None)
     main_secret_phrase = settings.PRIZM_WALLET_SECRET_ADDRESS
+    payout_wallet = settings.PRIZM_WALLET_ADDRESS_PAYOUT
     async with session:
         order = await crud_order.lock_row(session, id=int(cb.data.split('_')[-1]))
-        if order.status != Order.IN_PROGRESS:
+        if order.status != Order.WAIT_DONE_TRANSFER:
             try:
                 await cb.message.edit_reply_markup(reply_markup=None)
             except Exception:
                 pass
             finally:
                 return
+
         buyer_id = order.from_user_id if order.mode == 'sell' else order.to_user_id
         seller_id = order.to_user_id if order.mode == 'sell' else order.from_user_id
         prizm_value = order.prizm_value
         seller = await crud_user.lock_row(session, id=seller_id)
-        await crud_user.update(session, db_obj=seller,
-                               obj_in={'balance': seller.balance - prizm_value, "order_count": seller.order_count + 1})
+        payout_value = prizm_value * order.commission_percent
+        seller = await crud_user.update(session, db_obj=seller,
+                                        obj_in={'balance': seller.balance - (prizm_value + payout_value),
+                                                "order_count": seller.order_count + 1})
         order = await crud_order.update(session, db_obj=order, obj_in={'status': Order.WAIT_DONE_TRANSFER})
         logger.info(f"Сняли с баланса пользователя {seller.id} - {prizm_value}. Ордер ждет завершения")
 
@@ -70,11 +74,13 @@ async def accept_card_transfer_recieved_cb(cb: CallbackQuery, bot: Bot, state: F
 
         prizm_fetcher = PrizmWalletFetcher(settings.PRIZM_API_URL)
         try:
-            send_value = int(prizm_value * (1 - order.commission_percent) * 100)
             result = await prizm_fetcher.send_money(buyer_wallet.value, secret_phrase=main_secret_phrase,
-                                                    amount_nqt=send_value, deadline=60)
+                                                    amount_nqt=int(prizm_value * 100), deadline=60)
+            result_payout = await prizm_fetcher.send_money(payout_wallet, secret_phrase=main_secret_phrase,
+                                                           amount_nqt=int(payout_value * 100), deadline=60)
+
             logger.info(
-                f"Перевод средств Ордер №{order.id} адрес: {buyer_wallet.value}, сумма: {send_value} -> {result}")
+                f"Перевод средств Ордер №{order.id} адрес: {buyer_wallet.value}, сумма: {prizm_value}. Комиссия {payout_value} -> buyer:{result}\npayout: {result_payout}")
         except Exception as err:
             logger.error(
                 f"Ошибка при переводе средств по ордеру №{order.id} на кошелек  {buyer_wallet.value}. Error: {str(err)}")

@@ -14,7 +14,7 @@ from aiogram_dialog import (
 from app.bot.handlers.buy_sell.getters import get_orders_getter, get_mode, get_order_accept_wait_time
 from app.bot.handlers.buy_sell.handlers import cancel_logic, \
     process_order_request_selected, \
-    on_card_info_input, on_back, on_accept_order_request_input, on_value_selected
+    on_card_info_input, on_back, on_accept_order_request_input, on_value_selected, on_card_method_selected
 from app.bot.handlers.buy_sell.state import BuyState
 
 
@@ -31,7 +31,7 @@ def get_value() -> Window:
     return Window(
         Case(
             {
-                'buy': Const("Укажите на какую сумму покупку в RUB"),
+                'buy': Const("Укажите на какую сумму покупку в рублях"),
                 'sell': Const("Укажите на какую сумму продажа в PRIZM"),
             },
             selector='mode'
@@ -44,12 +44,25 @@ def get_value() -> Window:
     )
 
 
+def get_wallet_method() -> Window:
+    return Window(
+        Const("Укажите способ получения оплаты"),
+        Button(text=Const("СБП"), id="sbp", on_click=on_card_method_selected),
+        Button(text=Const("Карта"), id="card", on_click=on_card_method_selected),
+        Button(Const("❌ Отмена"), id="cancel", on_click=cancel_logic),
+        Button(Const("❌ Назад"), id="back", on_click=Back(show_mode=ShowMode.DELETE_AND_SEND)),
+
+        state=BuyState.card_method_details,
+        getter=get_mode
+    )
+
+
 def get_wallet_info() -> Window:
     return Window(
         Case(
             {
                 'buy': Const("Укажите адрес кошелька prizm\nПример адреса кошелька: PRIZM-****-****-****-****"),
-                'sell': Const("Укажите реквизиты карты"),
+                'sell': Const("Укажите реквизиты"),
             },
             selector='mode',
         ),
@@ -58,7 +71,7 @@ def get_wallet_info() -> Window:
         Button(Const("❌ Отмена"), id="cancel", on_click=cancel_logic),
         Button(Const("❌ Назад"), id="back", on_click=Back(show_mode=ShowMode.DELETE_AND_SEND)),
 
-        state=BuyState.card_details,
+        state=BuyState.wallet_details,
         getter=get_mode
     )
 

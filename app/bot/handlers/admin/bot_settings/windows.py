@@ -9,7 +9,8 @@ from aiogram_dialog import (
 )
 
 from app.bot.handlers.admin.bot_settings.handlers import cancel_logic, on_new_wait_order_time, \
-    on_new_commission_percent_value, on_pay_order_time_value, on_prizm_rate_diff_value
+    on_new_commission_percent_value, on_pay_order_time_value, on_prizm_rate_diff_value, on_add_admin_username_value, \
+    on_remove_admin_username_value
 from app.bot.handlers.admin.state import AdminSettingsState
 
 
@@ -60,4 +61,24 @@ def get_prizm_rate_diff_value() -> Window:
                   type_factory=int),
         Button(Const("❌ Отмена"), id="cancel", on_click=cancel_logic),
         state=AdminSettingsState.new_prizm_rate_diff_value,
+    )
+
+
+def add_admin_by_username() -> Window:
+    return Window(
+        Const("Введите username нового админа. Например test_username"),
+        TextInput(id="new_value", on_success=on_add_admin_username_value, on_error=error,
+                  type_factory=str),
+        Button(Const("❌ Отмена"), id="cancel", on_click=cancel_logic),
+        state=AdminSettingsState.add_admin_by_username,
+    )
+
+
+def remove_admin_by_username() -> Window:
+    return Window(
+        Const("Введите username нового админа. Например test_username"),
+        TextInput(id="new_value", on_success=on_remove_admin_username_value, on_error=error,
+                  type_factory=str),
+        Button(Const("❌ Отмена"), id="cancel", on_click=cancel_logic),
+        state=AdminSettingsState.remove_admin_by_username,
     )

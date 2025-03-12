@@ -5,12 +5,8 @@ from typing import Optional
 from pydantic import BaseModel
 
 
-# Shared properties
-class OrderRequestBase(BaseModel):
+class OrderRequestInDB(BaseModel):
     id: int
-
-
-class OrderRequestInDB(OrderRequestBase):
     user_id: Optional[int]
     from_currency: Optional[str]
     to_currency: Optional[str]
@@ -36,10 +32,10 @@ class OrderRequestCreate(BaseModel):
     status: Optional[int]
 
 
-class OrderRequestUpdate(OrderRequestBase):
+class OrderRequestUpdate(BaseModel):
     min_limit: Optional[Decimal] = None
     max_limit: Optional[Decimal] = None
-    min_limit_rub: Optional[Decimal]
-    max_limit_rub: Optional[Decimal]
+    min_limit_rub: Optional[Decimal] = None
+    max_limit_rub: Optional[Decimal] = None
     rate: Optional[Decimal] = None
     status: Optional[int] = None

@@ -21,6 +21,8 @@ class Settings(BaseSettings):
     PRIZM_WALLET_SECRET_ADDRESS: str
     PRIZM_API_URL: str
 
+    PRIZM_WALLET_ADDRESS_PAYOUT: str
+
     BOT_TOKEN: str
     CHANNEL_TO_CHECK: str
 

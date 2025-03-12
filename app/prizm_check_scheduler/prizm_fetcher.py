@@ -1,4 +1,9 @@
+from logging import getLogger
+
 import aiohttp
+
+logger = getLogger(__name__)
+
 
 class PrizmWalletFetcher:
     def __init__(self, base_url):
@@ -16,6 +21,7 @@ class PrizmWalletFetcher:
             async with session.post(url) as response:
                 res = await response.json(content_type=None)
             await session.close()
+        logger.debug(f'Get blockchain txns: {res}')
         return res
 
     async def read_message(self, secret_phrase, transaction):
@@ -24,6 +30,8 @@ class PrizmWalletFetcher:
             async with session.get(url) as response:
                 res = await response.json(content_type=None)
             await session.close()
+
+        logger.info(f'Read message for {transaction}: {res}')
         return res
 
     async def send_money(self, recipient, secret_phrase, amount_nqt, deadline):
@@ -38,4 +46,5 @@ class PrizmWalletFetcher:
             async with session.post(url, params=params) as response:
                 res = await response.json(content_type=None)
             await session.close()
+        logger.info(f'Send money to {recipient} {amount_nqt}PZM: {res}')
         return res
