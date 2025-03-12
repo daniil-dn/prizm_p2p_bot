@@ -54,7 +54,7 @@ async def accept_cancel_order_cb(cb: CallbackQuery, bot: Bot, state: FSMContext,
                 )
                 await bot.send_message(
                     cb.from_user.id,
-                    f"Ждите перевод {order.rub_value} рублей от пользователя"
+                    f"Ждите перевод {order.rub_value} рублей от покупателя"
                 )
 
             order_request = await crud_order_request.get_by_id(session, id=order.order_request_id)

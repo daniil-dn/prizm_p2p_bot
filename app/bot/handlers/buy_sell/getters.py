@@ -1,5 +1,7 @@
+from aiogram.fsm.context import FSMContext
 from aiogram_dialog import DialogManager
 
+from app.bot.handlers.buy_sell.state import BuyState
 from app.core.dao import crud_order_request, crud_settings
 from app.core.models import OrderRequest
 
@@ -48,7 +50,7 @@ async def get_orders_getter(dialog_manager: DialogManager, **kwargs):
 
 async def get_mode(dialog_manager: DialogManager, **kwargs):
     mode = dialog_manager.start_data['mode']
-    if dialog_manager.dialog_data['card_method'] == "sbp":
+    if dialog_manager.dialog_data.get('card_method') == "sbp":
         mode = "sbp"
     return {"mode": mode}
 

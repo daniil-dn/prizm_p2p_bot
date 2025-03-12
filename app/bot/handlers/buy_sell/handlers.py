@@ -13,6 +13,7 @@ from app.core.dao import crud_order_request, crud_order, crud_settings
 from app.core.dao.crud_wallet import crud_wallet
 from app.core.dto import OrderCreate, WalletCreate
 from app.core.models import OrderRequest, Order
+from app.utils.text_check import check_phone_format, check_card_format, check_wallet_format
 
 
 async def cancel_logic(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
@@ -48,6 +49,18 @@ async def on_card_method_selected(callback: CallbackQuery, button: Button, dialo
 async def on_card_info_input(message: Message, text_widget: ManagedTextInput, dialog_manager: DialogManager, data):
     """Обработчик выбора количества гостей."""
     value = text_widget.get_value()
+    if dialog_manager.start_data['mode'] == 'sell':
+        if dialog_manager.dialog_data['card_method'] == "sbp":
+            if not check_phone_format(value):
+                return
+        elif dialog_manager.dialog_data['card_method'] == "card":
+            if not check_card_format(value):
+                return
+
+    else:
+        if not check_wallet_format(value):
+            return
+
     dialog_manager.dialog_data['card_info'] = value
     user_db = dialog_manager.middleware_data['user_db']
     if dialog_manager.start_data['mode'] == 'sell':

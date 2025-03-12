@@ -27,12 +27,25 @@ async def error(
     await message.answer("Введите корректную сумму")
 
 
+async def error_card_info(
+        message: Message,
+        dialog_: Any,
+        manager: DialogManager,
+        error_: ValueError
+):
+    pass
+    # if manager.middleware_data['state'] == BuyState.wallet_details:
+    #     if manager.start_data['mode'] == 'sell':
+    #         await message.answer("Укажите номер карты (только цифры)")
+    #
+
+
 def get_value() -> Window:
     return Window(
         Case(
             {
-                'buy': Const("Укажите на какую сумму покупку в рублях"),
-                'sell': Const("Укажите на какую сумму продажа в PRIZM"),
+                'buy': Const("Укажите в рублях сумму сделки"),
+                'sell': Const("Укажите в Prizm сумму сделки"),
             },
             selector='mode'
         ),
@@ -62,12 +75,12 @@ def get_wallet_info() -> Window:
         Case(
             {
                 'buy': Const("Укажите адрес кошелька prizm\nПример адреса кошелька: PRIZM-****-****-****-****"),
-                'sell': Const("Укажите реквизиты карты"),
+                'sell': Const("Укажите номер карты (только цифры)"),
                 'sbp': Const("Укажите номер телефона (только цифры) и банк\nПример: +79181081081 Сбербанк"),
             },
             selector='mode',
         ),
-        TextInput(id="card_info", on_success=on_card_info_input, on_error=error,
+        TextInput(id="card_info", on_success=on_card_info_input, on_error=error_card_info,
                   type_factory=str),
         Button(Const("❌ Отмена"), id="cancel", on_click=cancel_logic),
         Button(Const("❌ Назад"), id="back", on_click=Back(show_mode=ShowMode.DELETE_AND_SEND)),

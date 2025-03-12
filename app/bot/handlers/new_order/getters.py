@@ -6,7 +6,10 @@ from app.utils.coinmarketcap import get_currency_rate
 
 
 async def get_mode(dialog_manager: DialogManager, **kwargs):
-    return {"mode": dialog_manager.start_data['mode']}
+    mode = dialog_manager.start_data['mode']
+    if dialog_manager.dialog_data.get('card_method') == "sbp":
+        mode = "sbp"
+    return {"mode": mode}
 
 
 async def get_prizm_rate(dialog_manager: DialogManager, **kwargs):

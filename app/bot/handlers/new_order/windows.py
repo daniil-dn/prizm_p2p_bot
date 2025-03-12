@@ -11,7 +11,7 @@ from aiogram_dialog import (
 
 from app.bot.handlers.new_order.getters import get_mode, get_prizm_rate
 from app.bot.handlers.new_order.handlers import on_back, on_from_value_selected, on_to_value_selected, cancel_logic, \
-    on_rate_selected, on_sell_card_info_selected
+    on_rate_selected, on_sell_card_info_selected, on_card_method_selected
 from app.bot.handlers.new_order.state import NewOrderState
 
 
@@ -84,12 +84,26 @@ def get_rate() -> Window:
     )
 
 
+def get_wallet_method() -> Window:
+    return Window(
+        Const("Укажите способ получения оплаты"),
+        Button(text=Const("СБП"), id="sbp", on_click=on_card_method_selected),
+        Button(text=Const("Карта"), id="card", on_click=on_card_method_selected),
+        Button(Const("❌ Отмена"), id="cancel", on_click=cancel_logic),
+        Button(Const("❌ Назад"), id="back", on_click=Back(show_mode=ShowMode.DELETE_AND_SEND)),
+
+        state=NewOrderState.card_method_details,
+        getter=get_mode
+    )
+
+
 def get_sell_card_info() -> Window:
     return Window(
         Case(
             {
                 'buy': Const("Укажите адрес кошелька PRIZM\nПример адреса кошелька: <b> PRIZM-****-****-****-****</b>"),
-                'sell': Const("Укажите реквизиты для получения рублей"),
+                'sell': Const("Укажите номер карты (только цифры)"),
+                'sbp': Const("Укажите номер телефона (только цифры) и банк\nПример: +79181081081 Сбербанк"),
             },
             selector='mode',
         ),
@@ -97,7 +111,7 @@ def get_sell_card_info() -> Window:
         TextInput(id="sell_card_info", on_success=on_sell_card_info_selected, on_error=error,
                   type_factory=str),
         Button(Const("❌ Отмена"), id="cancel", on_click=cancel_logic),
-        Button(Const("❌ Назад"), id="back", on_click=Back(show_mode=ShowMode.DELETE_AND_SEND)),
+        Button(Const("❌ Назад"), id="back", on_click=on_back),
         getter=get_mode,
         state=NewOrderState.sell_card_info,
         parse_mode='html'
