@@ -129,5 +129,15 @@ class CRUDOrderRequest(CRUDBase[OrderRequest, dto.OrderRequestCreate, dto.OrderR
         res = await db.execute(query)
         return res.scalars().all()
 
+    async def get_by_user_id(self,
+                             db: AsyncSession,
+                             user_id) -> List[OrderRequest] | int:
+
+        filters = [OrderRequest.user_id == user_id]
+        query = select(OrderRequest).filter(*filters)
+
+        res = await db.execute(query)
+        return res.scalars().all()
+
 
 crud_order_request = CRUDOrderRequest(OrderRequest)

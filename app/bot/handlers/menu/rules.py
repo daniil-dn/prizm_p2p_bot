@@ -2,11 +2,14 @@ from aiogram import Router, Bot, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
+from app.bot.ui import get_menu_kb
+from app.core.models import User
+
 router = Router()
 
 
 @router.callback_query(F.data.startswith('rules'))
-async def rules_msg(message: Message, bot: Bot, state: FSMContext) -> None:
+async def rules_msg(message: Message, bot: Bot, state: FSMContext, user_db: User) -> None:
     await state.clear()
     await bot.send_message(
         # todo
@@ -18,5 +21,6 @@ async def rules_msg(message: Message, bot: Bot, state: FSMContext) -> None:
 3. Будьте предельно внимательны заполняя все необходимые реквизиты и данные. Ошибки могут привести к потере средств. Ответственность за это несете только вы.
 4. Просим вас учесть, что администрация сервиса не поддерживает отмывание средств полученных незаконным путем и сотрудничает в этом отношении с правоохранительными органами.
 5. При любых затруднениях обращайтесь в службу поддержки, мы постараемся решить Ваш вопрос. 
-6. Мы рады получить от Вас любую обратную связь, просьбы и замечания по работе сервиса Вы можете отправить в разделе \"Поддержка\""""
+6. Мы рады получить от Вас любую обратную связь, просьбы и замечания по работе сервиса Вы можете отправить в разделе \"Поддержка\"""",
+        reply_markup=get_menu_kb(is_admin=user_db.role == User.ADMIN_ROLE)
     )
