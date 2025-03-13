@@ -90,6 +90,5 @@ async def accept_cancel_order_cb(cb: CallbackQuery, bot: Bot, state: FSMContext,
             order_request = await crud_order_request.lock_row(session, id=order.order_request_id)
             await crud_order_request.update(session, db_obj=order_request,
                                             obj_in={"status": OrderRequest.IN_PROGRESS})
-            await cb.message.edit_reply_markup(reply_markup=None)
-            return
         await crud_order.update(session, db_obj=order, obj_in={"status": Order.ACCEPTED})
+        await cb.message.delete()

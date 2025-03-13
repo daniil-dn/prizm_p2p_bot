@@ -22,7 +22,8 @@ async def my_order_requests_cb(cb: CallbackQuery, bot: Bot, state: FSMContext, u
                 mode = "Продажа"
             else:
                 mode = "Покупка"
-            order_request_text = (f"Ордер №{order_request.id}\n{mode}\n1-108 призм\n Курс 0,08")
+            order_request_text = (
+                f"Ордер №{order_request.id}\n{mode}\n{order_request.min_limit}-{order_request.max_limit} призм\n Курс {order_request.rate}")
             order_requests_text_list.append(order_request_text)
 
         res = "\n\n".join(order_requests_text_list)

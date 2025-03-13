@@ -24,7 +24,7 @@ async def accept_order_payment_cb(cb: CallbackQuery, bot: Bot, state: FSMContext
     async with session:
         order = await crud_order.get_by_id(session, id=int(cb.data.split('_')[-1]))
         order = await crud_order.update(db=session, db_obj=order, obj_in={"status": Order.WAIT_DONE_TRANSFER})
-    card_info_user_text = f"Проверьте перевод средств на карту. Ордер: №{order.id} "
+    card_info_user_text = f"Ордер: №{order.id}. Проверьте перевод средств на карту и сумму. Общая сумма сделки {order.rub_value} рублей. "
     if order.mode == "buy":
         await bot.send_message(order.from_user_id, card_info_user_text, reply_markup=recieved_card_transfer(order.id))
         await cb.message.reply("Ждите подтверждение от покупателя")

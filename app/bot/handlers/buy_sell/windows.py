@@ -136,7 +136,7 @@ def orders_list() -> Window:
 
 def get_exactly_value() -> Window:
     return Window(
-        Format("Подтвердите ордер. У вас есть {wait_time} минут на подтверждение"),
+        Format("{text}\n\nПодтвердите ордер. У вас есть {wait_time} минут на подтверждение"),
         Button(text=Const("✅Подтвердить"), id="accept_order", on_click=on_accept_order_request_input),
         Button(Const("❌ Отмена"), id="cancel", on_click=cancel_logic),
         Button(Const("❌ Назад"), id="back", on_click=Back(show_mode=ShowMode.DELETE_AND_SEND)),

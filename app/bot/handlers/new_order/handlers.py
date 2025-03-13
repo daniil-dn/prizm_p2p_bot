@@ -55,7 +55,7 @@ async def on_rate_selected(message: Message, text_widget: ManagedTextInput, dial
 
     if rate_difference(rate, user_rate, prizm_rate_diff_percent):
         await message.answer(parse_mode='html',
-                             text=f'Указанный курс отличается от биржевого на <b>{prizm_rate_diff_percent}</b>%.\nТекущий курс: <b>{str(rate)[:7]}</b>')
+                             text=f'Указанный курс отличается от биржевого более чем на <b>{prizm_rate_diff_percent}</b>%.\nТекущий курс: <b>{str(rate)[:7]}</b>')
         return
 
     if dialog_manager.start_data['mode'] == 'sell':

@@ -58,5 +58,33 @@ async def get_mode(dialog_manager: DialogManager, **kwargs):
 async def get_order_accept_wait_time(dialog_manager: DialogManager, **kwargs):
     async with dialog_manager.middleware_data['session'] as session:
         admin_settings = await crud_settings.get_by_id(session, id=1)
+    order_text = await get_accept_order_text(dialog_manager, **kwargs)
+    return {"wait_time": admin_settings.order_wait_minutes, "text": order_text}
 
-    return {"wait_time": admin_settings.order_wait_minutes}
+
+async def get_accept_order_text(dialog_manager: DialogManager, **kwargs) -> dict:
+    order_request_id = dialog_manager.dialog_data['order_id']
+    if not order_request_id:
+        return {"text": ""}
+    async with dialog_manager.middleware_data['session'] as session:
+        admin_settings = await crud_settings.get_by_id(session, id=1)
+        order_request = await crud_order_request.get_by_id(session, id=int(order_request_id))
+    if dialog_manager.start_data['mode'] == 'sell':
+        prizm_value = dialog_manager.dialog_data['exact_value']
+        value_commission = prizm_value * admin_settings.commission_percent
+        rub_value = dialog_manager.dialog_data['exact_value'] * order_request.rate
+        success_text = (f"Продажа PRIZM\n"
+                        f"Сумма в PRIZM: {prizm_value}\n"
+                        f"Рублей: {rub_value}\n"
+                        f"Общая сумма оплаты PRIZM {prizm_value + value_commission}, включая комиссию сервиса {admin_settings.commission_percent * 100}%\n"
+                        )
+    else:
+        prizm_value = dialog_manager.dialog_data['exact_value'] / order_request.rate
+        rub_value = dialog_manager.dialog_data['exact_value']
+        success_text = (f"Покупка PRIZM\n"
+                        f"Сумма в рублях: {rub_value}\n"
+                        f"Количество покупаемых монет: {prizm_value}\n"
+                        f"Вы получите {prizm_value} PZM"
+                        )
+
+    return success_text
