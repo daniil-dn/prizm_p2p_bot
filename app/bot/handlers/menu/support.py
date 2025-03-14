@@ -13,5 +13,5 @@ async def support_msg(message: Message, bot: Bot, state: FSMContext, user_db: Us
     await state.clear()
     await bot.send_message(
         message.from_user.id,
-        """👉 https://t.me/Nikita_Kononenko""", reply_markup=get_menu_kb(is_admin=user_db.role == User.ADMIN_ROLE)
+        """👉 https://t.me/Nikita_Kononenko"""
     )

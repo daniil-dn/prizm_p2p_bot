@@ -38,14 +38,14 @@ async def get_orders_getter(dialog_manager: DialogManager, **kwargs):
         else:
             prizm_value = exact_value
             rub_value = exact_value * order.rate
-            order_text = f'Ордер: №{order.id}\nКурс 1pzm - {order.rate}руб\nЛимит: {order.min_limit} - {order.max_limit}PZM\nЧисло сделок:{order.user.order_count} Число отказов: {order.user.cancel_order_count}\n\n'
+            order_text = f'Ордер : №{order.id}\nКурс 1pzm - {order.rate}руб\nЛимит: {order.min_limit} - {order.max_limit}PZM\nЧисло сделок:{order.user.order_count} Число отказов: {order.user.cancel_order_count}\n\n'
 
         all_orders_text += order_text
         order_button = f'№{order.id}'
         orders_list_text.append({'order_text': order_button, "id": order.id})
     pages = (count + 9) // limit
     return {"pages": pages, "current_page": current_page + 1,
-            "orders": orders_list_text, "all_orders_text": all_orders_text}
+            "orders": orders_list_text, "all_orders_text": all_orders_text, "mode": dialog_manager.start_data['mode']}
 
 
 async def get_mode(dialog_manager: DialogManager, **kwargs):

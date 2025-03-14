@@ -131,9 +131,9 @@ class CRUDOrderRequest(CRUDBase[OrderRequest, dto.OrderRequestCreate, dto.OrderR
 
     async def get_by_user_id(self,
                              db: AsyncSession,
-                             user_id) -> List[OrderRequest] | int:
+                             user_id, status: int) -> List[OrderRequest] | int:
 
-        filters = [OrderRequest.user_id == user_id]
+        filters = [OrderRequest.user_id == user_id, OrderRequest.status == status]
         query = select(OrderRequest).filter(*filters)
 
         res = await db.execute(query)

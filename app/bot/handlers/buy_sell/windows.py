@@ -93,7 +93,13 @@ def get_wallet_info() -> Window:
 def orders_list() -> Window:
     """Окно выбора количества гостей."""
     return Window(
-        Format("Поиск ордеров по вашему запросу:\n{all_orders_text}"),
+        Case(
+            {
+                'buy': Format("Поиск ордеров на покупку по вашему запросу:\n{all_orders_text}"),
+                'sell': Format("Поиск ордеров на продажу по вашему запросу:\n{all_orders_text}"),
+            },
+            selector='mode',
+        ),
         Group(
             Column(
                 Select(
