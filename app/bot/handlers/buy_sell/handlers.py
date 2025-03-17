@@ -134,7 +134,7 @@ async def on_accept_order_request_input(cb: CallbackQuery, button, dialog_manage
                         f"Общая сумма оплаты PRIZM {prizm_value + value_commission}, включая комиссию сервиса {settings.commission_percent * 100}%\n"
                         f"Ждите подтверждения покупателя.\n"
                         f"Время ожидания до {settings.order_wait_minutes} минут")
-        seller_text = (f"Новый Ордер №{order.id} на продажу PRIZM\n"
+        seller_text = (f"Новый Ордер №{order.id} на покупку PRIZM\n"
                        f"Сумма в рублях: {rub_value}\n"
                        f"Количество покупаемых монет: {prizm_value}\n"
                        f"Вы получите {prizm_value} PZM. \n"
@@ -147,7 +147,7 @@ async def on_accept_order_request_input(cb: CallbackQuery, button, dialog_manage
                         f"Вы получите {prizm_value} PZM \n"
                         f"Ждите подтверждения продавца\n"
                         f"Время ожидания до {settings.order_wait_minutes} минут")
-        seller_text = (f"Новый Ордер №{order.id} на покупку PRIZM\n"
+        seller_text = (f"Новый Ордер №{order.id} на продажу PRIZM\n"
                        f"Сумма в рублях: {rub_value}\n"
                        f"Сумма в PRIZM {prizm_value}\n"
                        f"Общая сумма оплаты PRIZM {prizm_value + value_commission}, включая комиссию сервиса {settings.commission_percent * 100}%\n"
