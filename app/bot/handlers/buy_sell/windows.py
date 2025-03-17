@@ -95,8 +95,8 @@ def orders_list() -> Window:
     return Window(
         Case(
             {
-                'buy': Format("Поиск ордеров на покупку по вашему запросу:\n{all_orders_text}"),
-                'sell': Format("Поиск ордеров на продажу по вашему запросу:\n{all_orders_text}"),
+                'buy': Format("Поиск ордеров на продажу по вашему запросу:\n{all_orders_text}"),
+                'sell': Format("Поиск ордеров на покупку по вашему запросу:\n{all_orders_text}"),
             },
             selector='mode',
         ),
