@@ -63,7 +63,7 @@ def get_wallet_method() -> Window:
         Button(text=Const("СБП"), id="sbp", on_click=on_card_method_selected),
         Button(text=Const("Карта"), id="card", on_click=on_card_method_selected),
         Button(Const("❌ Отмена"), id="cancel", on_click=cancel_logic),
-        Button(Const("❌ Назад"), id="back", on_click=Back(show_mode=ShowMode.DELETE_AND_SEND)),
+        Button(Const("🔙 Назад"), id="back", on_click=Back(show_mode=ShowMode.DELETE_AND_SEND)),
 
         state=BuyState.card_method_details,
         getter=get_mode
@@ -83,7 +83,7 @@ def get_wallet_info() -> Window:
         TextInput(id="card_info", on_success=on_card_info_input, on_error=error_card_info,
                   type_factory=str),
         Button(Const("❌ Отмена"), id="cancel", on_click=cancel_logic),
-        Button(Const("❌ Назад"), id="back", on_click=on_back),
+        Button(Const("🔙 Назад"), id="back", on_click=on_back),
 
         state=BuyState.wallet_details,
         getter=get_mode
@@ -133,7 +133,7 @@ def orders_list() -> Window:
             ),
         ),
         Button(Const("❌ Отмена"), id="cancel", on_click=cancel_logic),
-        Button(Const("❌ Назад"), id="back", on_click=Back(show_mode=ShowMode.DELETE_AND_SEND)),
+        Button(Const("🔙 Назад"), id="back", on_click=Back(show_mode=ShowMode.DELETE_AND_SEND)),
         getter=get_orders_getter,
         state=BuyState.orders_list,
 
@@ -145,7 +145,7 @@ def get_exactly_value() -> Window:
         Format("{text}\n\nПодтвердите ордер. У вас есть {wait_time} минут на подтверждение"),
         Button(text=Const("✅Подтвердить"), id="accept_order", on_click=on_accept_order_request_input),
         Button(Const("❌ Отмена"), id="cancel", on_click=cancel_logic),
-        Button(Const("❌ Назад"), id="back", on_click=Back(show_mode=ShowMode.DELETE_AND_SEND)),
+        Button(Const("🔙 Назад"), id="back", on_click=Back(show_mode=ShowMode.DELETE_AND_SEND)),
 
         state=BuyState.accept_order_request,
         getter=get_order_accept_wait_time

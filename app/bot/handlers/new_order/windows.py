@@ -62,7 +62,7 @@ def get_to_value() -> Window:
         TextInput(id="to_value", on_success=on_to_value_selected, on_error=error,
                   type_factory=float),
         Button(Const("❌ Отмена"), id="cancel", on_click=cancel_logic),
-        Button(Const("❌ Назад"), id="back", on_click=Back(show_mode=ShowMode.DELETE_AND_SEND)),
+        Button(Const("🔙 Назад"), id="back", on_click=Back(show_mode=ShowMode.DELETE_AND_SEND)),
 
         state=NewOrderState.to_value,
         getter=get_mode
@@ -72,12 +72,14 @@ def get_to_value() -> Window:
 def get_rate() -> Window:
     return Window(
         Format(
-            "Укажите желаемую стоимость PRIZM в рублях.\nТекущий курс <b>{prizm_rate}</b> PZM/RUB https://coinmarketcap.com/currencies/prizm .\nРазница указанного вами курса не должна отличаться более чем на <b>{prizm_rate_diff_percent}</b>%"),
+            "Укажите желаемую стоимость PRIZM в рублях.\nТекущий курс <b>{prizm_rate}</b> PZM/RUB "
+            "https://coinmarketcap.com/currencies/prizm .\nРазница указанного вами курса не должна отличаться "
+            "более чем на <b>{prizm_rate_diff_percent}</b>%"),
 
         TextInput(id="rate", on_success=on_rate_selected, on_error=error_rate,
                   type_factory=float),
         Button(Const("❌ Отмена"), id="cancel", on_click=cancel_logic),
-        Button(Const("❌ Назад"), id="back", on_click=Back(show_mode=ShowMode.DELETE_AND_SEND)),
+        Button(Const("🔙 Назад"), id="back", on_click=Back(show_mode=ShowMode.DELETE_AND_SEND)),
         getter=get_prizm_rate,
         state=NewOrderState.rate,
         parse_mode='html'
@@ -90,7 +92,7 @@ def get_wallet_method() -> Window:
         Button(text=Const("СБП"), id="sbp", on_click=on_card_method_selected),
         Button(text=Const("Карта"), id="card", on_click=on_card_method_selected),
         Button(Const("❌ Отмена"), id="cancel", on_click=cancel_logic),
-        Button(Const("❌ Назад"), id="back", on_click=Back(show_mode=ShowMode.DELETE_AND_SEND)),
+        Button(Const("🔙 Назад"), id="back", on_click=Back(show_mode=ShowMode.DELETE_AND_SEND)),
 
         state=NewOrderState.card_method_details,
         getter=get_mode
@@ -111,7 +113,7 @@ def get_sell_card_info() -> Window:
         TextInput(id="sell_card_info", on_success=on_sell_card_info_selected, on_error=error,
                   type_factory=str),
         Button(Const("❌ Отмена"), id="cancel", on_click=cancel_logic),
-        Button(Const("❌ Назад"), id="back", on_click=on_back),
+        Button(Const("🔙 Назад"), id="back", on_click=on_back),
         getter=get_mode,
         state=NewOrderState.sell_card_info,
         parse_mode='html'

@@ -1,8 +1,9 @@
-from sqlalchemy import Column, DateTime, BigInteger, func, ForeignKey, Index, SmallInteger, Numeric, String
+from sqlalchemy import Column, DateTime, BigInteger, func, ForeignKey, Index, SmallInteger, Numeric, String, Enum
 
 from sqlalchemy.orm import relationship, Mapped
 
 from app.core.db.base_class import Base
+from app.core.models.enums import Currency
 from app.core.models.model_base import ModelBase
 from app.core.models.user import User
 
@@ -32,8 +33,8 @@ class Order(Base, ModelBase):
         backref="to_orders",
         foreign_keys=[to_user_id])
 
-    from_currency = Column(ForeignKey('currency.id'), nullable=False)
-    to_currency = Column(ForeignKey('currency.id'), nullable=False)
+    from_currency = Column(Enum(Currency), nullable=False)
+    to_currency = Column(Enum(Currency), nullable=False)
 
     order_request_id = Column(ForeignKey('order_request.id'), nullable=False)
 

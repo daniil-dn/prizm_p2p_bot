@@ -1,9 +1,10 @@
 from sqlalchemy import Column, DateTime, BigInteger, func, ForeignKey, \
-    Numeric
+    Numeric, Enum
 
 from sqlalchemy.orm import relationship, Mapped
 
 from app.core.db.base_class import Base
+from app.core.models.enums import Currency
 from app.core.models.model_base import ModelBase
 from app.core.models.user import User
 
@@ -22,7 +23,7 @@ class Transfer(Base, ModelBase):
         backref="to_user",
         foreign_keys=[to_user_id])
 
-    currency = Column(ForeignKey('currency.id'), nullable=False)
+    currency = Column(Enum(Currency), nullable=False)
 
     value = Column(Numeric(18, 4, asdecimal=False), nullable=False)
 

@@ -1,5 +1,5 @@
 from logging import getLogger
-from typing import List
+from typing import List, cast
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.models import Wallet
 from app.core import dto
 from app.core.dao.base import CRUDBase
+from app.core.models.enums import Currency
 
 logger = getLogger(__name__)
 

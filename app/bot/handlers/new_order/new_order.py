@@ -14,8 +14,7 @@ router = Router()
 @router.callback_query(F.data.startswith('request_new_order'))
 async def accept_cancel_order_cb(cb: CallbackQuery, bot: Bot, state: FSMContext, user_db: User,
                                  session: AsyncSession) -> None:
-    text = "Продать или купить"
-    await bot.send_message(cb.from_user.id, text, reply_markup=new_order_sell_buy_kb())
+    await bot.send_message(cb.from_user.id, "Продать или купить", reply_markup=new_order_sell_buy_kb())
 
 
 @router.callback_query(F.data.startswith('new_order_'))

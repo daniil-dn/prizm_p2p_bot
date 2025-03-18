@@ -37,6 +37,7 @@ async def accept_order_payment_cb(cb: CallbackQuery, bot: Bot, state: FSMContext
 @router.callback_query(F.data.startswith('card_transfer_recieved_'))
 async def accept_card_transfer_recieved_cb(cb: CallbackQuery, bot: Bot, state: FSMContext, user_db: User,
                                            session: AsyncSession) -> None:
+    # TODO чертовщина со статусами
     main_secret_phrase = settings.PRIZM_WALLET_SECRET_ADDRESS
     payout_wallet = settings.PRIZM_WALLET_ADDRESS_PAYOUT
     async with session:
