@@ -23,9 +23,7 @@ class Bot:
         self.dp = aiogram.Dispatcher(storage=RedisStorage(redis=redis,  key_builder=DefaultKeyBuilder(with_destiny=True)),
 )
 
-    async def start_pooling(self):
-        self.dp.include_routers(*get_routers())
-        await self.bot.set_my_commands(get_default_commands())
+    def _setup_middleware(self):
         db_session_middleware = DbSessionMiddleware(
             session_pool=SessionLocal
         )
@@ -43,6 +41,12 @@ class Bot:
         # callback_query
         self.dp.callback_query.middleware(db_session_middleware)
         self.dp.callback_query.middleware(exists_user_middleware)
+
+    async def start_pooling(self):
+        self.dp.include_routers(*get_routers())
+        await self.bot.set_my_commands(get_default_commands())
+
+        self._setup_middleware()
 
         setup_dialogs(self.dp)
 

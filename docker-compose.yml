@@ -28,11 +28,11 @@ services:
     image: postgres:13
     restart: always
     ports:
-      - "5438:5432"
+      - "5432:5432"
     volumes:
       - prizm_bot_db:/var/lib/postgresql/data
     environment:
-      - POSTGRES_PORT=5438
+      - POSTGRES_PORT=5432
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=lQ1IEcHimk9aWKV
       - POSTGRES_DB=prizm_p2p_bot_db

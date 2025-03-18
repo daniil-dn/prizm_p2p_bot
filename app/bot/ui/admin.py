@@ -18,4 +18,4 @@ def admin_panel_commot_kb() -> InlineKeyboardMarkup:
                    callback_data=f"start_bot")
 
     builder.adjust(1)
-    return builder.as_markup()
+    return builder.as_markup(resize_keyboard=True)
