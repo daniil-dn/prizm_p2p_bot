@@ -146,11 +146,11 @@ class Scheduler:
                                                                                     "max_limit_rub": rub_max_limit})
                                 if user_balance <= order_request.max_limit:
                                     text = (
-                                        f"Ваш Ордер №{order_request.id} на продажу PRIZM создан и размещен на бирже.\nЛимит скорректирован от суммы платежа. \nТекущий лимит от {order_request.min_limit} до {order_request.max_limit} PZM\n\n"
+                                        f"Ваш Ордер №{order_request.id} на продажу PRIZM создан и размещен в боте.\nЛимит скорректирован от суммы платежа. \nТекущий лимит от {order_request.min_limit} до {order_request.max_limit} PZM\n\n"
                                         f"Курс 1pzm - {order_request.rate}руб\nЛимит: {order_request.min_limit_rub} - {order_request.max_limit_rub}руб\nЧисло сделок:{user.order_count} Число отказов: {user.cancel_order_count}\n\n")
                                 else:
                                     text = (
-                                        f"Ваш Ордер №{order_request.id} на продажу PRIZM создан и размещен на бирже.\n\n"
+                                        f"Ваш Ордер №{order_request.id} на продажу PRIZM создан и размещен в боте.\n\n"
                                         f"Курс 1pzm - {order_request.rate}руб\nЛимит: {order_request.min_limit_rub} - {order_request.max_limit_rub}руб\nЧисло сделок:{user.order_count} Число отказов: {user.cancel_order_count}\n\n")
 
                             else:

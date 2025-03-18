@@ -27,10 +27,10 @@ async def accept_order_payment_cb(cb: CallbackQuery, bot: Bot, state: FSMContext
     card_info_user_text = f"Ордер: №{order.id}. Проверьте перевод средств на карту и сумму. Общая сумма сделки {order.rub_value} рублей. "
     if order.mode == "buy":
         await bot.send_message(order.from_user_id, card_info_user_text, reply_markup=recieved_card_transfer(order.id))
-        await cb.message.reply("Ждите подтверждение от покупателя")
+        await cb.message.reply("Ждите подтверждение от продавца")
     else:
         await bot.send_message(order.to_user_id, card_info_user_text, reply_markup=recieved_card_transfer(order.id))
-        await cb.message.reply("Ждите подтверждение от продавца")
+        await cb.message.reply("Ждите подтверждение от покупателя")
     await cb.message.edit_reply_markup(reply_markup=None)
 
 
