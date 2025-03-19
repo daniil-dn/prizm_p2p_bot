@@ -3,6 +3,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder, InlineKeyboardMarkup
 
 def admin_panel_commot_kb() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
+    builder.button(text='Получить историю сообщений по ID заказа', callback_data=f"admin_panel_command_message-history")
     builder.button(text='💰Изменить процент комиссии', callback_data=f"admin_panel_command_new-commission")
     builder.button(text='📊Изменить разницу курса',
                    callback_data=f"admin_panel_command_new-rate-diff")

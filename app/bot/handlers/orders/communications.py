@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.bot.handlers.orders.state import GetMessage
 from app.bot.ui.order_seller_accept import contact_to_user, cancel_contact
+from app.core.dao import crud_user
 from app.core.dao.crud_message import crud_message
 from app.core.dto import MessageCreate
 
@@ -35,7 +36,7 @@ async def ask_message_to_send(callback: CallbackQuery, state: FSMContext):
 
 @router.message(GetMessage.wait_for_message)
 async def send_message_to_user(message: Message, state: FSMContext, bot: Bot, session: AsyncSession):
-    to_user_id = await state.get_value('to_user_id')
+    to_user_tg_id = await state.get_value('to_user_id')
     order_id = await state.get_value('order_id')
     await state.clear()
 
@@ -46,12 +47,15 @@ async def send_message_to_user(message: Message, state: FSMContext, bot: Bot, se
     elif message.document:
         document = message.document.file_id
     try:
-        await message.copy_to(to_user_id, reply_markup=contact_to_user(message.from_user.id, order_id))
+        await message.copy_to(to_user_tg_id, reply_markup=contact_to_user(message.from_user.id, order_id))
         await bot.edit_message_reply_markup(chat_id=message.chat.id, message_id=message.message_id - 1)
     except:
         pass
-    await message.answer('Сообщение отправлено', reply_markup=contact_to_user(to_user_id, order_id))
+    await message.answer('Сообщение отправлено', reply_markup=contact_to_user(to_user_tg_id, order_id))
 
-    message_to_create = MessageCreate(from_user_id=message.from_user.id, to_user_id=to_user_id, photo=photo,
+    to_user = await crud_user.get(session, to_user_tg_id)
+    from_user = await crud_user.get(session, message.from_user.id)
+    message_to_create = MessageCreate(from_user_id=from_user.id, to_user_id=to_user.id, photo=photo,
                                       document=document, text=message.text or message.caption, order_id=order_id)
+
     await crud_message.create(session, obj_in=message_to_create)

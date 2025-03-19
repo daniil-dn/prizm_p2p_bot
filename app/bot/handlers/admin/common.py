@@ -1,10 +1,12 @@
 from aiogram import Router, Bot, F
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery
+from aiogram.types import CallbackQuery, Message
 from aiogram_dialog import DialogManager, StartMode
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.bot.handlers.admin.state import AdminSettingsState
+from app.bot.handlers.admin.state import AdminSettingsState, GetHistoryMessage
 from app.bot.middlewares.check_admin import check_admin
+from app.core.dao.crud_message import crud_message
 from app.core.models import User
 
 router = Router()
@@ -29,3 +31,16 @@ async def admin_menu_cb(cb: CallbackQuery, bot: Bot, state: FSMContext, user_db:
 
     elif admin_command == 'remove-admin-by-username':
         await dialog_manager.start(state=AdminSettingsState.remove_admin_by_username, mode=StartMode.RESET_STACK)
+    elif admin_command == 'message-history':
+        await state.set_state(GetHistoryMessage.wait_for_id)
+        await cb.message.answer('Введите айди заказа')
+
+
+
+@router.message(GetHistoryMessage.wait_for_id)
+async def get_history(message: Message, state: FSMContext, session: AsyncSession):
+    if not message.text.isdigit():
+        await message.answer('Айди должно быть числом. попробуйте снова')
+        return
+    await state.clear()
+    history = await crud_message.get_all_by_order_id(session, int(message.text))
