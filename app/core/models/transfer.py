@@ -1,10 +1,11 @@
+from pickle import STRING
+
 from sqlalchemy import Column, DateTime, BigInteger, func, ForeignKey, \
-    Numeric, Enum
+    Numeric, String
 
 from sqlalchemy.orm import relationship, Mapped
 
 from app.core.db.base_class import Base
-from app.core.models.enums import Currency
 from app.core.models.model_base import ModelBase
 from app.core.models.user import User
 
@@ -23,7 +24,7 @@ class Transfer(Base, ModelBase):
         backref="to_user",
         foreign_keys=[to_user_id])
 
-    currency = Column(Enum(Currency), nullable=False)
+    currency = Column(String(5), nullable=False)
 
     value = Column(Numeric(18, 4, asdecimal=False), nullable=False)
 

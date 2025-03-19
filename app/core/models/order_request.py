@@ -5,10 +5,9 @@ from sqlalchemy import (Column,
                         ForeignKey,
                         Index,
                         SmallInteger,
-                        Numeric, Enum)
+                        Numeric, String)
 from sqlalchemy.orm import relationship, Mapped
 from app.core.db.base_class import Base
-from app.core.models.enums import Currency
 from app.core.models.model_base import ModelBase
 from app.core.models.user import User
 
@@ -32,8 +31,8 @@ class OrderRequest(Base, ModelBase):
         backref="user_wallet",
         foreign_keys=[user_id])
 
-    from_currency = Column(Enum(Currency), nullable=False)
-    to_currency = Column(Enum(Currency), nullable=False)
+    from_currency = Column(String(5), nullable=False)
+    to_currency = Column(String(5), nullable=False)
 
     min_limit = Column(Numeric(18, 4, asdecimal=False), nullable=False)
     max_limit = Column(Numeric(18, 4, asdecimal=False), nullable=False)
