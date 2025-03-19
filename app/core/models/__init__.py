@@ -5,3 +5,4 @@ from .transfer import Transfer
 from .wallet import Wallet
 from .settings import Settings
 from .transaction import Transaction
+from .message_between import MessageBetween

@@ -3,6 +3,7 @@ from aiogram.types import CallbackQuery
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.bot.ui import sent_card_transfer
+from app.bot.ui.order_seller_accept import contact_to_user
 from app.core.config import settings
 from app.core.dao import crud_settings
 from app.core.dao.crud_wallet import crud_wallet
@@ -15,7 +16,8 @@ async def send_notification_to_actings(order: Order, bot: Bot, cb: CallbackQuery
         prizm_with_commission = order.prizm_value + order.prizm_value * order.commission_percent
         await bot.send_message(
             cb.from_user.id,
-            f"Вы подтвердили ордер. Ждем когда продавец переведет криптовалюту в Бота"
+            f"Вы подтвердили ордер. Ждем когда продавец переведет криптовалюту в Бота",
+            reply_markup=contact_to_user(order.to_user_id, order.id)
         )
         await bot.send_message(
             order.to_user_id,
@@ -25,8 +27,8 @@ async def send_notification_to_actings(order: Order, bot: Bot, cb: CallbackQuery
             f"На кошелек сервиса: <b>{settings.PRIZM_WALLET_ADDRESS}</b>\n"
             f"Комментарий платежа: <b>order:{order.to_user_id}:{order.id}</b>\n\n"
             f"⏳Перевод надо совершить в течении {admin_settings.pay_wait_time} минут.",
-            parse_mode="html"
-            # TODO сюда добавить кнопку для переписки
+            parse_mode="html",
+            reply_markup=contact_to_user(order.from_user_id, order.id)
         )
         await bot.send_message(order.to_user_id, settings.PRIZM_WALLET_ADDRESS)
         await bot.send_message(order.to_user_id, f"order:{order.to_user_id}:{order.id}")
@@ -38,9 +40,10 @@ async def send_notification_to_actings(order: Order, bot: Bot, cb: CallbackQuery
             order.to_user_id,
             f"Переведите {order.rub_value} рублей на реквизиты {from_user_wallet.value} \n"
             f"⏳Перевод надо совершить в течении {admin_settings.pay_wait_time} минут.",
-            reply_markup=sent_card_transfer(order.id)
+            reply_markup=sent_card_transfer(order.id, order.from_user_id)
         )
         await bot.send_message(
             cb.from_user.id,
-            f"Ждите перевод {order.rub_value} рублей от покупателя"
+            f"Ждите перевод {order.rub_value} рублей от покупателя",
+            reply_markup=contact_to_user(order.to_user_id, order.id)
         )

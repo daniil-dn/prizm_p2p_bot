@@ -7,6 +7,7 @@ import pytz
 from aiogram import Bot
 
 from app.bot.ui import sent_card_transfer, get_menu_kb
+from app.bot.ui.order_seller_accept import contact_to_user
 from app.bot.ui.texts import get_start_text
 from app.core.config import settings
 from app.core.dao import crud_transaction, crud_order, crud_order_request, crud_user, crud_settings
@@ -110,13 +111,14 @@ class Scheduler:
                                                             obj_in={"status": Order.IN_PROGRESS})
 
                                     await bot.send_message(transfer_user_id,
-                                                           f"Ордер №{order.id}. Вы перевели PRIZM в бота. Ждите перевода на карту")
+                                                           f"Ордер №{order.id}. Вы перевели PRIZM в бота. Ждите перевода на карту",
+                                                           reply_markup=contact_to_user(order.from_user_id, order.id))
                                     buyer_wallet = await crud_wallet.get_by_user_id_currency(db=session,
                                                                                              user_id=order.to_user_id,
                                                                                              currency=order.from_currency)
                                     await bot.send_message(order.from_user_id,
                                                            f"Продавец перевел PRIZM. Переведите {order.rub_value} 'RUB' на карту: {buyer_wallet.value}",
-                                                           reply_markup=sent_card_transfer(order.id))
+                                                           reply_markup=sent_card_transfer(order.id, order.to_user_id))
                                     logger.info(
                                         f"Ордер {order.id}. Сообщения отправлены пользователям. Продавцу {transfer_user_id}. Покупателю {order.to_user_id} ")
                                 else:

@@ -6,6 +6,7 @@ from aiogram.types import CallbackQuery
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.bot.ui import recieved_card_transfer, get_menu_kb
+from app.bot.ui.order_seller_accept import contact_to_user
 from app.bot.ui.texts import get_start_text
 from app.core.config import settings
 from app.core.dao import crud_order, crud_user
@@ -26,11 +27,13 @@ async def accept_order_payment_cb(cb: CallbackQuery, bot: Bot, state: FSMContext
         order = await crud_order.update(db=session, db_obj=order, obj_in={"status": Order.WAIT_DONE_TRANSFER})
     card_info_user_text = f"Ордер: №{order.id}. Проверьте перевод средств на карту и сумму. Общая сумма сделки {order.rub_value} рублей. "
     if order.mode == "buy":
-        await bot.send_message(order.from_user_id, card_info_user_text, reply_markup=recieved_card_transfer(order.id))
-        await cb.message.reply("Ждите подтверждение от продавца")
+        await bot.send_message(order.from_user_id, card_info_user_text,
+                               reply_markup=recieved_card_transfer(order.id, cb.from_user.id))
+        await cb.message.reply("Ждите подтверждение от продавца", reply_markup=contact_to_user(order.from_user_id, order.id))
     else:
-        await bot.send_message(order.to_user_id, card_info_user_text, reply_markup=recieved_card_transfer(order.id))
-        await cb.message.reply("Ждите подтверждение от покупателя")
+        await bot.send_message(order.to_user_id, card_info_user_text,
+                               reply_markup=recieved_card_transfer(order.id, cb.from_user.id))
+        await cb.message.reply("Ждите подтверждение от покупателя", reply_markup=contact_to_user(order.from_user_id, order.id))
     await cb.message.edit_reply_markup(reply_markup=None)
 
 
