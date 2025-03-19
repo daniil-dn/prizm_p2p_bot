@@ -44,3 +44,26 @@ async def get_history(message: Message, state: FSMContext, session: AsyncSession
         return
     await state.clear()
     history = await crud_message.get_all_by_order_id(session, int(message.text))
+    text=''
+    files = []
+    for archive_message in history:
+        if text:
+            text += (f'От пользователя {archive_message.from_user.username} ({archive_message.from_user.id}) в '
+                     f'{archive_message.created_at}:\n{archive_message.text}\n\n')
+        if archive_message.photo:
+            files.append((archive_message.photo, 'photo'))
+        elif archive_message.document:
+            files.append((archive_message.document, 'document'))
+
+    if text == '':
+        text = 'Отсутствует переписка'
+
+    await message.answer(text)
+    for file, type_file in files:
+        try:
+            if type_file == 'photo':
+                await message.answer_photo(file)
+            else:
+                await message.answer_document(file)
+        except:
+            pass
