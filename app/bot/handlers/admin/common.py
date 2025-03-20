@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.bot.handlers.admin.state import AdminSettingsState, GetHistoryMessage
 from app.bot.middlewares.check_admin import check_admin
+from app.bot.ui import get_menu_kb
 from app.core.dao.crud_message import crud_message
 from app.core.models import User
 
@@ -36,18 +37,17 @@ async def admin_menu_cb(cb: CallbackQuery, bot: Bot, state: FSMContext, user_db:
         await cb.message.answer('Введите айди заказа')
 
 
-
 @router.message(GetHistoryMessage.wait_for_id)
-async def get_history(message: Message, state: FSMContext, session: AsyncSession):
+async def get_history(message: Message, state: FSMContext, session: AsyncSession, user_db: User):
     if not message.text.isdigit():
         await message.answer('Айди должно быть числом. попробуйте снова')
         return
     await state.clear()
     history = await crud_message.get_all_by_order_id(session, int(message.text))
-    text=''
+    text = ''
     files = []
     for archive_message in history:
-        if text:
+        if archive_message.text:
             text += (f'От пользователя {archive_message.from_user.username} ({archive_message.from_user.id}) в '
                      f'{archive_message.created_at}:\n{archive_message.text}\n\n')
         if archive_message.photo:
@@ -67,3 +67,4 @@ async def get_history(message: Message, state: FSMContext, session: AsyncSession
                 await message.answer_document(file)
         except:
             pass
+    await message.answer('Выберите пункт меню', reply_markup=get_menu_kb(is_admin=user_db.role == User.ADMIN_ROLE))
