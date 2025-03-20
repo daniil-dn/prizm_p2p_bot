@@ -17,7 +17,7 @@ async def send_notification_to_actings(order: Order, bot: Bot, cb: CallbackQuery
         await bot.send_message(
             cb.from_user.id,
             f"Вы подтвердили сделку. Ждем когда продавец переведет криптовалюту в Бота",
-            reply_markup=contact_to_user(order.to_user_id, order.id)
+            reply_markup=contact_to_user(order.to_user_id, order)
         )
         await bot.send_message(
             order.to_user_id,
@@ -28,7 +28,7 @@ async def send_notification_to_actings(order: Order, bot: Bot, cb: CallbackQuery
             f"Комментарий платежа: <b>order:{order.to_user_id}:{order.id}</b>\n\n"
             f"⏳Перевод надо совершить в течении {admin_settings.pay_wait_time} минут.",
             parse_mode="html",
-            reply_markup=contact_to_user(order.from_user_id, order.id)
+            reply_markup=contact_to_user(order.from_user_id, order)
         )
         await bot.send_message(order.to_user_id, settings.PRIZM_WALLET_ADDRESS)
         await bot.send_message(order.to_user_id, f"order:{order.to_user_id}:{order.id}")
@@ -40,10 +40,10 @@ async def send_notification_to_actings(order: Order, bot: Bot, cb: CallbackQuery
             order.to_user_id,
             f"Переведите {order.rub_value} рублей на реквизиты {from_user_wallet.value} \n"
             f"⏳Перевод надо совершить в течении {admin_settings.pay_wait_time} минут.",
-            reply_markup=sent_card_transfer(order.id, order.from_user_id)
+            reply_markup=sent_card_transfer(order, order.from_user_id)
         )
         await bot.send_message(
             cb.from_user.id,
             f"Ждите перевод {order.rub_value} рублей от покупателя",
-            reply_markup=contact_to_user(order.to_user_id, order.id)
+            reply_markup=contact_to_user(order.to_user_id, order)
         )

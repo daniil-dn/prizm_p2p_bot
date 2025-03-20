@@ -106,27 +106,27 @@ class Scheduler:
                                         order.prizm_value * order.commission_percent)
                                 if user_balance >= order_value_commission:
                                     logger.info(
-                                        f"Ордер {order.id} принят баланс продавца: {user.balance}. Нужно монет для ордера {order.prizm_value} ")
+                                        f"Сделка {order.id} принята баланс продавца: {user.balance}. Нужно монет для ордера {order.prizm_value} ")
                                     await crud_order.update(db=session, db_obj=order,
                                                             obj_in={"status": Order.IN_PROGRESS})
 
                                     await bot.send_message(transfer_user_id,
-                                                           f"Ордер №{order.id}. Вы перевели PRIZM в бота. Ждите перевода на карту",
-                                                           reply_markup=contact_to_user(order.from_user_id, order.id))
+                                                           f"Сделка №{order.id}. Вы перевели PRIZM в бота. Ждите перевода на карту",
+                                                           reply_markup=contact_to_user(order.from_user_id, order))
                                     buyer_wallet = await crud_wallet.get_by_user_id_currency(db=session,
                                                                                              user_id=order.to_user_id,
                                                                                              currency=order.from_currency)
                                     await bot.send_message(order.from_user_id,
                                                            f"Продавец перевел PRIZM. Переведите {order.rub_value} 'RUB' на карту: {buyer_wallet.value}",
-                                                           reply_markup=sent_card_transfer(order.id, order.to_user_id))
+                                                           reply_markup=sent_card_transfer(order, order.to_user_id))
                                     logger.info(
-                                        f"Ордер {order.id}. Сообщения отправлены пользователям. Продавцу {transfer_user_id}. Покупателю {order.to_user_id} ")
+                                        f"Сделка {order.id}. Сообщения отправлены пользователям. Продавцу {transfer_user_id}. Покупателю {order.to_user_id} ")
                                 else:
                                     logger.info(
-                                        f"Ордер {order.id} не принят. Баланс продавца: {user.balance}. Нужно монет для ордера {order.prizm_value} ")
+                                        f"Сделка {order.id} не принята. Баланс продавца: {order_value_commission}. Нужно монет для ордера {order.prizm_value} ")
 
                                     await bot.send_message(transfer_user_id,
-                                                           f"Вы внесли недостаточное кол-во монет PRIZM {order.prizm_value}. Вы перевели {user_balance}")
+                                                           f"Вы внесли недостаточное кол-во монет PRIZM {order_value_commission}. Вы перевели {user_balance}")
 
 
                         elif txn_type and txn_type == "order_request":

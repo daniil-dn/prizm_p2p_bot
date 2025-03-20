@@ -9,30 +9,53 @@ def order_seller_accept_kb(order_id) -> InlineKeyboardMarkup:
     return builder.as_markup(resize_keyboard=True)
 
 
-def sent_card_transfer(order_id, user_id = None) -> InlineKeyboardMarkup:
+def sent_card_transfer(order, user_id=None) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
-    builder.button(text='✅ Оплатил', callback_data=f"sent_card_transfer_{order_id}")
+    builder.button(text='✅ Оплатил', callback_data=f"sent_card_transfer_{order.id}")
     builder.button(text='💬Поддержка', url="https://t.me/Nikita_Kononenko")
     if user_id:
-        builder.button(text='связаться', callback_data=f'contact_{user_id}_{order_id}')
+        button = _get_contact_user_button(user_id, order)
+        builder.add(button)
 
     builder.adjust(2)
     return builder.as_markup(resize_keyboard=True)
 
 
-def recieved_card_transfer(order_id, user_id) -> InlineKeyboardMarkup:
+def recieved_card_transfer(order, user_id) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
-    builder.button(text='✅ Получил', callback_data=f"card_transfer_recieved_{order_id}")
+    builder.button(text='✅ Получил', callback_data=f"card_transfer_recieved_{order.id}")
     builder.button(text='💬Поддержка', url="https://t.me/Nikita_Kononenko")
-    builder.button(text='связаться', callback_data=f'contact_{user_id}_{order_id}')
+    if user_id:
+        button = _get_contact_user_button(user_id, order)
+        builder.add(button)
+
 
     builder.adjust(2)
     return builder.as_markup(resize_keyboard=True)
 
+def _get_contact_user_button(user_id, order):
+    if order.mode == "buy":
+        if order.to_user_id == user_id:
+            user_seller = False
+        else:
+            user_seller = True
+    else:
+        if order.to_user_id == user_id:
+            user_seller = True
+        else:
+            user_seller = False
+    if user_seller:
+        button_text = '🔗Связаться с продавцом🔗'
+    else:
+        button_text = '🔗Связаться с покупателем🔗'
 
-def contact_to_user(user_id, order_id) -> InlineKeyboardMarkup:
+    return InlineKeyboardButton(text=button_text, callback_data=f'contact_{user_id}_{order.id}')
+
+
+def contact_to_user(user_id, order) -> InlineKeyboardMarkup:
+
     builder = InlineKeyboardBuilder()
-    builder.button(text='связаться', callback_data=f'contact_{user_id}_{order_id}')
+    builder.add(_get_contact_user_button(user_id, order))
 
     return builder.as_markup(resize_keyboard=True)
 
