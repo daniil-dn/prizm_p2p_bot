@@ -20,5 +20,6 @@ class User(Base, ModelBase):
     balance = Column(Numeric(18, 4, asdecimal=False), default=0)
     order_count = Column(BigInteger, default=0)
     cancel_order_count = Column(BigInteger, default=0)
+    last_online = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(default=func.now())
     updated_at = Column(onupdate=func.now())
