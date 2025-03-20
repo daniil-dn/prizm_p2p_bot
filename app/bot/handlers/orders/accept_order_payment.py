@@ -25,7 +25,7 @@ async def accept_order_payment_cb(cb: CallbackQuery, bot: Bot, state: FSMContext
     async with session:
         order = await crud_order.get_by_id(session, id=int(cb.data.split('_')[-1]))
         order = await crud_order.update(db=session, db_obj=order, obj_in={"status": Order.WAIT_DONE_TRANSFER})
-    card_info_user_text = f"Ордер: №{order.id}. Проверьте перевод средств на карту и сумму. Общая сумма сделки {order.rub_value} рублей. "
+    card_info_user_text = f"Сделка: №{order.id}. Проверьте перевод средств на карту и сумму. Общая сумма сделки {order.rub_value} рублей. "
     if order.mode == "buy":
         await bot.send_message(order.from_user_id, card_info_user_text,
                                reply_markup=recieved_card_transfer(order.id, cb.from_user.id))
@@ -62,7 +62,7 @@ async def accept_card_transfer_recieved_cb(cb: CallbackQuery, bot: Bot, state: F
                                         obj_in={'balance': seller.balance - (prizm_value + payout_value),
                                                 "order_count": seller.order_count + 1})
         order = await crud_order.update(session, db_obj=order, obj_in={'status': Order.WAIT_DONE_TRANSFER})
-        logger.info(f"Сняли с баланса пользователя {seller.id} - {prizm_value}. Ордер ждет завершения")
+        logger.info(f"Сняли с баланса пользователя {seller.id} - {prizm_value}. Сделка ждет завершения")
 
     await cb.message.reply(
         "Вы подтвердили оплату. Сделка завершена. 🎉🎉🎉 \n" + get_start_text(seller.balance, seller.order_count,
@@ -83,12 +83,12 @@ async def accept_card_transfer_recieved_cb(cb: CallbackQuery, bot: Bot, state: F
                                                            amount_nqt=int(payout_value * 100), deadline=60)
 
             logger.info(
-                f"Перевод средств Ордер №{order.id} адрес: {buyer_wallet.value}, сумма: {prizm_value}. Комиссия {payout_value} -> buyer:{result}\npayout: {result_payout}")
+                f"Перевод средств Сделка №{order.id} адрес: {buyer_wallet.value}, сумма: {prizm_value}. Комиссия {payout_value} -> buyer:{result}\npayout: {result_payout}")
         except Exception as err:
             logger.error(
-                f"Ошибка при переводе средств по ордеру №{order.id} на кошелек  {buyer_wallet.value}. Error: {str(err)}")
+                f"Ошибка при переводе средств по Сделке №{order.id} на кошелек  {buyer_wallet.value}. Error: {str(err)}")
             await bot.send_message(buyer_id,
-                                   "Возникла ошибка при переводе PRIZM вам на кошелек. Свяжитесь с поддержкой \n👉 https://t.me/Nikita_Kononenko" + get_start_text(
+                                   f"Сделка №{order.id}. Возникла ошибка при переводе PRIZM вам на кошелек. Свяжитесь с поддержкой \n👉 https://t.me/Nikita_Kononenko" + get_start_text(
                                        buyer.balance, buyer.order_count,
                                        buyer.cancel_order_count),
                                    reply_markup=get_menu_kb(is_admin=buyer.role == User.ADMIN_ROLE))
@@ -99,4 +99,4 @@ async def accept_card_transfer_recieved_cb(cb: CallbackQuery, bot: Bot, state: F
                                    reply_markup=get_menu_kb(is_admin=buyer.role == User.ADMIN_ROLE))
 
         await crud_order.update(session, db_obj=order, obj_in={'status': Order.DONE})
-        logger.info(f"Order: №{order.id} Перевели {buyer_id} -> {buyer_wallet.value} - {prizm_value}. Ордер завершен")
+        logger.info(f"Сделка: №{order.id} Перевели {buyer_id} -> {buyer_wallet.value} - {prizm_value}. Сделка завершена")

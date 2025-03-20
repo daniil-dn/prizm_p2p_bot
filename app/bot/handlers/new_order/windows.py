@@ -37,8 +37,8 @@ def get_from_value() -> Window:
     return Window(
         Case(
             {
-                'buy': Const("Укажите в Prizm минимальную сумму покупки"),
-                'sell': Const("Укажите в Prizm минимальную сумму продажи"),
+                'buy': Const("Укажите в Prizm минимальную сумму покупки\nУказывайте только цифры"),
+                'sell': Const("Укажите в Prizm минимальную сумму продажи\nУказывайте только цифры"),
             },
             selector='mode',
         ),
@@ -54,8 +54,8 @@ def get_to_value() -> Window:
     return Window(
         Case(
             {
-                'buy': Const("Укажите в Prizm максимальную сумму покупки"),
-                'sell': Const("Укажите в Prizm максимальную сумму продажи"),
+                'buy': Const("Укажите в Prizm максимальную сумму покупки\nУказывайте только цифры"),
+                'sell': Const("Укажите в Prizm максимальную сумму продажи\nУказывайте только цифры"),
             },
             selector='mode',
         ),

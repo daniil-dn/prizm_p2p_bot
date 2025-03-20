@@ -48,7 +48,7 @@ async def accept_cancel_order_cb(cb: CallbackQuery, bot: Bot, state: FSMContext,
                                                 obj_in={"cancel_order_count": user_db.cancel_order_count + 1})
         await bot.send_message(
             cb.from_user.id,
-            "Отмена ордера, ваш рейтинг понижен\n\n" + get_start_text(from_cb_userdb.balance,
+            "Отмена сделки, ваш рейтинг понижен\n\n" + get_start_text(from_cb_userdb.balance,
                                                                   from_cb_userdb.order_count,
                                                                   from_cb_userdb.cancel_order_count),
             reply_markup=get_menu_kb(is_admin=from_cb_userdb.role == User.ADMIN_ROLE)
@@ -56,7 +56,7 @@ async def accept_cancel_order_cb(cb: CallbackQuery, bot: Bot, state: FSMContext,
         to_user_db = await crud_user.get_by_id(session, id=order.to_user_id)
         await bot.send_message(
             order.to_user_id,
-            f"Отмена ордера №{order.id}\n" + get_start_text(to_user_db.balance, to_user_db.order_count,
+            f"Отмена сделки №{order.id}\n" + get_start_text(to_user_db.balance, to_user_db.order_count,
                                                             to_user_db.cancel_order_count),
             reply_markup=get_menu_kb(is_admin=to_user_db.role == User.ADMIN_ROLE)
         )

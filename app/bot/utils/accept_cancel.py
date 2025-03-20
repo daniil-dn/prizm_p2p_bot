@@ -16,12 +16,12 @@ async def send_notification_to_actings(order: Order, bot: Bot, cb: CallbackQuery
         prizm_with_commission = order.prizm_value + order.prizm_value * order.commission_percent
         await bot.send_message(
             cb.from_user.id,
-            f"Вы подтвердили ордер. Ждем когда продавец переведет криптовалюту в Бота",
+            f"Вы подтвердили сделку. Ждем когда продавец переведет криптовалюту в Бота",
             reply_markup=contact_to_user(order.to_user_id, order.id)
         )
         await bot.send_message(
             order.to_user_id,
-            f"Ордер №{order.id} подтвержден.\n"
+            f"Сделка №{order.id} подтверждена.\n"
             f"Переведите {prizm_with_commission} PZM c коммиссией сервиса {order.commission_percent * 100}%\n"
             f"Без комментария платеж потеряется!\n"
             f"На кошелек сервиса: <b>{settings.PRIZM_WALLET_ADDRESS}</b>\n"
