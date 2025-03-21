@@ -16,9 +16,8 @@ def sent_card_transfer(order, user_id=None) -> InlineKeyboardMarkup:
     if user_id:
         button = _get_contact_user_button(user_id, order)
         builder.add(button)
-        builder.button(text='К сделке', callback_data=f'to_order_{order.id}')
 
-    builder.adjust(2, 1, 1)
+    builder.adjust(2, 1)
     return builder.as_markup(resize_keyboard=True)
 
 
@@ -29,10 +28,9 @@ def recieved_card_transfer(order, user_id) -> InlineKeyboardMarkup:
     if user_id:
         button = _get_contact_user_button(user_id, order)
         builder.add(button)
-        builder.button(text='К сделке', callback_data=f'to_order_{order.id}')
 
 
-    builder.adjust(2, 1, 1)
+    builder.adjust(2, 1)
     return builder.as_markup(resize_keyboard=True)
 
 def _get_contact_user_button(user_id, order):
