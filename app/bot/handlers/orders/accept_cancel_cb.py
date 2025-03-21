@@ -3,19 +3,17 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.bot.ui import sent_card_transfer, get_menu_kb
+from app.bot.ui import get_menu_kb
 from app.bot.ui.texts import get_start_text
 from app.bot.utils.accept_cancel import send_notification_to_actings
-from app.core.config import settings
-from app.core.dao import crud_order, crud_user, crud_settings, crud_order_request
-from app.core.dao.crud_wallet import crud_wallet
+from app.core.dao import crud_order, crud_user, crud_order_request
 from app.core.dto import OrderRequestUpdate
 from app.core.models import User, Order, OrderRequest
 
 router = Router()
 
 
-@router.callback_query(F.data.startswith('order_request_'))
+@router.callback_query(F.data.startswith('order_request_accept_'))
 async def accept_cancel_order_cb(cb: CallbackQuery, bot: Bot, state: FSMContext, user_db: User,
                                  session: AsyncSession) -> None:
     async with session:
@@ -42,6 +40,13 @@ async def accept_cancel_order_cb(cb: CallbackQuery, bot: Bot, state: FSMContext,
             await cb.message.delete()
             return
 
+
+@router.callback_query(F.data.startswith('order_request_cancel_'))
+async def accept_cancel_order_cb(cb: CallbackQuery, bot: Bot, state: FSMContext, user_db: User,
+                                 session: AsyncSession) -> None:
+    async with session:
+        order = await crud_order.lock_row(session, id=int(cb.data.split('_')[3]))
+
         order = await crud_order.update(session, db_obj=order, obj_in={"status": Order.CANCELED})
         user_db = await crud_user.lock_row(session, id=user_db.id)
         from_cb_userdb = await crud_user.update(session, db_obj=user_db,
@@ -49,8 +54,8 @@ async def accept_cancel_order_cb(cb: CallbackQuery, bot: Bot, state: FSMContext,
         await bot.send_message(
             cb.from_user.id,
             "Отмена сделки, ваш рейтинг понижен\n\n" + get_start_text(from_cb_userdb.balance,
-                                                                  from_cb_userdb.order_count,
-                                                                  from_cb_userdb.cancel_order_count),
+                                                                      from_cb_userdb.order_count,
+                                                                      from_cb_userdb.cancel_order_count),
             reply_markup=get_menu_kb(is_admin=from_cb_userdb.role == User.ADMIN_ROLE)
         )
         to_user_db = await crud_user.get_by_id(session, id=order.to_user_id)

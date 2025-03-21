@@ -24,14 +24,15 @@ async def send_notification_to_actings(order: Order, bot: Bot, cb: CallbackQuery
             f"Сделка №{order.id} подтверждена.\n"
             f"Переведите {prizm_with_commission} PZM c коммиссией сервиса {order.commission_percent * 100}%\n"
             f"Без комментария платеж потеряется!\n"
-            f"На кошелек сервиса: <b>{settings.PRIZM_WALLET_ADDRESS}</b>\n"
+            f"На кошелек сервиса: <b><blockquote>{settings.PRIZM_WALLET_ADDRESS}</blockquote></b>\n"
             f"Комментарий платежа: <b>order:{order.to_user_id}:{order.id}</b>\n\n"
-            f"⏳Перевод надо совершить в течении {admin_settings.pay_wait_time} минут.",
+            f"⏳Перевод надо совершить в течение {admin_settings.pay_wait_time} минут.\n"
+            f"Адрес: <blockquote>settings.PRIZM_WALLET_ADDRESS</blockquote>",
             parse_mode="html",
             reply_markup=contact_to_user(order.from_user_id, order)
         )
-        await bot.send_message(order.to_user_id, settings.PRIZM_WALLET_ADDRESS)
-        await bot.send_message(order.to_user_id, f"order:{order.to_user_id}:{order.id}")
+        # await bot.send_message(order.to_user_id, settings.PRIZM_WALLET_ADDRESS)
+        # await bot.send_message(order.to_user_id, f"order:{order.to_user_id}:{order.id}")
 
     else:
         from_user_wallet = await crud_wallet.get_by_user_id_currency(session, currency=order.to_currency,
@@ -39,7 +40,7 @@ async def send_notification_to_actings(order: Order, bot: Bot, cb: CallbackQuery
         await bot.send_message(
             order.to_user_id,
             f"Переведите {order.rub_value} рублей на реквизиты {from_user_wallet.value} \n"
-            f"⏳Перевод надо совершить в течении {admin_settings.pay_wait_time} минут.",
+            f"⏳Перевод надо совершить в течение {admin_settings.pay_wait_time} минут.",
             reply_markup=sent_card_transfer(order, order.from_user_id)
         )
         await bot.send_message(
