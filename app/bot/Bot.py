@@ -7,13 +7,14 @@ from redis.asyncio.client import Redis
 from app.bot.handlers import get_routers
 from app.bot.middlewares import DbSessionMiddleware, ExistsUserMiddleware
 from app.bot.middlewares.update_online import UpdateOnline
+from app.bot.services.message_manager import MessageManager
 from app.bot.ui import get_default_commands
 from app.core.config import settings
 from app.core.db.session import SessionLocal
 
 
 class Bot:
-    __slots__ = 'bot', 'token', 'dp'
+    __slots__ = 'bot', 'token', 'dp', 'message_manager'
 
     def __init__(self, token):
         self.token = token
@@ -21,8 +22,9 @@ class Bot:
         redis = Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=settings.REDIS_DEFAULT_DB,
                       password=settings.REDIS_PASSWORD)
 
-        self.dp = aiogram.Dispatcher(storage=RedisStorage(redis=redis,  key_builder=DefaultKeyBuilder(with_destiny=True)),
-)
+        self.message_manager = MessageManager()
+        self.dp = aiogram.Dispatcher(storage=RedisStorage(redis=redis,
+                                                          key_builder=DefaultKeyBuilder(with_destiny=True)))
 
     def _setup_middleware(self):
         db_session_middleware = DbSessionMiddleware(
@@ -58,4 +60,4 @@ class Bot:
 
         setup_dialogs(self.dp)
 
-        await self.dp.start_polling(self.bot)
+        await self.dp.start_polling(self.bot, message_manager=self.message_manager)

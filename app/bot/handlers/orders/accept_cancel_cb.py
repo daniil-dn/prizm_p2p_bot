@@ -3,6 +3,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.bot.services.message_manager import MessageManager
 from app.bot.ui import get_menu_kb
 from app.bot.ui.texts import get_start_text
 from app.bot.utils.accept_cancel import send_notification_to_actings
@@ -15,30 +16,29 @@ router = Router()
 
 @router.callback_query(F.data.startswith('order_request_accept_'))
 async def accept_cancel_order_cb(cb: CallbackQuery, bot: Bot, state: FSMContext, user_db: User,
-                                 session: AsyncSession) -> None:
+                                 session: AsyncSession, message_manager: MessageManager) -> None:
     async with session:
         order = await crud_order.lock_row(session, id=int(cb.data.split('_')[3]))
         if order.status != Order.CREATED:
             await cb.message.edit_reply_markup(reply_markup=None)
             return
 
-        if cb.data.split('_')[2] == "accept":
-            await send_notification_to_actings(order=order, bot=bot, cb=cb, session=session)
+        await send_notification_to_actings(order=order, bot=bot, cb=cb, session=session, message_manager=message_manager)
 
-            order_request = await crud_order_request.get_by_id(session, id=order.order_request_id)
-            await crud_order.update(session, db_obj=order, obj_in={"status": Order.ACCEPTED})
+        order_request = await crud_order_request.get_by_id(session, id=order.order_request_id)
+        await crud_order.update(session, db_obj=order, obj_in={"status": Order.ACCEPTED})
 
-            if order_request.max_limit > order.prizm_value:
-                order_request = await crud_order_request.lock_row(session, id=order.order_request_id)
-                order_request_update_data = OrderRequestUpdate(
-                    max_limit=order_request.max_limit - order.prizm_value,
-                    max_limit_rub=order_request.max_limit_rub - order.rub_value,
-                    status=OrderRequest.IN_PROGRESS
-                )
-                await crud_order_request.update(session, db_obj=order_request,
-                                                obj_in=order_request_update_data)
-            await cb.message.delete()
-            return
+        if order_request.max_limit > order.prizm_value:
+            order_request = await crud_order_request.lock_row(session, id=order.order_request_id)
+            order_request_update_data = OrderRequestUpdate(
+                max_limit=order_request.max_limit - order.prizm_value,
+                max_limit_rub=order_request.max_limit_rub - order.rub_value,
+                status=OrderRequest.IN_PROGRESS
+            )
+            await crud_order_request.update(session, db_obj=order_request,
+                                            obj_in=order_request_update_data)
+        await cb.message.delete()
+        return
 
 
 @router.callback_query(F.data.startswith('order_request_cancel_'))

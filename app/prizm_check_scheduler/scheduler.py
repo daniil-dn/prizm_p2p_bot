@@ -6,6 +6,7 @@ from logging import getLogger
 import pytz
 from aiogram import Bot
 
+from app.bot.services.message_manager import MessageManager
 from app.bot.ui import sent_card_transfer, get_menu_kb
 from app.bot.ui.order_seller_accept import contact_to_user
 from app.bot.ui.texts import get_start_text
@@ -29,6 +30,7 @@ class Scheduler:
             await asyncio.sleep(30)
 
     async def check_prizm_wallet(self):
+        message_manager = MessageManager()
         prizm_fetcher = PrizmWalletFetcher(settings.PRIZM_API_URL)
         main_account = settings.PRIZM_WALLET_ADDRESS
         main_secret_phrase = settings.PRIZM_WALLET_SECRET_ADDRESS
@@ -110,15 +112,31 @@ class Scheduler:
                                     await crud_order.update(db=session, db_obj=order,
                                                             obj_in={"status": Order.IN_PROGRESS})
 
-                                    await bot.send_message(transfer_user_id,
+                                    message = await bot.send_message(transfer_user_id,
                                                            f"Сделка №{order.id}. Вы перевели PRIZM в бота. Ждите перевода на карту",
                                                            reply_markup=contact_to_user(order.from_user_id, order))
+                                    await message_manager.set_message_and_keyboard(
+                                        user_id=transfer_user_id,
+                                        order_id=order.id,
+                                        text=f"Сделка №{order.id}. Вы перевели PRIZM в бота. Ждите перевода на карту",
+                                        keyboard=contact_to_user(order.from_user_id, order),
+                                        message_id=message.message_id
+                                    )
+
                                     buyer_wallet = await crud_wallet.get_by_user_id_currency(db=session,
                                                                                              user_id=order.to_user_id,
                                                                                              currency=order.from_currency)
-                                    await bot.send_message(order.from_user_id,
+                                    message = await bot.send_message(order.from_user_id,
                                                            f"Продавец перевел PRIZM. Переведите {order.rub_value} 'RUB' на карту: {buyer_wallet.value}",
                                                            reply_markup=sent_card_transfer(order, order.to_user_id))
+                                    await message_manager.set_message_and_keyboard(
+                                        user_id=order.from_user_id,
+                                        order_id=order.id,
+                                        text=f"Продавец перевел PRIZM. Переведите {order.rub_value} 'RUB' на карту: {buyer_wallet.value}",
+                                        keyboard=sent_card_transfer(order, order.to_user_id),
+                                        message_id=message.message_id
+                                    )
+
                                     logger.info(
                                         f"Сделка {order.id}. Сообщения отправлены пользователям. Продавцу {transfer_user_id}. Покупателю {order.to_user_id} ")
                                 else:
