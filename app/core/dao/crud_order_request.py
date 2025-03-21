@@ -108,7 +108,7 @@ class CRUDOrderRequest(CRUDBase[OrderRequest, dto.OrderRequestCreate, dto.OrderR
         count_query = select(func.count(OrderRequest.id)).filter(*filters)
 
         query = select(OrderRequest).filter(*filters).options(joinedload(OrderRequest.user)).join(User,
-                                                                                                  User.id == OrderRequest.user_id).order_by(
+                                                                                                  User.id == OrderRequest.user_id).order_by( # todo зачем
             User.order_count)
 
         query = query.limit(limit).offset(offset)

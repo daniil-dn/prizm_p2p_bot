@@ -1,5 +1,4 @@
 from sqlalchemy import (Column,
-                        DateTime,
                         BigInteger,
                         func,
                         ForeignKey,
@@ -18,7 +17,7 @@ class Wallet(Base, ModelBase):
         backref="user",
         foreign_keys=[user_id])
 
-    currency = Column(ForeignKey('currency.id'), nullable=False)
+    currency = Column(String(5), nullable=False)
 
     value = Column(String)
 

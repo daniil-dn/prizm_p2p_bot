@@ -22,7 +22,7 @@ class ExistsUserMiddleware(BaseMiddleware):
             data: Dict[str, Any],
     ) -> Any:
         user: User = data.get("event_from_user")
-        async with (self.session_pool() as db):
+        async with self.session_pool() as db:
             exist_user = await crud_user.get_by_id(db, id=user.id)
             if not exist_user:
                 logger.debug(f'Create user in DB {user.id} {user.username} {user.first_name} {user.last_name}')

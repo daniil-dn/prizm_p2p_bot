@@ -1,7 +1,11 @@
+from datetime import datetime, timedelta
+
 from aiogram.fsm.context import FSMContext
 from aiogram_dialog import DialogManager
+from pytz import timezone
 
 from app.bot.handlers.buy_sell.state import BuyState
+from app.bot.utils.parce import parce_time
 from app.core.dao import crud_order_request, crud_settings
 from app.core.models import OrderRequest
 
@@ -31,14 +35,16 @@ async def get_orders_getter(dialog_manager: DialogManager, **kwargs):
     orders_list_text = []
     all_orders_text = ""
     for order in result:  # type: OrderRequest
+        user = order.user
+        time_text = parce_time(user.last_online)
         if dialog_manager.start_data['mode'] == 'buy':
-            prizm_value = exact_value / order.rate
-            rub_value = exact_value
-            order_text = f'Ордер: №{order.id}\nКурс 1pzm - {order.rate}руб\nЛимит: {order.min_limit_rub} - {order.max_limit_rub}руб\nЧисло сделок:{order.user.order_count} Число отказов: {order.user.cancel_order_count}\n\n'
+            order_text = (f'Ордер: №{order.id}\nКурс 1pzm - {order.rate}руб\nЛимит: {order.min_limit_rub} - '
+                          f'{order.max_limit_rub}руб\nЧисло сделок:{order.user.order_count} '
+                          f'Число отказов: {order.user.cancel_order_count}\n{time_text}\n\n')
         else:
-            prizm_value = exact_value
-            rub_value = exact_value * order.rate
-            order_text = f'Ордер : №{order.id}\nКурс 1pzm - {order.rate}руб\nЛимит: {order.min_limit} - {order.max_limit}PZM\nЧисло сделок:{order.user.order_count} Число отказов: {order.user.cancel_order_count}\n\n'
+            order_text = (f'Ордер : №{order.id}\nКурс 1pzm - {order.rate}руб\nЛимит: {order.min_limit} - '
+                          f'{order.max_limit}PZM\nЧисло сделок:{order.user.order_count} Число отказов: '
+                          f'{order.user.cancel_order_count}\n{time_text}\n\n')
 
         all_orders_text += order_text
         order_button = f'№{order.id}'
