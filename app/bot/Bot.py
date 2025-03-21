@@ -38,16 +38,17 @@ class Bot:
         # message
         self.dp.message.middleware(db_session_middleware)
         self.dp.message.middleware(exists_user_middleware)
+        self.dp.message.middleware(update_online_middleware)
 
         # pool
         self.dp.poll_answer.middleware(db_session_middleware)
         self.dp.poll_answer.middleware(exists_user_middleware)
+        self.dp.poll_answer.middleware(update_online_middleware)
 
         # callback_query
         self.dp.callback_query.middleware(db_session_middleware)
         self.dp.callback_query.middleware(exists_user_middleware)
-
-        self.dp.update.middleware(update_online_middleware)
+        self.dp.callback_query.middleware(update_online_middleware)
 
     async def start_pooling(self):
         self.dp.include_routers(*get_routers())

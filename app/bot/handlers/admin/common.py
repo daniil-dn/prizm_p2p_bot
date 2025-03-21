@@ -34,7 +34,7 @@ async def admin_menu_cb(cb: CallbackQuery, bot: Bot, state: FSMContext, user_db:
         await dialog_manager.start(state=AdminSettingsState.remove_admin_by_username, mode=StartMode.RESET_STACK)
     elif admin_command == 'message-history':
         await state.set_state(GetHistoryMessage.wait_for_id)
-        await cb.message.answer('Введите айди заказа')
+        await cb.message.answer('Введите ID сделки')
 
 
 @router.message(GetHistoryMessage.wait_for_id)
