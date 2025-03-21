@@ -18,7 +18,7 @@ def sent_card_transfer(order, user_id=None) -> InlineKeyboardMarkup:
         builder.add(button)
         builder.button(text='К сделке', callback_data=f'to_order_{order.id}')
 
-    builder.adjust(2)
+    builder.adjust(2, 1, 1)
     return builder.as_markup(resize_keyboard=True)
 
 
@@ -32,7 +32,7 @@ def recieved_card_transfer(order, user_id) -> InlineKeyboardMarkup:
         builder.button(text='К сделке', callback_data=f'to_order_{order.id}')
 
 
-    builder.adjust(2)
+    builder.adjust(2, 1, 1)
     return builder.as_markup(resize_keyboard=True)
 
 def _get_contact_user_button(user_id, order):
@@ -59,6 +59,7 @@ def contact_to_user(user_id, order) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.add(_get_contact_user_button(user_id, order))
     builder.button(text='К сделке', callback_data=f'to_order_{order.id}')
+    builder.adjust(1)
 
     return builder.as_markup(resize_keyboard=True)
 
