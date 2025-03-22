@@ -51,7 +51,7 @@ async def send_message_to_user(message: Message, state: FSMContext, bot: Bot, se
         document = message.document.file_id
     try:
         await message.copy_to(to_user_tg_id,
-                              reply_markup=contact_to_user(message.from_user.id, order))
+                              reply_markup=contact_to_user_and_back(message.from_user.id, order))
         await bot.edit_message_reply_markup(chat_id=message.chat.id, message_id=message.message_id - 1)
     except:
         pass
