@@ -75,59 +75,59 @@ async def on_accept_order_request_input(cb: CallbackQuery, button, dialog_manage
     current_time = datetime.now()
     user_db = dialog_manager.middleware_data['user_db']
     user_wallet_value = dialog_manager.middleware_data['card_info']
+    session = dialog_manager.middleware_data['session']
 
-    async with dialog_manager.middleware_data['session'] as session:
-        settings = await crud_settings.get_by_id(session, id=1)
-        if (current_time - start_wait_time).total_seconds() > settings.order_wait_minutes * 60:
-            await cb.message.answer("Время ожидания истекло. Выберите другой Ордер")
-            await dialog_manager.switch_to(BuyState.orders_list, show_mode=ShowMode.DELETE_AND_SEND)
-            return
-        order_request = await crud_order_request.lock_row(session, id=order_request_id)
-        if order_request.status != OrderRequest.IN_PROGRESS:
-            await cb.message.answer(f"Ордер №{order_request.id} заблокирован. Выберите другой ордер")
-            await dialog_manager.switch_to(BuyState.orders_list, show_mode=ShowMode.DELETE_AND_SEND)
-            return
+    settings = await crud_settings.get_by_id(session, id=1)
+    if (current_time - start_wait_time).total_seconds() > settings.order_wait_minutes * 60:
+        await cb.message.answer("Время ожидания истекло. Выберите другой Ордер")
+        await dialog_manager.switch_to(BuyState.orders_list, show_mode=ShowMode.DELETE_AND_SEND)
+        return
+    order_request = await crud_order_request.lock_row(session, id=order_request_id)
+    if order_request.status != OrderRequest.IN_PROGRESS:
+        await cb.message.answer(f"Ордер №{order_request.id} заблокирован. Выберите другой ордер")
+        await dialog_manager.switch_to(BuyState.orders_list, show_mode=ShowMode.DELETE_AND_SEND)
+        return
 
-        await crud_order_request.update(session, db_obj=order_request, obj_in={'status': OrderRequest.LOCK})
-        if dialog_manager.start_data['mode'] == 'sell':
+    await crud_order_request.update(session, db_obj=order_request, obj_in={'status': OrderRequest.LOCK})
+    if dialog_manager.start_data['mode'] == 'sell':
 
-            prizm_value = dialog_manager.dialog_data['exact_value']
-            value_commission = prizm_value * settings.commission_percent
-            rub_value = dialog_manager.dialog_data['exact_value'] * order_request.rate
-        else:
-            prizm_value = dialog_manager.dialog_data['exact_value'] / order_request.rate
-            value_commission = prizm_value * settings.commission_percent
-            rub_value = dialog_manager.dialog_data['exact_value']
+        prizm_value = dialog_manager.dialog_data['exact_value']
+        value_commission = prizm_value * settings.commission_percent
+        rub_value = dialog_manager.dialog_data['exact_value'] * order_request.rate
+    else:
+        prizm_value = dialog_manager.dialog_data['exact_value'] / order_request.rate
+        value_commission = prizm_value * settings.commission_percent
+        rub_value = dialog_manager.dialog_data['exact_value']
 
-        order = OrderCreate(
-            from_user_id=order_request.user_id,
-            to_user_id=user_db.id,
-            from_currency=order_request.from_currency,
-            to_currency=order_request.to_currency,
-            prizm_value=prizm_value,
-            rub_value=rub_value,
-            commission_percent=Decimal(settings.commission_percent),
-            status=Order.CREATED,
-            mode=dialog_manager.start_data['mode'],
-            order_request_id=order_request.id
-        )
-        order = await crud_order.create(session, obj_in=order)
+    order = OrderCreate(
+        from_user_id=order_request.user_id,
+        to_user_id=user_db.id,
+        from_currency=order_request.from_currency,
+        to_currency=order_request.to_currency,
+        prizm_value=prizm_value,
+        rub_value=rub_value,
+        commission_percent=Decimal(settings.commission_percent),
+        status=Order.CREATED,
+        mode=dialog_manager.start_data['mode'],
+        order_request_id=order_request.id
+    )
+    order = await crud_order.create(session, obj_in=order)
 
-        if dialog_manager.start_data['mode'] == 'sell':
-            currency = 'RUB'
-        else:
-            currency = 'PRIZM'
-        wallet = await crud_wallet.get_by_order_user_id(session, order_id=order.id,
-                                                           user_id=user_db.id)
-        if not wallet:
-            wallet = WalletCreate(user_id=user_db.id, order_id=order.id, currency=currency, value=user_wallet_value)
-            await crud_wallet.create(session, obj_in=wallet)
-        elif wallet.value != user_wallet_value:
-            await crud_wallet.update(session, db_obj=wallet, obj_in={"value": user_wallet_value})
-        # todo вынести в менеджер
-        from_wallet = WalletCreate(user_id=order_request.user_id, order_id=order.id, currency=currency, value=user_wallet_value)
-        await crud_wallet.create(session, obj_in=from_wallet)
-
+    if dialog_manager.start_data['mode'] == 'sell':
+        currency = 'RUB'
+    else:
+        currency = 'PRIZM'
+    wallet = await crud_wallet.get_by_order_user_id(session, order_id=order.id,
+                                                    user_id=user_db.id)
+    if not wallet:
+        wallet = WalletCreate(user_id=user_db.id, order_id=order.id, currency=currency, value=user_wallet_value)
+        await crud_wallet.create(session, obj_in=wallet)
+    elif wallet.value != user_wallet_value:
+        await crud_wallet.update(session, db_obj=wallet, obj_in={"value": user_wallet_value})
+    # todo вынести в менеджер
+    from_wallet = WalletCreate(user_id=order_request.user_id, order_id=order.id, currency=currency,
+                               value=user_wallet_value)
+    await crud_wallet.create(session, obj_in=from_wallet)
     if dialog_manager.start_data['mode'] == 'sell':
         success_text = (f"Сделка №{order.id}.\n"
                         f"Продажа PRIZM\n"

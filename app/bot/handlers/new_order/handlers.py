@@ -50,9 +50,9 @@ async def on_to_value_selected(message: Message, text_widget: ManagedTextInput, 
 async def on_rate_selected(message: Message, text_widget: ManagedTextInput, dialog_manager: DialogManager, data):
     dialog_manager.dialog_data['rate'] = user_rate = text_widget.get_value()
     rate = await get_currency_rate("PZM", "RUB", settings.COINMARKETCAP_API_KEY)
-    async with dialog_manager.middleware_data['session'] as session:
-        admin_settings = await crud_settings.get_by_id(session, id=1)
-        prizm_rate_diff_percent = admin_settings.prizm_rate_diff * 100
+    session = dialog_manager.middleware_data['session']
+    admin_settings = await crud_settings.get_by_id(session, id=1)
+    prizm_rate_diff_percent = admin_settings.prizm_rate_diff * 100
 
     if rate_difference(rate, user_rate, prizm_rate_diff_percent):
         await message.answer(parse_mode='html',

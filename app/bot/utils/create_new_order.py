@@ -14,43 +14,43 @@ async def create_order_and_wallet(dialog_manager: DialogManager, user_id: int, s
     value_rate = dialog_manager.dialog_data['rate']
     min_limit_rub = dialog_manager.dialog_data['from_value'] * value_rate
     max_limit_rub = dialog_manager.dialog_data['to_value'] * value_rate
-    async with dialog_manager.middleware_data['session'] as session:
-        admin_settings = await crud_settings.get_by_id(session, id=1)
-        if dialog_manager.start_data['mode'] == 'sell':
-            from_currency = "PRIZM"
-            to_currency = "RUB"
-            wallet_currency = 'RUB'
-            order_request_status = OrderRequest.WAIT_PRIZM
-        else:
-            from_currency = "RUB"
-            to_currency = "PRIZM"
-            wallet_currency = 'PRIZM'
-            order_request_status = OrderRequest.IN_PROGRESS
+    session = dialog_manager.middleware_data['session']
+    admin_settings = await crud_settings.get_by_id(session, id=1)
+    if dialog_manager.start_data['mode'] == 'sell':
+        from_currency = "PRIZM"
+        to_currency = "RUB"
+        wallet_currency = 'RUB'
+        order_request_status = OrderRequest.WAIT_PRIZM
+    else:
+        from_currency = "RUB"
+        to_currency = "PRIZM"
+        wallet_currency = 'PRIZM'
+        order_request_status = OrderRequest.IN_PROGRESS
 
-        order_request = OrderRequestCreate(
-            user_id=user_id,
-            from_currency=from_currency,
-            to_currency=to_currency,
-            min_limit=dialog_manager.dialog_data['from_value'],
-            max_limit=dialog_manager.dialog_data['to_value'],
-            min_limit_rub=min_limit_rub,
-            max_limit_rub=max_limit_rub,
-            rate=dialog_manager.dialog_data['rate'],
-            status=order_request_status
-        )
-        order_request = await crud_order_request.create(session, obj_in=order_request)
+    order_request = OrderRequestCreate(
+        user_id=user_id,
+        from_currency=from_currency,
+        to_currency=to_currency,
+        min_limit=dialog_manager.dialog_data['from_value'],
+        max_limit=dialog_manager.dialog_data['to_value'],
+        min_limit_rub=min_limit_rub,
+        max_limit_rub=max_limit_rub,
+        rate=dialog_manager.dialog_data['rate'],
+        status=order_request_status
+    )
+    order_request = await crud_order_request.create(session, obj_in=order_request)
 
-        wallet = await crud_wallet.get_by_order_request_user_id(session,
-                                                                user_id=dialog_manager.middleware_data['user_db'].id,
-                                                                order_request_id=order_request.id)
-        if not wallet:
-            wallet = WalletCreate(user_id=user_id, order_request_id=order_request.id, currency=wallet_currency,
-                                  value=sell_card_info)
-            await crud_wallet.create(session, obj_in=wallet)
-        elif wallet.value != sell_card_info:
-            await crud_wallet.update(session, db_obj=wallet, obj_in={"value": sell_card_info})
+    wallet = await crud_wallet.get_by_order_request_user_id(session,
+                                                            user_id=dialog_manager.middleware_data['user_db'].id,
+                                                            order_request_id=order_request.id)
+    if not wallet:
+        wallet = WalletCreate(user_id=user_id, order_request_id=order_request.id, currency=wallet_currency,
+                              value=sell_card_info)
+        await crud_wallet.create(session, obj_in=wallet)
+    elif wallet.value != sell_card_info:
+        await crud_wallet.update(session, db_obj=wallet, obj_in={"value": sell_card_info})
 
-        return order_request, admin_settings
+    return order_request, admin_settings
 
 
 async def send_notification(dialog_manager: DialogManager, admin_settings: Settings, order_request: OrderRequest,

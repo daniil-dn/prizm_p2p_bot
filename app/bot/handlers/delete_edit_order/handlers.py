@@ -113,9 +113,8 @@ async def update_cource(message: Message,
     user_rate = float(data)
     session = dialog_manager.middleware_data['session']
     rate = await get_currency_rate("PZM", "RUB", settings.COINMARKETCAP_API_KEY)
-    async with session:
-        admin_settings = await crud_settings.get_by_id(session, id=1)
-        prizm_rate_diff_percent = admin_settings.prizm_rate_diff * 100
+    admin_settings = await crud_settings.get_by_id(session, id=1)
+    prizm_rate_diff_percent = admin_settings.prizm_rate_diff * 100
 
     if rate_difference(rate, user_rate, prizm_rate_diff_percent):
         await message.answer(parse_mode='html',

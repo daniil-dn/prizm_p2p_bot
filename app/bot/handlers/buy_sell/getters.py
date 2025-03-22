@@ -21,16 +21,15 @@ async def get_orders_getter(dialog_manager: DialogManager, **kwargs):
     current_page = await dialog_manager.find("ID_STUB_SCROLL").get_page()
     limit = 10
     offset = current_page * limit
-    async with dialog_manager.middleware_data['session'] as session:
-        result, count = await crud_order_request.get_by_value_filter_pagination(session,
-                                                                                filter_user_id=
-                                                                                dialog_manager.middleware_data[
-                                                                                    'user_db'].id,
-                                                                                from_currency=from_currency,
-                                                                                value=exact_value,
-                                                                                status=OrderRequest.IN_PROGRESS,
-                                                                                limit=limit, offset=offset,
-                                                                                is_rub=is_rub)
+    result, count = await crud_order_request.get_by_value_filter_pagination(dialog_manager.middleware_data['session'],
+                                                                            filter_user_id=
+                                                                            dialog_manager.middleware_data[
+                                                                                'user_db'].id,
+                                                                            from_currency=from_currency,
+                                                                            value=exact_value,
+                                                                            status=OrderRequest.IN_PROGRESS,
+                                                                            limit=limit, offset=offset,
+                                                                            is_rub=is_rub)
 
     orders_list_text = []
     all_orders_text = ""
@@ -62,8 +61,7 @@ async def get_mode(dialog_manager: DialogManager, **kwargs):
 
 
 async def get_order_accept_wait_time(dialog_manager: DialogManager, **kwargs):
-    async with dialog_manager.middleware_data['session'] as session:
-        admin_settings = await crud_settings.get_by_id(session, id=1)
+    admin_settings = await crud_settings.get_by_id(dialog_manager.middleware_data['session'], id=1)
     order_text = await get_accept_order_text(dialog_manager, **kwargs)
     return {"wait_time": admin_settings.order_wait_minutes, "text": order_text}
 
@@ -72,9 +70,9 @@ async def get_accept_order_text(dialog_manager: DialogManager, **kwargs) -> dict
     order_request_id = dialog_manager.dialog_data['order_id']
     if not order_request_id:
         return {"text": ""}
-    async with dialog_manager.middleware_data['session'] as session:
-        admin_settings = await crud_settings.get_by_id(session, id=1)
-        order_request = await crud_order_request.get_by_id(session, id=int(order_request_id))
+    session = dialog_manager.middleware_data['session']
+    admin_settings = await crud_settings.get_by_id(session, id=1)
+    order_request = await crud_order_request.get_by_id(session, id=int(order_request_id))
     if dialog_manager.start_data['mode'] == 'sell':
         prizm_value = dialog_manager.dialog_data['exact_value']
         value_commission = prizm_value * admin_settings.commission_percent
