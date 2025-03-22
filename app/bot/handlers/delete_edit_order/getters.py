@@ -21,8 +21,8 @@ async def orders_getter(dialog_manager: DialogManager, **kwargs):
         order_request_text = (
             f"Ордер №{order_request.id}\n"
             f"{mode}\n"
-            f"{order_request.min_limit}-{order_request.max_limit} призм"
-            f"\n Курс {order_request.rate}")
+            f"{order_request.min_limit}-{order_request.max_limit} призм\n"
+            f"Курс {order_request.rate}")
         order_requests_text_list.append(order_request_text)
 
     return {
@@ -41,8 +41,8 @@ async def order_getter(dialog_manager: DialogManager, **kwargs):
         mode = "Покупка"
     text = (f"Ордер №{order_request.id}\n"
             f"{mode}\n"
-            f"{order_request.min_limit}-{order_request.max_limit} призм"
-            f"\n Курс {order_request.rate}"
+            f"{order_request.min_limit}-{order_request.max_limit} призм\n"
+            f"Курс {order_request.rate}"
             )
     return {
         'text': text,
