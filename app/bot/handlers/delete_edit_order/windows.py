@@ -60,10 +60,10 @@ def get_order_menu() -> Window:
                 on_click=continue_order,
                 when='stopped'
             ),
-            Button(
+            SwitchTo(
                 text=Const('Удалить'),
                 id='delete_order',
-                on_click=delete_order,
+                state=DeleteEditOrder.delete_order
             ),
             width=2,
             id='order_events_row'
@@ -71,6 +71,18 @@ def get_order_menu() -> Window:
         Button(Const("❌ Отмена"), id="start_bot", on_click=start),
         getter=order_getter,
         state=DeleteEditOrder.order_menu
+    )
+
+
+def delete_order_window() -> Window:
+    return Window(
+        Const('Введите кошелек для вывода prizm'),
+        TextInput(
+            id='get_prizm_address',
+            on_success=delete_order
+        ),
+        Button(Const("❌ Отмена"), id="start_bot", on_click=start),
+        state=DeleteEditOrder.delete_order
     )
 
 

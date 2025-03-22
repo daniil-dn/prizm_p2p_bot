@@ -8,3 +8,4 @@ class DeleteEditOrder(StatesGroup):
     update_max_sum = State()
     update_min_sum = State()
     update_course = State()
+    delete_order = State()

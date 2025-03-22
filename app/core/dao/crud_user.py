@@ -1,6 +1,7 @@
 from logging import getLogger
 from typing import Optional
 
+from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 
@@ -21,5 +22,9 @@ class CRUDUser(CRUDBase[User, dto.UserCreate, dto.UserUpdate]):
         )
         return res.scalar_one_or_none()
 
+    async def increanse_balance(self, db: AsyncSession, *, id: int, summ: float):
+        q = update(User).where(User.id == id).values(balance=User.balance + summ)
+        await db.execute(q)
+        await db.commit()
 
 crud_user = CRUDUser(User)

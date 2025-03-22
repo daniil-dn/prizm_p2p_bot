@@ -1,17 +1,18 @@
-from aiogram.client import bot
 from aiogram.types import CallbackQuery, Message
 from aiogram_dialog import DialogManager
 from aiogram_dialog.widgets.input import ManagedTextInput
 from aiogram_dialog.widgets.kbd import Button
+from sqlalchemy.testing.suite.test_reflection import users
 
 from app.bot.handlers.delete_edit_order.state import DeleteEditOrder
 from app.bot.ui import get_menu_kb
 from app.bot.ui.texts import get_start_text
 from app.core.config import settings
-from app.core.dao import crud_order, crud_order_request, crud_settings
-from app.core.dao.crud_wallet import crud_wallet
+from app.core.dao import crud_order_request, crud_settings, crud_user
 from app.core.models import User, OrderRequest
+from app.prizm_check_scheduler.prizm_fetcher import PrizmWalletFetcher
 from app.utils.coinmarketcap import get_currency_rate, rate_difference
+from app.utils.text_check import check_wallet_format
 
 
 async def start(callback, button, dialog_manager: DialogManager):
@@ -43,10 +44,21 @@ async def stop_order(callback: CallbackQuery, button: Button, dialog_manager: Di
     await start(callback, button, dialog_manager)
 
 
-async def delete_order(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+async def delete_order(message: Message,
+                       widget: ManagedTextInput,
+                       dialog_manager: DialogManager,
+                       data):
+    if not check_wallet_format(data):
+        await message.answer("Введите кошелек в формате PRIZM-****-****-****-****")
+        return
     session = dialog_manager.middleware_data['session']
-    await crud_order_request.remove(session, id=int(dialog_manager.dialog_data['order_id']))
-    await start(callback, button, dialog_manager)
+    order = await crud_order_request.get_by_id(session, id=int(dialog_manager.dialog_data['order_id']))
+
+    await crud_user.increanse_balance(session, id=message.from_user.id, summ=order.max_limit)
+
+    await crud_order_request.update(session, db_obj=order, obj_in={'status': OrderRequest.CLOSED})
+    await message.answer('Ордер удален')
+    await start(message, widget, dialog_manager)
 
 
 async def error_handler(
