@@ -18,6 +18,7 @@ class OrderRequest(Base, ModelBase):
     ACCESSED = 2
     LOCK = 3
     CLOSED = 4
+    STOPPED = 5
 
     __table_args__ = (
         Index('ix_from_to_currency_count', "from_currency", "to_currency", 'min_limit', "max_limit"),

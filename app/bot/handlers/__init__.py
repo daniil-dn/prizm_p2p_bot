@@ -5,7 +5,8 @@ def get_routers() -> tuple:
         buy_sell,
         new_order,
         orders,
-        admin
+        admin,
+        delete_edit_order
     )
 
     return (
@@ -15,4 +16,5 @@ def get_routers() -> tuple:
         admin.router,
         buy_sell.router,
         new_order.router,
+        delete_edit_order.router
     )
