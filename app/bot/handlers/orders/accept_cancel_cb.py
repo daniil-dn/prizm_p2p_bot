@@ -4,7 +4,7 @@ from aiogram.types import CallbackQuery
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.bot.services.message_manager import MessageManager
-from app.bot.ui import get_menu_kb
+from app.bot.ui import get_menu_kb, contact_to_user
 from app.bot.ui.texts import get_start_text
 from app.bot.utils.accept_cancel import send_notification_to_actings
 from app.core.dao import crud_order, crud_user, crud_order_request
@@ -15,7 +15,7 @@ router = Router()
 
 
 @router.callback_query(F.data.startswith('order_request_accept_'))
-async def accept_cancel_order_cb(cb: CallbackQuery, bot: Bot, state: FSMContext, user_db: User,
+async def accept_accept_order_cb(cb: CallbackQuery, bot: Bot, state: FSMContext, user_db: User,
                                  session: AsyncSession, message_manager: MessageManager) -> None:
     async with session:
         order = await crud_order.lock_row(session, id=int(cb.data.split('_')[3]))
@@ -23,7 +23,8 @@ async def accept_cancel_order_cb(cb: CallbackQuery, bot: Bot, state: FSMContext,
             await cb.message.edit_reply_markup(reply_markup=None)
             return
 
-        await send_notification_to_actings(order=order, bot=bot, cb=cb, session=session, message_manager=message_manager)
+        await send_notification_to_actings(order=order, bot=bot, cb=cb, session=session,
+                                           message_manager=message_manager)
 
         order_request = await crud_order_request.get_by_id(session, id=order.order_request_id)
         await crud_order.update(session, db_obj=order, obj_in={"status": Order.ACCEPTED})
@@ -68,3 +69,22 @@ async def accept_cancel_order_cb(cb: CallbackQuery, bot: Bot, state: FSMContext,
         order_request = await crud_order_request.lock_row(session, id=order.order_request_id)
         await crud_order_request.update(session, db_obj=order_request,
                                         obj_in={"status": OrderRequest.IN_PROGRESS})
+
+
+@router.callback_query(F.data.startswith('pzm_sended_accept_order-'))
+async def pzm_sended_accept_order_cb(cb: CallbackQuery, bot: Bot, state: FSMContext, user_db: User,
+                                     session: AsyncSession, message_manager: MessageManager) -> None:
+    await cb.message.edit_reply_markup(reply_markup=None)
+    user_id = cb.data.split('-')[-2]
+    order_id = int(cb.data.split('-')[-1])
+    async with session:
+        order = await crud_order.get_by_id(session, id=order_id)
+        contact_to_user_id = order.from_user_id if order.from_user_id != cb.from_user.id else order.to_user_id
+    markup = contact_to_user(contact_to_user_id, order)
+    text = "⏳Ожидаем подтверждения перевода"
+    message = await bot.send_message(cb.from_user.id, text, reply_markup=markup)
+    await message_manager.set_message_and_keyboard(
+        user_id=cb.from_user.id, order_id=order.id,
+        text=[text,],
+        keyboard=markup,
+        message_id=message.message_id)

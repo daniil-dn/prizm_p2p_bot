@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.bot.services.message_manager import MessageManager
 from app.bot.ui import sent_card_transfer
-from app.bot.ui.order_seller_accept import contact_to_user
+from app.bot.ui.order_seller_accept import contact_to_user, sended_pzm_transfer_button
 from app.core.config import settings
 from app.core.dao import crud_settings
 from app.core.dao.crud_wallet import crud_wallet
@@ -27,7 +27,8 @@ async def send_notification_to_actings(order: Order, bot: Bot, cb: CallbackQuery
             text="Вы подтвердили сделку. Ждем когда продавец переведет криптовалюту в Бота",
             keyboard=contact_to_user(order.to_user_id, order),
             message_id=message.message_id)
-
+        order_pzm_markup = contact_to_user(order.from_user_id, order)
+        order_pzm_markup.inline_keyboard.append([sended_pzm_transfer_button(order.from_user_id, order)])
         message = await bot.send_message(
             order.to_user_id,
             f"Сделка №{order.id} подтверждена.\n"
@@ -37,7 +38,7 @@ async def send_notification_to_actings(order: Order, bot: Bot, cb: CallbackQuery
             f"Комментарий платежа: <b><code>order:{order.to_user_id}:{order.id}</code></b>\n\n"
             f"⏳Перевод надо совершить в течение {admin_settings.pay_wait_time} минут.\n",
             parse_mode="html",
-            reply_markup=contact_to_user(order.from_user_id, order)
+            reply_markup=order_pzm_markup
         )
         await bot.send_message(order.to_user_id, text=settings.PRIZM_WALLET_ADDRESS, parse_mode='html')
         await bot.send_message(order.to_user_id, text=f"order:{order.to_user_id}:{order.id}", parse_mode='html')
@@ -52,7 +53,7 @@ async def send_notification_to_actings(order: Order, bot: Bot, cb: CallbackQuery
                   f"⏳Перевод надо совершить в течение {admin_settings.pay_wait_time} минут.\n",
                   settings.PRIZM_WALLET_ADDRESS,
                   f"order:{order.to_user_id}:{order.id}"],
-            keyboard=contact_to_user(order.from_user_id, order),
+            keyboard=order_pzm_markup,
             message_id=message.message_id)
 
     else:
