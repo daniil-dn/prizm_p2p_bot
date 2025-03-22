@@ -11,7 +11,7 @@ from app.core.models.user import User
 
 class Wallet(Base, ModelBase):
     id = Column(BigInteger, primary_key=True)
-    user_id = Column(ForeignKey('user.id'), index=True, nullable=False)
+    user_id = Column(BigInteger, ForeignKey('user.id'), index=True, nullable=False)
     user: Mapped["User"] = relationship(
         "User",
         backref="user",

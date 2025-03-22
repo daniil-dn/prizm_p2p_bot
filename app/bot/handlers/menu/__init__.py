@@ -8,6 +8,6 @@ router.include_routers(
     support.router,
     profile.router,
     transfer_to_myhome.router,
-    my_order_requests.router,
+    # my_order_requests.router,
     admin.router
 )

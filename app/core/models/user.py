@@ -21,5 +21,5 @@ class User(Base, ModelBase):
     order_count = Column(BigInteger, default=0)
     cancel_order_count = Column(BigInteger, default=0)
     last_online = Column(TIMESTAMP(timezone=True), nullable=True)
-    created_at = Column(default=func.now())
-    updated_at = Column(onupdate=func.now())
+    created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, onupdate=func.now())
