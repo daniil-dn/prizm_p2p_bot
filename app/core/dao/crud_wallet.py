@@ -15,7 +15,7 @@ logger = getLogger(__name__)
 class CRUDWallet(CRUDBase[Wallet, dto.WalletCreate, dto.OrderUpdate]):
     async def get_by_user_id_currency(self,
                                       db: AsyncSession,
-                                      user_id: int, currency: str) -> List[Wallet] | int:
+                                      user_id: int, currency: str) -> Wallet | None:
         query = select(Wallet).filter(Wallet.user_id == user_id, Wallet.currency == currency)
 
         res = await db.execute(query)

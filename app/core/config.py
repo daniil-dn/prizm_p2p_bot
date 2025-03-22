@@ -12,7 +12,7 @@ BASE_DIR = Path(__file__).resolve().parent
 
 class Settings(BaseSettings):
     """SERVER CONFIG"""
-    DEBUG: bool = None
+    DEBUG: bool | None = None
 
     # API
     COINMARKETCAP_API_KEY: str
@@ -76,7 +76,7 @@ class Settings(BaseSettings):
     """REDIS CONFIG"""
     REDIS_HOST: str
     REDIS_PASSWORD: str
-    REDIS_PORT: str
+    REDIS_PORT: int
     REDIS_DEFAULT_DB: str
 
     class Config:
