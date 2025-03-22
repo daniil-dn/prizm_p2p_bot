@@ -4,6 +4,7 @@ from aiogram import Router, Bot, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 from sqlalchemy.ext.asyncio import AsyncSession
+from watchfiles import awatch
 
 from app.bot.services.message_manager import MessageManager
 from app.bot.ui import recieved_card_transfer, get_menu_kb
@@ -24,6 +25,10 @@ logger = getLogger(__name__)
 async def accept_order_payment_cb(cb: CallbackQuery, bot: Bot, state: FSMContext, user_db: User,
                                   session: AsyncSession, message_manager: MessageManager) -> None:
     order_id = int(cb.data.split('_')[-1])
+
+    if (await crud_order.get_by_id(session, id=order_id)).status == Order.DONE:
+        return
+
     data = await message_manager.get_message_and_keyboard(user_id=cb.from_user.id, order_id=order_id)
     message_id = data['message_id']
 

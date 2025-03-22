@@ -8,15 +8,19 @@ from app.bot.ui.order_seller_accept import contact_to_user, cancel_contact, cont
 from app.core.dao import crud_user, crud_order
 from app.core.dao.crud_message import crud_message
 from app.core.dto import MessageCreate
+from app.core.models import Order
 
 router = Router()
 
 
 @router.callback_query(F.data.startswith('contact_'))
-async def ask_message_to_send(callback: CallbackQuery, state: FSMContext):
+async def ask_message_to_send(callback: CallbackQuery, state: FSMContext, session: AsyncSession):
     await state.set_state(GetMessage.wait_for_message)
     to_user_id = int(callback.data.split('_')[1])
     order_id = int(callback.data.split('_')[2])
+
+    if (await crud_order.get_by_id(session, id=order_id)).status == Order.DONE:
+        return
     await state.set_data({'to_user_id': to_user_id, 'order_id': order_id})
     await callback.message.answer('Введите сообщения для пользователя (можно отправить 1 фото или 1 документ)',
                                   reply_markup=cancel_contact)
@@ -39,6 +43,7 @@ async def send_message_to_user(message: Message, state: FSMContext, bot: Bot, se
     to_user_tg_id = await state.get_value('to_user_id')
 
     order_id = await state.get_value('order_id')
+
     async with session:
         order = await crud_order.get_by_id(session, id=order_id)
     await state.clear()

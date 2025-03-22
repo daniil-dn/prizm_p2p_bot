@@ -87,7 +87,7 @@ async def accept_card_transfer_recieved_cb(cb: CallbackQuery, bot: Bot, state: F
         payout_value = prizm_value * order.commission_percent
 
         await message_manager.delete_message_and_keyboard(buyer_id, order.id)
-        await message_manager.delete_message_and_keyboard(seller, order.id)
+        await message_manager.delete_message_and_keyboard(seller_id, order.id)
 
         seller = await crud_user.update(session, db_obj=seller,
                                         obj_in={'balance': seller.balance - (prizm_value + payout_value),
