@@ -44,21 +44,15 @@ async def stop_order(callback: CallbackQuery, button: Button, dialog_manager: Di
     await start(callback, button, dialog_manager)
 
 
-async def delete_order(message: Message,
-                       widget: ManagedTextInput,
-                       dialog_manager: DialogManager,
-                       data):
-    if not check_wallet_format(data):
-        await message.answer("Введите кошелек в формате PRIZM-****-****-****-****")
-        return
+async def delete_order(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
     session = dialog_manager.middleware_data['session']
     order = await crud_order_request.get_by_id(session, id=int(dialog_manager.dialog_data['order_id']))
 
-    await crud_user.increanse_balance(session, id=message.from_user.id, summ=order.max_limit)
+    await crud_user.increanse_balance(session, id=callback.from_user.id, summ=order.max_limit)
 
     await crud_order_request.update(session, db_obj=order, obj_in={'status': OrderRequest.CLOSED})
-    await message.answer('Ордер удален')
-    await start(message, widget, dialog_manager)
+    await callback.message.answer('Ордер удален')
+    await start(callback, button, dialog_manager)
 
 
 async def error_handler(
