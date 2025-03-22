@@ -57,7 +57,7 @@ async def send_notification_to_actings(order: Order, bot: Bot, cb: CallbackQuery
             message_id=message.message_id)
 
     else:
-        from_user_wallet = await crud_wallet.get_by_user_id_currency(session, currency=order.to_currency,
+        from_user_wallet = await crud_wallet.get_by_order_user_id(session, order_id=order.id,
                                                                      user_id=order.from_user_id)
         message = await bot.send_message(
             order.to_user_id,

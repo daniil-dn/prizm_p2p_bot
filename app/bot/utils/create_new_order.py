@@ -26,13 +26,6 @@ async def create_order_and_wallet(dialog_manager: DialogManager, user_id: int, s
             to_currency = "PRIZM"
             wallet_currency = 'PRIZM'
             order_request_status = OrderRequest.IN_PROGRESS
-        wallet = await crud_wallet.get_by_user_id_currency(session, currency=wallet_currency,
-                                                           user_id=dialog_manager.middleware_data['user_db'].id)
-        if not wallet:
-            wallet = WalletCreate(user_id=user_id, currency=wallet_currency, value=sell_card_info)
-            await crud_wallet.create(session, obj_in=wallet)
-        elif wallet.value != sell_card_info:
-            await crud_wallet.update(session, db_obj=wallet, obj_in={"value": sell_card_info})
 
         order_request = OrderRequestCreate(
             user_id=user_id,
@@ -46,6 +39,17 @@ async def create_order_and_wallet(dialog_manager: DialogManager, user_id: int, s
             status=order_request_status
         )
         order_request = await crud_order_request.create(session, obj_in=order_request)
+
+        wallet = await crud_wallet.get_by_order_request_user_id(session,
+                                                                user_id=dialog_manager.middleware_data['user_db'].id,
+                                                                order_request_id=order_request.id)
+        if not wallet:
+            wallet = WalletCreate(user_id=user_id, order_request_id=order_request.id, currency=wallet_currency,
+                                  value=sell_card_info)
+            await crud_wallet.create(session, obj_in=wallet)
+        elif wallet.value != sell_card_info:
+            await crud_wallet.update(session, db_obj=wallet, obj_in={"value": sell_card_info})
+
         return order_request, admin_settings
 
 

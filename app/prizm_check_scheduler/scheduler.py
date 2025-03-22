@@ -107,6 +107,10 @@ class Scheduler:
                                 order_value_commission = order.prizm_value + (
                                         order.prizm_value * order.commission_percent)
                                 if user_balance >= order_value_commission:
+                                    user = await crud_user.lock_row(db=session, id=transfer_user_id)
+                                    upd_user_balance = user.balance - order_value_commission
+                                    await crud_user.update(db=session, db_obj=user, obj_in={"balance": upd_user_balance})
+
                                     logger.info(
                                         f"Сделка {order.id} принята баланс продавца: {user.balance}. Нужно монет для ордера {order.prizm_value} ")
                                     await crud_order.update(db=session, db_obj=order,
@@ -164,7 +168,7 @@ class Scheduler:
                                                                                     "status": OrderRequest.IN_PROGRESS,
                                                                                     "max_limit": prizm_max_limit,
                                                                                     "max_limit_rub": rub_max_limit})
-                                if user_balance <= order_request.max_limit:
+                                if user_balance < order_request.max_limit:
                                     text = (
                                         f"Ваш Ордер №{order_request.id} на продажу PRIZM создан и размещен в боте.\nЛимит скорректирован от суммы платежа. \nТекущий лимит от {order_request.min_limit} до {order_request.max_limit} PZM\n\n"
                                         f"Курс 1pzm - {order_request.rate}руб\nЛимит: {order_request.min_limit_rub} - {order_request.max_limit_rub}руб\nЧисло сделок:{user.order_count} Число отказов: {user.cancel_order_count}\n\n")

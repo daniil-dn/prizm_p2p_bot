@@ -104,7 +104,7 @@ async def accept_card_transfer_recieved_cb(cb: CallbackQuery, bot: Bot, state: F
         buyer = await crud_user.lock_row(session, id=buyer_id)
         buyer = await crud_user.update(session, db_obj=buyer,
                                        obj_in={"order_count": buyer.order_count + 1})
-        buyer_wallet = await crud_wallet.get_by_user_id_currency(session, user_id=buyer_id, currency='PRIZM')
+        buyer_wallet = await crud_wallet.get_by_order_user_id(session, user_id=buyer_id, order_id=order.id)
 
         prizm_fetcher = PrizmWalletFetcher(settings.PRIZM_API_URL)
         try:

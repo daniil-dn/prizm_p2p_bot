@@ -59,22 +59,7 @@ async def on_card_info_input(message: Message, text_widget: ManagedTextInput, di
     else:
         if not check_wallet_format(value):
             return
-
     dialog_manager.dialog_data['card_info'] = value
-    user_db = dialog_manager.middleware_data['user_db']
-    if dialog_manager.start_data['mode'] == 'sell':
-        currency = 'RUB'
-    else:
-        currency = 'PRIZM'
-    async with dialog_manager.middleware_data['session'] as session:
-        wallet = await crud_wallet.get_by_user_id_currency(session, currency=currency,
-                                                           user_id=dialog_manager.middleware_data['user_db'].id)
-        if not wallet:
-            wallet = WalletCreate(user_id=user_db.id, currency=currency, value=value)
-            await crud_wallet.create(session, obj_in=wallet)
-        elif wallet.value != value:
-            await crud_wallet.update(session, db_obj=wallet, obj_in={"value": value})
-
     await dialog_manager.next(show_mode=ShowMode.DELETE_AND_SEND)
 
 
@@ -88,6 +73,8 @@ async def on_accept_order_request_input(cb: CallbackQuery, button, dialog_manage
     start_wait_time = datetime.strptime(dialog_manager.dialog_data['current_time'], "%Y-%m-%d %H:%M:%S")
     order_request_id = dialog_manager.dialog_data['order_id']
     current_time = datetime.now()
+    user_db = dialog_manager.middleware_data['user_db']
+    user_wallet_value = dialog_manager.middleware_data['card_info']
 
     async with dialog_manager.middleware_data['session'] as session:
         settings = await crud_settings.get_by_id(session, id=1)
@@ -114,7 +101,7 @@ async def on_accept_order_request_input(cb: CallbackQuery, button, dialog_manage
 
         order = OrderCreate(
             from_user_id=order_request.user_id,
-            to_user_id=dialog_manager.middleware_data['user_db'].id,
+            to_user_id=user_db.id,
             from_currency=order_request.from_currency,
             to_currency=order_request.to_currency,
             prizm_value=prizm_value,
@@ -125,6 +112,21 @@ async def on_accept_order_request_input(cb: CallbackQuery, button, dialog_manage
             order_request_id=order_request.id
         )
         order = await crud_order.create(session, obj_in=order)
+
+        if dialog_manager.start_data['mode'] == 'sell':
+            currency = 'RUB'
+        else:
+            currency = 'PRIZM'
+        wallet = await crud_wallet.get_by_order_user_id(session, order_id=order.id,
+                                                           user_id=user_db.id)
+        if not wallet:
+            wallet = WalletCreate(user_id=user_db.id, order_id=order.id, currency=currency, value=user_wallet_value)
+            await crud_wallet.create(session, obj_in=wallet)
+        elif wallet.value != user_wallet_value:
+            await crud_wallet.update(session, db_obj=wallet, obj_in={"value": user_wallet_value})
+        # todo вынести в менеджер
+        from_wallet = WalletCreate(user_id=order_request.user_id, order_id=order.id, currency=currency, value=user_wallet_value)
+        await crud_wallet.create(session, obj_in=from_wallet)
 
     if dialog_manager.start_data['mode'] == 'sell':
         success_text = (f"Сделка №{order.id}.\n"

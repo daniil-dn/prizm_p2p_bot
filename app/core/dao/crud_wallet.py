@@ -21,5 +21,23 @@ class CRUDWallet(CRUDBase[Wallet, dto.WalletCreate, dto.OrderUpdate]):
         res = await db.execute(query)
         return res.scalar()
 
+    async def get_by_order_request_user_id(self,
+                                           db: AsyncSession,
+                                           user_id: int,
+                                           order_request_id: int) -> Wallet | None:
+        query = select(Wallet).filter(Wallet.user_id == user_id, Wallet.order_request_id == order_request_id)
+
+        res = await db.execute(query)
+        return res.scalar()
+
+    async def get_by_order_user_id(self,
+                                   db: AsyncSession,
+                                   user_id: int,
+                                   order_id: int) -> Wallet | None:
+        query = select(Wallet).filter(Wallet.user_id == user_id, Wallet.order_id == order_id)
+
+        res = await db.execute(query)
+        return res.scalar()
+
 
 crud_wallet = CRUDWallet(Wallet)
