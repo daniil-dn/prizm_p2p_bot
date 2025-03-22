@@ -56,6 +56,14 @@ def contact_to_user(user_id, order) -> InlineKeyboardMarkup:
 
     builder = InlineKeyboardBuilder()
     builder.add(_get_contact_user_button(user_id, order))
+    builder.adjust(1)
+
+    return builder.as_markup(resize_keyboard=True)
+
+
+def contact_to_user_and_back(user_id, order) -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    builder.add(_get_contact_user_button(user_id, order))
     builder.button(text='К сделке', callback_data=f'to_order_{order.id}')
     builder.adjust(1)
 

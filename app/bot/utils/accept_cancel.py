@@ -39,14 +39,19 @@ async def send_notification_to_actings(order: Order, bot: Bot, cb: CallbackQuery
             parse_mode="html",
             reply_markup=contact_to_user(order.from_user_id, order)
         )
+        await bot.send_message(order.to_user_id, text=settings.PRIZM_WALLET_ADDRESS, parse_mode='html')
+        await bot.send_message(order.to_user_id, text=f"order:{order.to_user_id}:{order.id}", parse_mode='html')
+
         await message_manager.set_message_and_keyboard(
             user_id=order.to_user_id, order_id=order.id,
-            text=f"Сделка №{order.id} подтверждена.\n"
-                 f"Переведите {prizm_with_commission} PZM c коммиссией сервиса {order.commission_percent * 100}%\n"
-                 f"Без комментария платеж потеряется!\n"
-                 f"На кошелек сервиса: <b><code>{settings.PRIZM_WALLET_ADDRESS}</code></b>\n"
-                 f"Комментарий платежа: <b><code>order:{order.to_user_id}:{order.id}</code></b>\n\n"
-                 f"⏳Перевод надо совершить в течение {admin_settings.pay_wait_time} минут.\n",
+            text=[f"Сделка №{order.id} подтверждена.\n"
+                  f"Переведите {prizm_with_commission} PZM c коммиссией сервиса {order.commission_percent * 100}%\n"
+                  f"Без комментария платеж потеряется!\n"
+                  f"На кошелек сервиса: <b><code>{settings.PRIZM_WALLET_ADDRESS}</code></b>\n"
+                  f"Комментарий платежа: <b><code>order:{order.to_user_id}:{order.id}</code></b>\n\n"
+                  f"⏳Перевод надо совершить в течение {admin_settings.pay_wait_time} минут.\n",
+                  settings.PRIZM_WALLET_ADDRESS,
+                  f"order:{order.to_user_id}:{order.id}"],
             keyboard=contact_to_user(order.from_user_id, order),
             message_id=message.message_id)
 
@@ -62,7 +67,7 @@ async def send_notification_to_actings(order: Order, bot: Bot, cb: CallbackQuery
         await message_manager.set_message_and_keyboard(
             user_id=order.to_user_id, order_id=order.id,
             text=f"Переведите {order.rub_value} рублей на реквизиты {from_user_wallet.value} \n"
-            f"⏳Перевод надо совершить в течение {admin_settings.pay_wait_time} минут.",
+                 f"⏳Перевод надо совершить в течение {admin_settings.pay_wait_time} минут.",
             keyboard=sent_card_transfer(order, order.from_user_id),
             message_id=message.message_id)
 

@@ -4,7 +4,7 @@ from aiogram.types import CallbackQuery, Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.bot.handlers.orders.state import GetMessage
-from app.bot.ui.order_seller_accept import contact_to_user, cancel_contact
+from app.bot.ui.order_seller_accept import contact_to_user, cancel_contact, contact_to_user_and_back
 from app.core.dao import crud_user, crud_order
 from app.core.dao.crud_message import crud_message
 from app.core.dto import MessageCreate
@@ -56,7 +56,7 @@ async def send_message_to_user(message: Message, state: FSMContext, bot: Bot, se
     except:
         pass
     await message.answer('Сообщение отправлено',
-                         reply_markup=contact_to_user(to_user_tg_id, order))
+                         reply_markup=contact_to_user_and_back(to_user_tg_id, order))
     async with session:
         to_user = await crud_user.get(session, to_user_tg_id)
         from_user = await crud_user.get(session, message.from_user.id)

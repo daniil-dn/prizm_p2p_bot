@@ -8,7 +8,7 @@ from app.bot.services.redis import RedisService
 class MessageManager:
     redis = RedisService()
 
-    async def set_message_and_keyboard(self, user_id: int, order_id: int, text: str,
+    async def set_message_and_keyboard(self, user_id: int, order_id: int, text: str | list[str],
                                        keyboard: InlineKeyboardMarkup, message_id: int):
         key = f'{user_id}-{order_id}'
         data = {'text': text,
