@@ -1,6 +1,6 @@
 from aiogram import Router
 
-from . import rules, support, profile, transfer_to_myhome, admin, my_order_requests
+from . import rules, support, profile, transfer_to_myhome, admin, withdraw_money
 
 router = Router()
 router.include_routers(
@@ -8,6 +8,6 @@ router.include_routers(
     support.router,
     profile.router,
     transfer_to_myhome.router,
-    # my_order_requests.router,
+    withdraw_money.router,
     admin.router
 )

@@ -14,6 +14,7 @@ router = Router()
 @router.message(CommandStart())
 @router.message(Command("start"))
 @router.callback_query(F.data.startswith('start_bot'))
+@router.callback_query(F.data == ('cancel_withdraw'))
 async def start_cmd(message: Message, bot: Bot, state: FSMContext, user_db: User,
                     dialog_manager: DialogManager) -> None:
     await dialog_manager.reset_stack(remove_keyboard=True)

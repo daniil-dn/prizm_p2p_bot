@@ -22,8 +22,13 @@ class CRUDUser(CRUDBase[User, dto.UserCreate, dto.UserUpdate]):
         )
         return res.scalar_one_or_none()
 
-    async def increanse_balance(self, db: AsyncSession, *, id: int, summ: float):
+    async def increase_balance(self, db: AsyncSession, *, id: int, summ: float):
         q = update(User).where(User.id == id).values(balance=User.balance + summ)
+        await db.execute(q)
+        await db.commit()
+
+    async def decrease_balance(self, db: AsyncSession, *, id: int, summ: float):
+        q = update(User).where(User.id == id).values(balance=User.balance - summ)
         await db.execute(q)
         await db.commit()
 
