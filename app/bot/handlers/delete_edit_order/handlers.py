@@ -51,7 +51,7 @@ async def delete_order(callback: CallbackQuery, button: Button, dialog_manager: 
 
     await crud_user.increanse_balance(session, id=callback.from_user.id, summ=order.max_limit)
 
-    await crud_order_request.update(session, db_obj=order, obj_in={'status': OrderRequest.CLOSED})
+    await crud_order_request.update(session, db_obj=order, obj_in={'status': OrderRequest.DELETED})
     await callback.message.answer('Ордер удален')
     await start(callback, button, dialog_manager)
 

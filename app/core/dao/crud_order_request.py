@@ -133,7 +133,7 @@ class CRUDOrderRequest(CRUDBase[OrderRequest, dto.OrderRequestCreate, dto.OrderR
                              db: AsyncSession,
                              user_id) -> List[OrderRequest] | int:
 
-        filters = [OrderRequest.user_id == user_id]
+        filters = [OrderRequest.user_id == user_id, OrderRequest.status != OrderRequest.DELETED]
         query = select(OrderRequest).filter(*filters)
 
         res = await db.execute(query)

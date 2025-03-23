@@ -17,7 +17,7 @@ class OrderRequest(Base, ModelBase):
     IN_PROGRESS = 1
     ACCESSED = 2
     LOCK = 3
-    CLOSED = 4
+    DELETED = 4
     STOPPED = 5
 
     __table_args__ = (
