@@ -6,7 +6,7 @@ from .profile import get_profile_kb
 from .order_seller_accept import order_seller_accept_kb, sent_card_transfer, recieved_card_transfer
 from .new_order import new_order_sell_buy_kb
 from .admin import admin_panel_commot_kb
-
+from .order_seller_accept import order_seller_accept_kb, contact_to_user, contact_to_user_and_back, cancel_contact, recieved_card_transfer, sended_pzm_transfer_button
 remove = ReplyKeyboardRemove
 
 __all__ = (
@@ -17,5 +17,7 @@ __all__ = (
     "new_order_sell_buy_kb",
     "admin_panel_commot_kb",
     "sent_card_transfer",
-    "recieved_card_transfer"
+    "recieved_card_transfer",
+    "sended_pzm_transfer_button",
+    "contact_to_user"
 )

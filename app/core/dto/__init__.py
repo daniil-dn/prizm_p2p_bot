@@ -4,3 +4,4 @@ from .order import OrderCreate, OrderUpdate, OrderInDB
 from .wallet import WalletCreate, WalletUpdate, WalletInDB
 from .settings import SettingsInDB, SettingsUpdate, SettingsCreate
 from .transaction import TransactionCreate, TransactionUpdate, TransactionInDB
+from .message_between import MessageCreate

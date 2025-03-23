@@ -1,5 +1,5 @@
 from logging import getLogger
-from typing import List
+from typing import List, cast
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession

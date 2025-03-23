@@ -28,4 +28,4 @@ def get_menu_kb(is_admin: bool = False) -> InlineKeyboardMarkup:
     if is_admin:
         buttons.append([InlineKeyboardButton(text='Админ-панель', callback_data='admin_panel_menu')])
     builder = InlineKeyboardBuilder(markup=buttons)
-    return builder.as_markup()
+    return builder.as_markup(resize_keyboard=True)

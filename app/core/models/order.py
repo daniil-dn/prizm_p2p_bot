@@ -32,8 +32,8 @@ class Order(Base, ModelBase):
         backref="to_orders",
         foreign_keys=[to_user_id])
 
-    from_currency = Column(ForeignKey('currency.id'), nullable=False)
-    to_currency = Column(ForeignKey('currency.id'), nullable=False)
+    from_currency = Column(String(5), nullable=False)
+    to_currency = Column(String(5), nullable=False)
 
     order_request_id = Column(ForeignKey('order_request.id'), nullable=False)
 

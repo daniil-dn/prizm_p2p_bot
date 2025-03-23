@@ -1,5 +1,7 @@
+from pickle import STRING
+
 from sqlalchemy import Column, DateTime, BigInteger, func, ForeignKey, \
-    Numeric
+    Numeric, String
 
 from sqlalchemy.orm import relationship, Mapped
 
@@ -22,7 +24,7 @@ class Transfer(Base, ModelBase):
         backref="to_user",
         foreign_keys=[to_user_id])
 
-    currency = Column(ForeignKey('currency.id'), nullable=False)
+    currency = Column(String(5), nullable=False)
 
     value = Column(Numeric(18, 4, asdecimal=False), nullable=False)
 

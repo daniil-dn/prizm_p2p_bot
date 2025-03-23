@@ -5,7 +5,7 @@ from sqlalchemy import (Column,
                         ForeignKey,
                         Index,
                         SmallInteger,
-                        Numeric)
+                        Numeric, String)
 from sqlalchemy.orm import relationship, Mapped
 from app.core.db.base_class import Base
 from app.core.models.model_base import ModelBase
@@ -31,8 +31,8 @@ class OrderRequest(Base, ModelBase):
         backref="user_wallet",
         foreign_keys=[user_id])
 
-    from_currency = Column(ForeignKey('currency.id'), nullable=False)
-    to_currency = Column(ForeignKey('currency.id'), nullable=False)
+    from_currency = Column(String(5), nullable=False)
+    to_currency = Column(String(5), nullable=False)
 
     min_limit = Column(Numeric(18, 4, asdecimal=False), nullable=False)
     max_limit = Column(Numeric(18, 4, asdecimal=False), nullable=False)
