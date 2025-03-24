@@ -8,6 +8,8 @@ from app.bot.ui.partner_system import withdraw_partner_balance
 from app.bot.ui.withdraw import cancel_withdraw
 from app.bot.utils.parce import get_partner_data
 from app.core.dao import crud_user, crud_settings
+from app.core.dao.crud_withdraw_ref import crud_withdraw_ref
+from app.core.dto.withdraw_ref import WithdrawRefCreate
 from app.core.models import User
 from app.utils.text_check import check_wallet_format
 
@@ -84,6 +86,7 @@ async def check_input_and_withdraw_balance(message: Message, state: FSMContext,
         await message.answer('Отправьте адрес кошелька в таком формате: PRIZM-****-****-****-****',
                              reply_markup=cancel_withdraw)
         return
+    await state.clear()
 
     amount = await state.get_value('amount')
     main_admin = await crud_user.get_main_admin(session)
@@ -95,6 +98,9 @@ async def check_input_and_withdraw_balance(message: Message, state: FSMContext,
     count_orders = data.get('count_orders', None)
     commission = data.get('commission', None)
     percent = data.get('percent', None)
+
+    withdraw_create = WithdrawRefCreate(user_id=message.from_user.id, summ=amount)
+    await crud_withdraw_ref.create(session, obj_in=withdraw_create)
 
     try:
         await message.answer('Деньги будут выведены на указанный адрес')
