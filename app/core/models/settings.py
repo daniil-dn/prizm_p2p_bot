@@ -10,3 +10,4 @@ class Settings(Base, ModelBase):
     pay_wait_time = Column(Integer)
     commission_percent = Column(Numeric(18, 2, asdecimal=False), nullable=False)
     prizm_rate_diff = Column(Numeric(18, 2, asdecimal=False), nullable=False)
+    partner_commission_percent = Column(Numeric(18, 2), default=0.1)

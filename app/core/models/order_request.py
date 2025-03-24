@@ -15,7 +15,6 @@ from app.core.models.user import User
 class OrderRequest(Base, ModelBase):
     WAIT_PRIZM = 0
     IN_PROGRESS = 1
-    ACCESSED = 2
     LOCK = 3
     DELETED = 4
     STOPPED = 5
