@@ -10,7 +10,7 @@ from app.bot.ui import recieved_card_transfer, get_menu_kb
 from app.bot.ui.order_seller_accept import contact_to_user
 from app.bot.ui.texts import get_start_text
 from app.core.config import settings
-from app.core.dao import crud_order, crud_user
+from app.core.dao import crud_order, crud_user, crud_settings
 from app.core.dao.crud_wallet import crud_wallet
 from app.core.models import User, Order
 from app.prizm_check_scheduler.prizm_fetcher import PrizmWalletFetcher
@@ -28,7 +28,7 @@ async def accept_order_payment_cb(cb: CallbackQuery, bot: Bot, state: FSMContext
     card_info_user_text = f"Сделка: №{order.id}. Проверьте перевод средств на карту и сумму. Общая сумма сделки {order.rub_value} рублей. "
     if order.mode == "buy":
         message = await bot.send_message(order.from_user_id, card_info_user_text,
-                               reply_markup=recieved_card_transfer(order, order.to_user_id))
+                                         reply_markup=recieved_card_transfer(order, order.to_user_id))
         await message_manager.set_message_and_keyboard(
             user_id=order.from_user_id, order_id=order.id,
             text=card_info_user_text,
@@ -36,7 +36,8 @@ async def accept_order_payment_cb(cb: CallbackQuery, bot: Bot, state: FSMContext
             message_id=message.message_id
         )
 
-        message = await cb.message.reply("Ждите подтверждение от продавца", reply_markup=contact_to_user(order.from_user_id, order))
+        message = await cb.message.reply("Ждите подтверждение от продавца",
+                                         reply_markup=contact_to_user(order.from_user_id, order))
         await message_manager.set_message_and_keyboard(
             user_id=cb.from_user.id, order_id=order.id,
             text="Ждите подтверждение от продавца",
@@ -45,7 +46,7 @@ async def accept_order_payment_cb(cb: CallbackQuery, bot: Bot, state: FSMContext
         )
     else:
         message = await bot.send_message(order.to_user_id, card_info_user_text,
-                               reply_markup=recieved_card_transfer(order, cb.from_user.id))
+                                         reply_markup=recieved_card_transfer(order, cb.from_user.id))
         await message_manager.set_message_and_keyboard(
             user_id=order.to_user_id, order_id=order.id,
             text=card_info_user_text,
@@ -53,7 +54,8 @@ async def accept_order_payment_cb(cb: CallbackQuery, bot: Bot, state: FSMContext
             message_id=message.message_id
         )
 
-        message = await cb.message.reply("Ждите подтверждение от покупателя", reply_markup=contact_to_user(order.to_user_id, order))
+        message = await cb.message.reply("Ждите подтверждение от покупателя",
+                                         reply_markup=contact_to_user(order.to_user_id, order))
         await message_manager.set_message_and_keyboard(
             user_id=cb.from_user.id, order_id=order.id,
             text="Ждите подтверждение от покупателя",
@@ -83,6 +85,7 @@ async def accept_card_transfer_recieved_cb(cb: CallbackQuery, bot: Bot, state: F
     prizm_value = order.prizm_value
     seller = await crud_user.lock_row(session, id=seller_id)
     payout_value = prizm_value * order.commission_percent
+    admin_settings = await crud_settings.get_by_id(session, id=1)
 
     await message_manager.delete_message_and_keyboard(buyer_id, order.id)
     await message_manager.delete_message_and_keyboard(seller_id, order.id)
@@ -99,6 +102,10 @@ async def accept_card_transfer_recieved_cb(cb: CallbackQuery, bot: Bot, state: F
         reply_markup=get_menu_kb(is_admin=user_db.role == User.ADMIN_ROLE)),
 
     buyer = await crud_user.lock_row(session, id=buyer_id)
+    if buyer.partner_id:
+        await crud_user.increase_referral_balance(session, id=buyer.partner_id,
+                                                  summ=round(
+                                                      order.prizm_value * admin_settings.partner_commission_percent, 2))
     buyer = await crud_user.update(session, db_obj=buyer,
                                    obj_in={"order_count": buyer.order_count + 1})
     buyer_wallet = await crud_wallet.get_by_order_user_id(session, user_id=buyer_id, order_id=order.id)

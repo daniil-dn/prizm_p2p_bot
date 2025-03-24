@@ -74,7 +74,7 @@ async def on_accept_order_request_input(cb: CallbackQuery, button, dialog_manage
     order_request_id = dialog_manager.dialog_data['order_id']
     current_time = datetime.now()
     user_db = dialog_manager.middleware_data['user_db']
-    user_wallet_value = dialog_manager.middleware_data['card_info']
+    user_wallet_value = dialog_manager.dialog_data['card_info']
     session = dialog_manager.middleware_data['session']
 
     settings = await crud_settings.get_by_id(session, id=1)
