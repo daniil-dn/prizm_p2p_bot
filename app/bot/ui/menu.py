@@ -16,6 +16,9 @@ def get_menu_kb(is_admin: bool = False) -> InlineKeyboardMarkup:
             InlineKeyboardButton(text='💼 Мои ордера', callback_data='my_order_requests')
         ],
         [
+            InlineKeyboardButton(text='🤝 Партнерская программа', callback_data='partner_system')
+        ],
+        [
             InlineKeyboardButton(text='🎓 Правила сервиса', callback_data='rules')
         ],
         [

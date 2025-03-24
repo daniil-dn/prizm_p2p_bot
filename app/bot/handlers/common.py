@@ -1,12 +1,14 @@
 from aiogram import Router, Bot, F
-from aiogram.filters import CommandStart, Command
+from aiogram.filters import CommandStart, Command, CommandObject
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 from aiogram_dialog import DialogManager
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.models import User
 from ..ui import get_menu_kb
 from ..ui.texts import get_start_text
+from ...core.dao import crud_user
 
 router = Router()
 
@@ -15,8 +17,13 @@ router = Router()
 @router.message(Command("start"))
 @router.callback_query(F.data.startswith('start_bot'))
 @router.callback_query(F.data == ('cancel_withdraw'))
-async def start_cmd(message: Message, bot: Bot, state: FSMContext, user_db: User,
-                    dialog_manager: DialogManager) -> None:
+async def start_cmd(message: Message, bot: Bot, state: FSMContext, user_db: User, command: CommandObject,
+                    dialog_manager: DialogManager, session: AsyncSession) -> None:
+    if command.args:
+        try:
+            await crud_user.update(session, db_obj=user_db, obj_in={'partner_id': int(command.args, 16)}) # TODO более адекватно сделать
+        except:
+            pass
     await dialog_manager.reset_stack(remove_keyboard=True)
     await state.clear()
     await bot.send_message(

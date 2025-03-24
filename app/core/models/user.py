@@ -1,6 +1,8 @@
 from sqlalchemy import Column, String, DateTime, BigInteger, func, Numeric, SmallInteger, TIMESTAMP
+from sqlalchemy.orm import Mapped, relationship
 
 from app.core.db.base_class import Base
+from app.core.models import Order
 from app.core.models.model_base import ModelBase
 
 
@@ -23,3 +25,6 @@ class User(Base, ModelBase):
     last_online = Column(TIMESTAMP(timezone=True), nullable=True)
     created_at = Column(DateTime, default=func.now())
     updated_at = Column(DateTime, onupdate=func.now())
+
+    from_orders: Mapped[list['Order']] = relationship('Order', back_populates='from_user', foreign_keys=[Order.from_user_id])
+    to_orders: Mapped[list['Order']] = relationship('Order', back_populates='to_user', foreign_keys=[Order.to_user_id])
