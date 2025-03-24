@@ -17,24 +17,17 @@ router = Router()
 
 
 @router.callback_query(F.data == 'partner_system')
-async def ask_how_many(callback: CallbackQuery, bot: Bot, session: AsyncSession):
+async def ask_how_many(callback: CallbackQuery, bot: Bot, session: AsyncSession, user_db: User):
     me = await bot.get_me()
     link = f'https://t.me/{me.username}' + '?start=' + hex(callback.from_user.id)
 
     data = await get_partner_data(session, callback.from_user.id)
 
-    summ = data.get('summ', None)
     count_users = data.get('count_users', None)
-    count_orders = data.get('count_orders', None)
-    commission = data.get('commission', None)
-    percent = data.get('percent', None)
 
     if count_users:
         text = (f'Всего приглашенных: {count_users}\n'
-                f'Проведено сделок: {count_orders}\n'
-                f'Общая сумма сделок: {summ} призм\n'
-                f'Ваша комиссия ({int(percent * 100)}% от комиссии бота): '
-                f'{commission} призм')
+                f'Ваш реферальный баланс: {user_db.referral_balance}')
     else:
         text = 'У вас пока нет приглашенных пользователей'
 
@@ -45,10 +38,7 @@ async def ask_how_many(callback: CallbackQuery, bot: Bot, session: AsyncSession)
 
 @router.callback_query(F.data == 'withdraw_partner_balance')
 async def get_summ_to_output(callback: CallbackQuery, state: FSMContext, user_db: User, session: AsyncSession):
-    data = await get_partner_data(session, callback.from_user.id)
-    summ = data.get('summ', None)
-
-    if summ < 1000:
+    if user_db.referral_balance < 1000:
         await callback.answer('Вывод доступен только от тысячи prizm', show_alert=True)
         return
 
@@ -65,10 +55,7 @@ async def check_input_and_ask_address(message: Message, state: FSMContext, user_
         await message.answer('Сумма должна быть числом. Попробуйте снова', reply_markup=cancel_withdraw)
         return
 
-    data = await get_partner_data(session, message.from_user.id)
-    summ = data.get('summ', None)
-
-    if amount > summ or amount < 1000:
+    if amount > user_db.referral_balance or amount < 1000:
         await message.answer('Введите корректную сумму больше 1000', reply_markup=cancel_withdraw)
         return
 
@@ -81,12 +68,11 @@ async def check_input_and_ask_address(message: Message, state: FSMContext, user_
 
 @router.message(WithdrawPartner.get_prizm_address)
 async def check_input_and_withdraw_balance(message: Message, state: FSMContext,
-                                           session: AsyncSession, bot: Bot):
+                                           session: AsyncSession, bot: Bot, user_db: User):
     if not check_wallet_format(message.text):
         await message.answer('Отправьте адрес кошелька в таком формате: PRIZM-****-****-****-****',
                              reply_markup=cancel_withdraw)
         return
-    await state.clear()
 
     amount = await state.get_value('amount')
     main_admin = await crud_user.get_main_admin(session)
@@ -97,10 +83,10 @@ async def check_input_and_withdraw_balance(message: Message, state: FSMContext,
     count_users = data.get('count_users', None)
     count_orders = data.get('count_orders', None)
     commission = data.get('commission', None)
-    percent = data.get('percent', None)
 
     withdraw_create = WithdrawRefCreate(user_id=message.from_user.id, summ=amount)
     await crud_withdraw_ref.create(session, obj_in=withdraw_create)
+    await crud_user.decrease_referral_balance(session, id=message.from_user.id, summ=amount)
 
     try:
         await message.answer('Деньги будут выведены на указанный адрес')
@@ -109,6 +95,12 @@ async def check_input_and_withdraw_balance(message: Message, state: FSMContext,
                                                    f'Кол-во приглашенных {count_users}\n'
                                                    f'Проведено сделок: {count_orders}\n'
                                                    f'Общая сумма сделок: {summ} призм\n'
-                                                   f'Процент пользователя {commission}')
+                                                   f'Процент пользователя {commission}\n'
+                                                   f'Баланс пользователя: {user_db.referral_balance}')
     except:
         await message.answer('Возникла ошибка, напишите в поддержку')
+    await state.clear()
+
+
+
+
