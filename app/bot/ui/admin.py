@@ -13,6 +13,7 @@ def admin_panel_commot_kb() -> InlineKeyboardMarkup:
     builder.button(text='📊Изменить разницу курса',
                    callback_data=f"admin-panel-command_new-rate-diff")
     builder.button(text='💳Изменить время ожидания оплаты', callback_data=f"admin-panel-command_new-pay-order-wait-time")
+    builder.button(text='Провести рассылку', callback_data='admin-panel-command_mailing')
     builder.button(text='⏳Изменить время подтверждения ордера',
                    callback_data=f"admin-panel-command_new-order-wait-time")
     builder.button(text='🧑‍🏭Добавить админа',

@@ -17,3 +17,7 @@ class GetHistoryMessage(StatesGroup):
 
 class UpdatePartnerPercent(StatesGroup):
     new_partner_percent = State()
+
+
+class CreateMailing(StatesGroup):
+    text_to_mailing = State()

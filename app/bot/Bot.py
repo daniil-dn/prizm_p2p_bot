@@ -3,6 +3,7 @@ from aiogram.fsm.storage.base import DefaultKeyBuilder
 from aiogram_dialog import setup_dialogs
 from aiogram.fsm.storage.redis import RedisStorage
 from redis.asyncio.client import Redis
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from app.bot.handlers import get_routers
 from app.bot.middlewares import DbSessionMiddleware, ExistsUserMiddleware
@@ -14,11 +15,12 @@ from app.core.db.session import SessionLocal
 
 
 class Bot:
-    __slots__ = 'bot', 'token', 'dp', 'message_manager'
+    __slots__ = 'bot', 'token', 'dp', 'message_manager', 'scheduler'
 
     def __init__(self, token):
         self.token = token
         self.bot = aiogram.Bot(token)
+        self.scheduler = AsyncIOScheduler()
         redis = Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, db=settings.REDIS_DEFAULT_DB,
                       password=settings.REDIS_PASSWORD)
 
@@ -57,7 +59,8 @@ class Bot:
         await self.bot.set_my_commands(get_default_commands())
 
         self._setup_middleware()
+        self.scheduler.start()
 
         setup_dialogs(self.dp)
 
-        await self.dp.start_polling(self.bot, message_manager=self.message_manager)
+        await self.dp.start_polling(self.bot, message_manager=self.message_manager, scheduler=self.scheduler)
