@@ -1,4 +1,4 @@
-from sqlalchemy import Column, BigInteger, func, ForeignKey, Index, SmallInteger, Numeric, String
+from sqlalchemy import Column, BigInteger, func, ForeignKey, Index, SmallInteger, Numeric, String, DateTime
 
 from sqlalchemy.orm import relationship, Mapped
 
@@ -44,5 +44,5 @@ class Order(Base, ModelBase):
     status = Column(SmallInteger, nullable=False)
     mode = Column(String, nullable=False)
 
-    created_at = Column(index=True, default=func.now())
-    updated_at = Column(onupdate=func.now())
+    created_at = Column(DateTime(timezone=True), index=True, default=func.now())
+    updated_at = Column(DateTime(timezone=True), index=True, onupdate=func.now())

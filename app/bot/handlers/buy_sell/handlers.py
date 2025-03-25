@@ -7,7 +7,7 @@ from aiogram_dialog.widgets.kbd import Button
 from aiogram_dialog.widgets.input import ManagedTextInput
 
 from app.bot.handlers.buy_sell.state import BuyState
-from app.bot.handlers.common import start_cmd
+from app.bot.handlers.common import start_cmd_cb
 from app.bot.ui import order_seller_accept_kb
 from app.core.dao import crud_order_request, crud_order, crud_settings
 from app.core.dao.crud_wallet import crud_wallet
@@ -19,8 +19,8 @@ from app.utils.text_check import check_phone_format, check_card_format, check_wa
 async def cancel_logic(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
     await callback.message.answer("Вы отменили поиск ордеров")
     await dialog_manager.done()
-    await start_cmd(callback.message, callback.bot, dialog_manager.middleware_data['state'],
-                    dialog_manager.middleware_data['user_db'], dialog_manager)
+    await start_cmd_cb(callback.message, callback.bot, dialog_manager.middleware_data['state'],
+                       dialog_manager.middleware_data['user_db'], dialog_manager)
 
 
 async def on_back(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):

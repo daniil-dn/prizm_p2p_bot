@@ -25,7 +25,8 @@ class UpdateOnline(BaseMiddleware):
         user: User = data.get("event_from_user")
         async with self.session_pool() as db:
             exist_user = await crud_user.get_by_id(db, id=user.id)
-            now = datetime.now(tz=timezone('utc'))
-            update_user_data = {"last_online": now}
-            await crud_user.update(db, db_obj=exist_user, obj_in=update_user_data)
+            if exist_user:
+                now = datetime.now(tz=timezone('utc'))
+                update_user_data = {"last_online": now}
+                await crud_user.update(db, db_obj=exist_user, obj_in=update_user_data)
         return await handler(event, data)

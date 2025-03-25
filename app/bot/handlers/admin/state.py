@@ -13,3 +13,7 @@ class AdminSettingsState(StatesGroup):
 
 class GetHistoryMessage(StatesGroup):
     wait_for_id = State()
+
+
+class UpdatePartnerPercent(StatesGroup):
+    new_partner_percent = State()

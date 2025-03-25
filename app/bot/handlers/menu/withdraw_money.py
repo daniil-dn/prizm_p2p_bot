@@ -4,6 +4,8 @@ from aiogram.types import CallbackQuery, Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.bot.handlers.menu.states import Withdraw
+from app.bot.ui import get_menu_kb
+from app.bot.ui.texts import get_start_text
 from app.bot.ui.withdraw import cancel_withdraw
 from app.core.config import settings
 from app.core.dao import crud_user, crud_settings
@@ -29,7 +31,7 @@ async def check_input_and_ask_address(message: Message, state: FSMContext, user_
         await message.answer('Сумма должна быть числом. Попробуйте снова', reply_markup=cancel_withdraw)
         return
 
-    if amount > user_db.balance or amount < 0:
+    if amount > user_db.balance or amount <= 0:
         await message.answer('Введите корректную сумму', reply_markup=cancel_withdraw)
         return
 
@@ -63,5 +65,9 @@ async def check_input_and_withdraw_balance(message: Message, state: FSMContext, 
         await prizm_fetcher.send_money(prizm_wallet, secret_phrase=main_secret_phrase,
                                        amount_nqt=int(amount_to_withdrawal * 100), deadline=60)
         await message.answer('Деньги выведены на указанный адрес')
+        await message.answer(get_start_text(user_db.balance, user_db.order_count, user_db.cancel_order_count),
+            reply_markup=get_menu_kb(is_admin=user_db.role == User.ADMIN_ROLE)
+        )
     except:
         await message.answer('Возникла ошибка, напишите в поддержку')
+    await state.clear()

@@ -5,7 +5,7 @@ from aiogram_dialog import DialogManager, ShowMode
 from aiogram_dialog.widgets.kbd import Button
 from aiogram_dialog.widgets.input import ManagedTextInput
 
-from app.bot.handlers.common import start_cmd
+from app.bot.handlers.common import start_cmd_cb
 from app.bot.handlers.new_order.state import NewOrderState
 from app.bot.ui import get_menu_kb
 from app.bot.ui.texts import get_start_text
@@ -24,8 +24,8 @@ logger = getLogger(__name__)
 async def cancel_logic(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
     await callback.message.answer("Вы отменили создание ордера")
     await dialog_manager.done()
-    await start_cmd(callback.message, callback.bot, dialog_manager.middleware_data['state'],
-                    dialog_manager.middleware_data['user_db'], dialog_manager)
+    await start_cmd_cb(callback.message, callback.bot, dialog_manager.middleware_data['state'],
+                       dialog_manager.middleware_data['user_db'], dialog_manager)
 
 
 async def on_back(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):

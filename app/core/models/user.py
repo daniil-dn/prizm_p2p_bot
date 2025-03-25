@@ -24,8 +24,8 @@ class User(Base, ModelBase):
     order_count = Column(BigInteger, default=0)
     cancel_order_count = Column(BigInteger, default=0)
     last_online = Column(TIMESTAMP(timezone=True), nullable=True)
-    created_at = Column(DateTime, default=func.now())
-    updated_at = Column(DateTime, onupdate=func.now())
+    created_at = Column(DateTime(timezone=True), index=True, default=func.now())
+    updated_at = Column(DateTime(timezone=True), index=True, onupdate=func.now())
 
     from_orders: Mapped[list['Order']] = relationship('Order', back_populates='from_user', foreign_keys=[Order.from_user_id])
     to_orders: Mapped[list['Order']] = relationship('Order', back_populates='to_user', foreign_keys=[Order.to_user_id])

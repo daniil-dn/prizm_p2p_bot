@@ -44,5 +44,5 @@ class OrderRequest(Base, ModelBase):
 
     status = Column(SmallInteger, nullable=False)
 
-    created_at = Column(index=True, default=func.now())
-    updated_at = Column(onupdate=func.now())
+    created_at = Column(DateTime(timezone=True), index=True, default=func.now())
+    updated_at = Column(DateTime(timezone=True), index=True, onupdate=func.now())

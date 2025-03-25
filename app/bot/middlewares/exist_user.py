@@ -25,15 +25,7 @@ class ExistsUserMiddleware(BaseMiddleware):
         async with self.session_pool() as db:
             exist_user = await crud_user.get_by_id(db, id=user.id)
             if not exist_user:
-                logger.debug(f'Create user in DB {user.id} {user.username} {user.first_name} {user.last_name}')
-                create_user_data = UserCreate(
-                    id=user.id,
-                    language_code=user.language_code,
-                    username=user.username,
-                    first_name=user.first_name,
-                    last_name=user.last_name,
-                )
-                exist_user = await crud_user.create(db, obj_in=create_user_data)
+                exist_user = None
             elif exist_user.username != user.username \
                     or exist_user.first_name != user.first_name \
                     or exist_user.last_name != user.last_name:

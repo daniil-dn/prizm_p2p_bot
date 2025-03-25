@@ -8,4 +8,4 @@ class WithdrawReferral(Base, ModelBase):
     id = Column(Integer, primary_key=True)
     user_id = Column(BigInteger, ForeignKey('user.id'), index=True, nullable=False)
     summ = Column(Double)
-    created_at = Column(DateTime, default=func.now())
+    created_at = Column(DateTime(timezone=True), index=True, default=func.now())

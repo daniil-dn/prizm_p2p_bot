@@ -27,7 +27,8 @@ class UserCreate(UserBase):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     description: Optional[str] = None
-    role: Optional[str] = 'user'
+    role: Optional[int] = 1
+    partner_id: Optional[int] = None
 
 
 class UserUpdate(UserBase):
