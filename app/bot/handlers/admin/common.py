@@ -20,6 +20,8 @@ async def admin_menu_cb(cb: CallbackQuery, bot: Bot, state: FSMContext, user_db:
     admin_command = cb.data.split('_')[-1]
     if admin_command == 'new-commission':
         await dialog_manager.start(state=AdminSettingsState.new_value_commission, mode=StartMode.RESET_STACK)
+    if admin_command == 'new-withdrawal-commission':
+        await dialog_manager.start(state=AdminSettingsState.new_value_withdrawal_commission, mode=StartMode.RESET_STACK)
     elif admin_command == 'new-order-wait-time':
         await dialog_manager.start(state=AdminSettingsState.new_order_time, mode=StartMode.RESET_STACK)
     elif admin_command == 'new-pay-order-wait-time':

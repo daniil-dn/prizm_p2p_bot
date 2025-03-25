@@ -36,6 +36,13 @@ async def on_new_commission_percent_value(message: Message, text_widget: Managed
     await message.answer("Ваши изменения применены", reply_markup=admin_panel_commot_kb())
     await dialog_manager.done(show_mode=ShowMode.DELETE_AND_SEND)
 
+async def on_new_withdrawal_commission_percent_value(message: Message, text_widget: ManagedTextInput,
+                                          dialog_manager: DialogManager, data):
+    new_value = text_widget.get_value()
+    await crud_settings.update(dialog_manager.middleware_data['session'],
+                               obj_in={"id": 1, "withdrawal_commission_percent": new_value / 100})
+    await message.answer("Ваши изменения применены", reply_markup=admin_panel_commot_kb())
+    await dialog_manager.done(show_mode=ShowMode.DELETE_AND_SEND)
 
 async def on_pay_order_time_value(message: Message, text_widget: ManagedTextInput,
                                   dialog_manager: DialogManager, data):

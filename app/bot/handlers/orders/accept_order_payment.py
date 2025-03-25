@@ -101,11 +101,14 @@ async def accept_card_transfer_recieved_cb(cb: CallbackQuery, bot: Bot, state: F
                                                                            seller.cancel_order_count),
         reply_markup=get_menu_kb(is_admin=user_db.role == User.ADMIN_ROLE)),
 
-    buyer = await crud_user.lock_row(session, id=buyer_id)
-    if buyer.partner_id:
-        await crud_user.increase_referral_balance(session, id=buyer.partner_id,
+
+    partner_commission = 0
+    if seller.partner_id:
+        partner_commission = order.prizm_value * admin_settings.partner_commission_percent
+        await crud_user.increase_referral_balance(session, id=seller.partner_id,
                                                   summ=round(
-                                                      order.prizm_value * admin_settings.partner_commission_percent, 2))
+                                                      partner_commission, 2))
+    buyer = await crud_user.lock_row(session, id=buyer_id)
     buyer = await crud_user.update(session, db_obj=buyer,
                                    obj_in={"order_count": buyer.order_count + 1})
     buyer_wallet = await crud_wallet.get_by_order_user_id(session, user_id=buyer_id, order_id=order.id)
@@ -115,7 +118,15 @@ async def accept_card_transfer_recieved_cb(cb: CallbackQuery, bot: Bot, state: F
         result = await prizm_fetcher.send_money(buyer_wallet.value, secret_phrase=main_secret_phrase,
                                                 amount_nqt=int(prizm_value * 100), deadline=60)
         result_payout = await prizm_fetcher.send_money(payout_wallet, secret_phrase=main_secret_phrase,
-                                                       amount_nqt=int(payout_value * 100), deadline=60)
+                                                       amount_nqt=int((payout_value - partner_commission) * 100),
+                                                       deadline=60)
+        if partner_commission > 0:
+            result_commission = await prizm_fetcher.send_money(settings.PRIZM_WALLET_ADDRESS_PARTNER_COMMISSION,
+                                                               secret_phrase=main_secret_phrase,
+                                                               amount_nqt=int(partner_commission * 100),
+                                                               deadline=60)
+            logger.info(
+                f"Сделка №{order.id} Перевод комиссии покупателя. Partner_id: {buyer.partner_id} адрес: {settings.PRIZM_WALLET_ADDRESS_PARTNER_COMMISSION}, сумма: {partner_commission}. {result_commission}")
 
         logger.info(
             f"Перевод средств Сделка №{order.id} адрес: {buyer_wallet.value}, сумма: {prizm_value}. Комиссия {payout_value} -> buyer:{result}\npayout: {result_payout}")

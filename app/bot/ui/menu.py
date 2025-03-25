@@ -25,7 +25,7 @@ def get_menu_kb(is_admin: bool = False) -> InlineKeyboardMarkup:
             InlineKeyboardButton(text='✉️ Поддержка', callback_data='support')
         ],
         [
-            InlineKeyboardButton(text='Вывести призм', callback_data='withdraw_balance')
+            InlineKeyboardButton(text='Вывести PRIZM', callback_data='withdraw_balance')
         ],
         [
             InlineKeyboardButton(text='🏨 Перевести prizm в МойДом', callback_data='transfer_to_myhome')

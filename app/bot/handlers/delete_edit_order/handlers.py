@@ -15,7 +15,6 @@ from app.utils.coinmarketcap import get_currency_rate, rate_difference
 from app.utils.text_check import check_wallet_format
 
 async def on_back_edit_points_window(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-
     await dialog_manager.switch_to(state=DeleteEditOrder.update_menu, show_mode=ShowMode.DELETE_AND_SEND)
 
 
@@ -48,11 +47,16 @@ async def continue_or_stop_order(callback: CallbackQuery, button: Button, dialog
 async def delete_order(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
     session = dialog_manager.middleware_data['session']
     order = await crud_order_request.get_by_id(session, id=int(dialog_manager.dialog_data['order_id']))
-
-    await crud_user.increase_balance(session, id=callback.from_user.id, summ=order.max_limit)
+    if order.to_currency == 'RUB':
+        if order.status != OrderRequest.WAIT_PRIZM and order.status not in (
+                OrderRequest.LOCK, OrderRequest.DELETED, OrderRequest.STOPPED):
+            await crud_user.increase_balance(session, id=callback.from_user.id, summ=order.max_limit)
+            await callback.message.answer('Ордер удален. Для Вывода средств нажмите кнопку "Вывести PRIZM"')
+        else:
+            await callback.message.answer('Ордер нельзя удалить, попробуйте позже!')
 
     await crud_order_request.update(session, db_obj=order, obj_in={'status': OrderRequest.DELETED})
-    await callback.message.answer('Ордер удален')
+
     await start(callback, button, dialog_manager)
 
 

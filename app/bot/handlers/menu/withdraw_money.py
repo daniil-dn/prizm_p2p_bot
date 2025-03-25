@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.bot.handlers.menu.states import Withdraw
 from app.bot.ui.withdraw import cancel_withdraw
 from app.core.config import settings
-from app.core.dao import crud_user
+from app.core.dao import crud_user, crud_settings
 from app.core.models import User
 from app.prizm_check_scheduler.prizm_fetcher import PrizmWalletFetcher
 from app.utils.text_check import check_wallet_format
@@ -48,16 +48,20 @@ async def check_input_and_withdraw_balance(message: Message, state: FSMContext, 
         return
 
     amount = await state.get_value('amount')
+
     prizm_wallet = message.text
 
+    admin_settings = await crud_settings.get_by_id(session, id=1)
+
     await crud_user.decrease_balance(session, id=message.from_user.id, summ=float(amount))
+    amount_to_withdrawal = amount * (1 - admin_settings.withdrawal_commission_percent)
 
     main_secret_phrase = settings.PRIZM_WALLET_SECRET_ADDRESS
 
     prizm_fetcher = PrizmWalletFetcher(settings.PRIZM_API_URL)
     try:
         await prizm_fetcher.send_money(prizm_wallet, secret_phrase=main_secret_phrase,
-                                       amount_nqt=int(amount * 100), deadline=60)
+                                       amount_nqt=int(amount_to_withdrawal / 100), deadline=60)
         await message.answer('Деньги выведены на указанный адрес')
     except:
         await message.answer('Возникла ошибка, напишите в поддержку')

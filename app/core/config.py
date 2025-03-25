@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     PRIZM_API_URL: str
 
     PRIZM_WALLET_ADDRESS_PAYOUT: str
+    PRIZM_WALLET_ADDRESS_PARTNER_COMMISSION: str
 
     BOT_TOKEN: str
     CHANNEL_TO_CHECK: str
