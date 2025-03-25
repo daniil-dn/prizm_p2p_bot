@@ -20,7 +20,7 @@ class User(Base, ModelBase):
     partner_id = Column(BigInteger, nullable=True)
     phone = Column(String, unique=True, nullable=True)
     balance = Column(Numeric(18, 4, asdecimal=False), default=0)
-    referral_balance = Column(Numeric(18, 4, asdecimal=False), default=0)
+    referral_balance = Column(Numeric(18, 4, asdecimal=False), default=0, server_default="0", nullable=False)
     order_count = Column(BigInteger, default=0)
     cancel_order_count = Column(BigInteger, default=0)
     last_online = Column(TIMESTAMP(timezone=True), nullable=True)
