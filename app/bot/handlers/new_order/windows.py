@@ -72,7 +72,7 @@ def get_to_value() -> Window:
 def get_rate() -> Window:
     return Window(
         Format(
-            "Укажите желаемую стоимость PRIZM в рублях.\nТекущий курс <b>{prizm_rate}</b> PZM/RUB "
+            "Укажите желаемую стоимость PRIZM в рублях.\nТекущий курс <b>{prizm_rate}</b> RUB/PZM "
             "https://coinmarketcap.com/currencies/prizm .\nРазница указанного вами курса не должна отличаться "
             "более чем на <b>{prizm_rate_diff_percent}</b>%"),
 

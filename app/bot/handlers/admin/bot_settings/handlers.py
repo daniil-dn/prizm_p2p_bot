@@ -13,7 +13,8 @@ async def cancel_logic(callback: CallbackQuery, button: Button, dialog_manager: 
     await callback.message.answer("Вы отменили создание ордера")
     await dialog_manager.done()
     await start_cmd_cb(callback, callback.bot, dialog_manager.middleware_data['state'],
-                       dialog_manager.middleware_data['user_db'], dialog_manager, dialog_manager.middleware_data['session'])
+                       dialog_manager.middleware_data['user_db'], dialog_manager,
+                       dialog_manager.middleware_data['session'])
 
 
 async def on_back(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
@@ -36,13 +37,24 @@ async def on_new_commission_percent_value(message: Message, text_widget: Managed
     await message.answer("Ваши изменения применены", reply_markup=admin_panel_commot_kb())
     await dialog_manager.done(show_mode=ShowMode.DELETE_AND_SEND)
 
+
 async def on_new_withdrawal_commission_percent_value(message: Message, text_widget: ManagedTextInput,
-                                          dialog_manager: DialogManager, data):
+                                                     dialog_manager: DialogManager, data):
     new_value = text_widget.get_value()
     await crud_settings.update(dialog_manager.middleware_data['session'],
                                obj_in={"id": 1, "withdrawal_commission_percent": new_value / 100})
     await message.answer("Ваши изменения применены", reply_markup=admin_panel_commot_kb())
     await dialog_manager.done(show_mode=ShowMode.DELETE_AND_SEND)
+
+
+async def on_new_referal_withdrawal_minimum_value(message: Message, text_widget: ManagedTextInput,
+                                                     dialog_manager: DialogManager, data):
+    new_value = text_widget.get_value()
+    await crud_settings.update(dialog_manager.middleware_data['session'],
+                               obj_in={"id": 1, "minimum_referal_withdrawal_amount": new_value})
+    await message.answer("Ваши изменения применены", reply_markup=admin_panel_commot_kb())
+    await dialog_manager.done(show_mode=ShowMode.DELETE_AND_SEND)
+
 
 async def on_pay_order_time_value(message: Message, text_widget: ManagedTextInput,
                                   dialog_manager: DialogManager, data):

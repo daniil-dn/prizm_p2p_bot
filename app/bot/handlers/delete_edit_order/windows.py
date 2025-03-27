@@ -151,7 +151,7 @@ def update_max_sum_order() -> Window:
 def update_cource_order() -> Window:
     return Window(
         Format(
-            "Укажите желаемую стоимость PRIZM в рублях.\nТекущий курс <b>{prizm_rate}</b> PZM/RUB "
+            "Укажите желаемую стоимость PRIZM в рублях.\nТекущий курс <b>{prizm_rate}</b> RUB/PZM "
             "https://coinmarketcap.com/currencies/prizm .\nРазница указанного вами курса не должна отличаться "
             "более чем на {prizm_rate_diff_percent}%"),
         TextInput(

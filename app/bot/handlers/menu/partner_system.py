@@ -38,7 +38,8 @@ async def ask_how_many(callback: CallbackQuery, bot: Bot, session: AsyncSession,
 
 @router.callback_query(F.data == 'withdraw_partner_balance')
 async def get_summ_to_output(callback: CallbackQuery, state: FSMContext, user_db: User, session: AsyncSession):
-    if user_db.referral_balance < 1000:
+    admin_settings = await crud_settings.get_by_id(session, id=1)
+    if user_db.referral_balance < admin_settings.minimum_referal_withdrawal_amount:
         await callback.answer('Вывод доступен только от тысячи prizm', show_alert=True)
         return
 
@@ -54,8 +55,8 @@ async def check_input_and_ask_address(message: Message, state: FSMContext, user_
     except:
         await message.answer('Сумма должна быть числом. Попробуйте снова', reply_markup=cancel_withdraw)
         return
-
-    if amount > user_db.referral_balance or amount < 1000:
+    admin_settings = await crud_settings.get_by_id(session, id=1)
+    if amount > user_db.referral_balance or amount < admin_settings.minimum_referal_withdrawal_amount:
         await message.answer('Введите корректную сумму больше 1000', reply_markup=cancel_withdraw)
         return
 

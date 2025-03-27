@@ -91,8 +91,7 @@ async def accept_card_transfer_recieved_cb(cb: CallbackQuery, bot: Bot, state: F
     await message_manager.delete_message_and_keyboard(seller_id, order.id)
 
     seller = await crud_user.update(session, db_obj=seller,
-                                    obj_in={'balance': seller.balance - (prizm_value + payout_value),
-                                            "order_count": seller.order_count + 1})
+                                    obj_in={"order_count": seller.order_count + 1})
     order = await crud_order.update(session, db_obj=order, obj_in={'status': Order.WAIT_DONE_TRANSFER})
     logger.info(f"Сняли с баланса пользователя {seller.id} - {prizm_value}. Сделка ждет завершения")
 

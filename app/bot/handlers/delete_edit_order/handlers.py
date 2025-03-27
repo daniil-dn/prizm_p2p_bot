@@ -2,7 +2,6 @@ from aiogram.types import CallbackQuery, Message
 from aiogram_dialog import DialogManager, ShowMode
 from aiogram_dialog.widgets.input import ManagedTextInput
 from aiogram_dialog.widgets.kbd import Button
-from sqlalchemy.testing.suite.test_reflection import users
 
 from app.bot.handlers.delete_edit_order.state import DeleteEditOrder
 from app.bot.ui import get_menu_kb
@@ -10,9 +9,7 @@ from app.bot.ui.texts import get_start_text
 from app.core.config import settings
 from app.core.dao import crud_order_request, crud_settings, crud_user
 from app.core.models import User, OrderRequest
-from app.prizm_check_scheduler.prizm_fetcher import PrizmWalletFetcher
 from app.utils.coinmarketcap import get_currency_rate, rate_difference
-from app.utils.text_check import check_wallet_format
 
 async def on_back_edit_points_window(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
     await dialog_manager.switch_to(state=DeleteEditOrder.update_menu, show_mode=ShowMode.DELETE_AND_SEND)
@@ -50,7 +47,8 @@ async def delete_order(callback: CallbackQuery, button: Button, dialog_manager: 
     if order.to_currency == 'RUB':
         if order.status != OrderRequest.WAIT_PRIZM and order.status not in (
                 OrderRequest.LOCK, OrderRequest.DELETED, OrderRequest.STOPPED):
-            await crud_user.increase_balance(session, id=callback.from_user.id, summ=order.max_limit)
+            admin_settings = await crud_settings.get_by_id(session, id=1)
+            dialog_manager.middleware_data['user_db'] = await crud_user.increase_balance(session, id=callback.from_user.id, summ=order.max_limit + order.max_limit*admin_settings.commission_percent)
             await callback.message.answer('Ордер удален. Для Вывода средств нажмите кнопку "Вывести PRIZM"')
         else:
             await callback.message.answer('Ордер нельзя удалить, попробуйте позже!')
@@ -78,7 +76,7 @@ async def update_min_sum(message: Message,
     if float(data) < order.max_limit:
         await crud_order_request.update(session, db_obj=order, obj_in={'min_limit': float(data)})
         await message.answer('Обновлено')
-        await start(message, widget, dialog_manager)
+        await dialog_manager.switch_to(state=DeleteEditOrder.update_menu, show_mode=ShowMode.DELETE_AND_SEND)
         return
     await message.answer('Минимальная сумма должна быть меньше максимальной')
 

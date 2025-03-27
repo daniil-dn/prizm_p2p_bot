@@ -52,6 +52,14 @@ def get_new_withdrawal_commission_value() -> Window:
         state=AdminSettingsState.new_value_withdrawal_commission,
     )
 
+def get_new_referal_withdrawal_minimum_value() -> Window:
+    return Window(
+        Const("Изменение минимальной суммы вывода реферального баланса \nНовое значение в процентах. Например 10"),
+        TextInput(id="new_value", on_success=on_new_withdrawal_commission_percent_value, on_error=error,
+                  type_factory=int),
+        Button(Const("❌ Отмена"), id="cancel", on_click=cancel_logic),
+        state=AdminSettingsState.new_value_referal_withdrawal_minimum,
+    )
 
 
 def get_pay_order_time_value() -> Window:
