@@ -38,11 +38,11 @@ async def get_orders_getter(dialog_manager: DialogManager, **kwargs):
         time_text = parce_time(user.last_online)
         if dialog_manager.start_data['mode'] == 'buy':
             order_text = (f'Ордер: №{order.id}\nКурс 1pzm - {order.rate}руб\nЛимит: {order.min_limit_rub} - '
-                          f'{order.max_limit_rub}руб\nЧисло сделок:{order.user.order_count} '
+                          f'{order.max_limit_rub}руб\nЧисло сделок:{order.user.order_count}\n'
                           f'Число отказов: {order.user.cancel_order_count}\n{time_text}\n\n')
         else:
             order_text = (f'Ордер : №{order.id}\nКурс 1pzm - {order.rate}руб\nЛимит: {order.min_limit} - '
-                          f'{order.max_limit}PZM\nЧисло сделок:{order.user.order_count} Число отказов: '
+                          f'{order.max_limit}PZM\nЧисло сделок:{order.user.order_count}\nЧисло отказов: '
                           f'{order.user.cancel_order_count}\n{time_text}\n\n')
 
         all_orders_text += order_text
@@ -79,16 +79,17 @@ async def get_accept_order_text(dialog_manager: DialogManager, **kwargs) -> dict
         rub_value = dialog_manager.dialog_data['exact_value'] * order_request.rate
         success_text = (f"Продажа PRIZM\n"
                         f"Сумма в PRIZM: {prizm_value}\n"
-                        f"Рублей: {rub_value}\n"
-                        f"Общая сумма оплаты PRIZM {prizm_value + value_commission}, включая комиссию сервиса {admin_settings.commission_percent * 100}%\n"
+                        f"Рублей: {rub_value:.3f}\n"
+                        f"Общая сумма оплаты PRIZM {prizm_value + value_commission:.3f}, "
+                        f"включая комиссию сервиса {admin_settings.commission_percent * 100:.3f}%\n"
                         )
     else:
         prizm_value = dialog_manager.dialog_data['exact_value'] / order_request.rate
         rub_value = dialog_manager.dialog_data['exact_value']
         success_text = (f"Покупка PRIZM\n"
-                        f"Сумма в рублях: {rub_value}\n"
-                        f"Количество покупаемых монет: {prizm_value}\n"
-                        f"Вы получите {prizm_value} PZM"
+                        f"Сумма в рублях: {rub_value:.3f}\n"
+                        f"Количество покупаемых монет: {prizm_value:.3f}\n"
+                        f"Вы получите {prizm_value:.3f} PZM"
                         )
 
     return success_text

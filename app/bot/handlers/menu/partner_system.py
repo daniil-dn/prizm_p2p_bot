@@ -27,7 +27,8 @@ async def ask_how_many(callback: CallbackQuery, bot: Bot, session: AsyncSession,
 
     if count_users:
         text = (f'Всего приглашенных: {count_users}\n'
-                f'Ваш реферальный баланс: {user_db.referral_balance}')
+                f'Их суммарный оборот призм: {data['summ']:.3f}\n'
+                f'Ваш реферальный баланс: {user_db.referral_balance:.3f}')
     else:
         text = 'У вас пока нет приглашенных пользователей'
 
@@ -95,9 +96,9 @@ async def check_input_and_withdraw_balance(message: Message, state: FSMContext,
                                                    f'user: @{message.from_user.username} ({message.from_user.id})\n'
                                                    f'Кол-во приглашенных {count_users}\n'
                                                    f'Проведено сделок: {count_orders}\n'
-                                                   f'Общая сумма сделок: {summ} призм\n'
+                                                   f'Общая сумма сделок: {summ:.3f} призм\n'
                                                    f'Процент пользователя {commission}\n'
-                                                   f'Баланс пользователя: {user_db.referral_balance}')
+                                                   f'Баланс пользователя: {user_db.referral_balance:.3f}')
     except:
         await message.answer('Возникла ошибка, напишите в поддержку')
     await state.clear()

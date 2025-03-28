@@ -25,7 +25,7 @@ async def accept_order_payment_cb(cb: CallbackQuery, bot: Bot, state: FSMContext
                                   session: AsyncSession, message_manager: MessageManager) -> None:
     order = await crud_order.get_by_id(session, id=int(cb.data.split('_')[-1]))
     order = await crud_order.update(db=session, db_obj=order, obj_in={"status": Order.WAIT_DONE_TRANSFER})
-    card_info_user_text = f"Сделка: №{order.id}. Проверьте перевод средств на карту и сумму. Общая сумма сделки {order.rub_value} рублей. "
+    card_info_user_text = f"Сделка: №{order.id}. Проверьте перевод средств на карту и сумму. Общая сумма сделки {order.rub_value:.3f} рублей. "
     if order.mode == "buy":
         message = await bot.send_message(order.from_user_id, card_info_user_text,
                                          reply_markup=recieved_card_transfer(order, order.to_user_id))
@@ -125,7 +125,7 @@ async def accept_card_transfer_recieved_cb(cb: CallbackQuery, bot: Bot, state: F
                                                                amount_nqt=int(partner_commission * 100),
                                                                deadline=60)
             logger.info(
-                f"Сделка №{order.id} Перевод комиссии покупателя. Partner_id: {buyer.partner_id} адрес: {settings.PRIZM_WALLET_ADDRESS_PARTNER_COMMISSION}, сумма: {partner_commission}. {result_commission}")
+                f"Сделка №{order.id} Перевод комиссии покупателя. Partner_id: {buyer.partner_id} адрес: {settings.PRIZM_WALLET_ADDRESS_PARTNER_COMMISSION}, сумма: {partner_commission:.3f}. {result_commission:.3f}")
 
         logger.info(
             f"Перевод средств Сделка №{order.id} адрес: {buyer_wallet.value}, сумма: {prizm_value}. Комиссия {payout_value} -> buyer:{result}\npayout: {result_payout}")
