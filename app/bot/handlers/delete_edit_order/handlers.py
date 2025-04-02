@@ -47,24 +47,25 @@ async def continue_or_stop_order(callback: CallbackQuery, button: Button, dialog
 async def delete_order(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
     session = dialog_manager.middleware_data['session']
     order = await crud_order_request.get_by_id(session, id=int(dialog_manager.dialog_data['order_id']))
-    if order.to_currency == 'RUB':
-        if order.status not in (
-                OrderRequest.LOCK, OrderRequest.DELETED, OrderRequest.WAIT_PRIZM):
+
+    if order.status not in (
+            OrderRequest.LOCK, OrderRequest.DELETED, OrderRequest.WAIT_PRIZM):
+        if order.to_currency == 'RUB':
             admin_settings = await crud_settings.get_by_id(session, id=1)
             dialog_manager.middleware_data['user_db'] = await crud_user.increase_balance(session,
                                                                                          id=callback.from_user.id,
                                                                                          summ=order.max_limit + order.max_limit * admin_settings.commission_percent)
-            await crud_order_request.update(session, db_obj=order, obj_in={'status': OrderRequest.DELETED})
-            await callback.message.reply('Ордер удален. Для Вывода средств нажмите кнопку "Вывести PRIZM"')
-        elif order.status == OrderRequest.WAIT_PRIZM:
-            admin_settings = await crud_settings.get_by_id(session, id=1)
-            await callback.message.reply(f'Сейчас ордер находится в стадии подтверждения. Пожалуйста, дождетесь поступления средств. В случае, если средства не поступят в течение {admin_settings.pay_wait_time} минут, ордер будет отменен автоматически.')
-        elif order.status == OrderRequest.DELETED:
-            await callback.message.reply('Ордер уже удален!')
-        elif order.status == OrderRequest.LOCK:
-            await callback.message.reply('Ордер используется при создании сделки, дождитесь подтверждения сделки по ордеру!')
-        else:
-            await callback.message.reply('Ордер нельзя удалить!')
+        await crud_order_request.update(session, db_obj=order, obj_in={'status': OrderRequest.DELETED})
+        await callback.message.reply('Ордер удален. Для Вывода средств нажмите кнопку "Вывести PRIZM"')
+    elif order.status == OrderRequest.WAIT_PRIZM:
+        admin_settings = await crud_settings.get_by_id(session, id=1)
+        await callback.message.reply(f'Сейчас ордер находится в стадии подтверждения. Пожалуйста, дождетесь поступления средств. В случае, если средства не поступят в течение {admin_settings.pay_wait_time} минут, ордер будет отменен автоматически.')
+    elif order.status == OrderRequest.DELETED:
+        await callback.message.reply('Ордер уже удален!')
+    elif order.status == OrderRequest.LOCK:
+        await callback.message.reply('Ордер используется при создании сделки, дождитесь подтверждения сделки по ордеру!')
+    else:
+        await callback.message.reply('Ордер нельзя удалить!')
 
     await start(callback, button, dialog_manager)
 
