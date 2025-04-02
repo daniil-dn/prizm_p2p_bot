@@ -13,3 +13,4 @@ class Settings(Base, ModelBase):
     prizm_rate_diff = Column(Numeric(18, 2, asdecimal=False), nullable=False, default=0.1)
     partner_commission_percent = Column(Numeric(18, 2, asdecimal=False), nullable=True, default=0.1)
     minimum_referal_withdrawal_amount = Column(Numeric(18, 2, asdecimal=False), nullable=True, default=0.1)
+    min_order_prizm_value = Column(Numeric(18, 2, asdecimal=False), nullable=True, default=0.1)

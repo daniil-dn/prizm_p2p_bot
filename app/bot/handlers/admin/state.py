@@ -10,6 +10,7 @@ class AdminSettingsState(StatesGroup):
     new_prizm_rate_diff_value = State()
     add_admin_by_username = State()
     remove_admin_by_username = State()
+    new_min_order_prizm_value = State()
 
 
 class GetHistoryMessage(StatesGroup):

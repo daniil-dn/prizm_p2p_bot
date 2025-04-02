@@ -25,7 +25,7 @@ def get_orders() -> Window:
         ),
         Group(
             Select(
-                Format("№{item.id}"),
+                Format("✏️ №{item.id}"),
                 id="orders",
                 item_id_getter=lambda x: x.id,
                 items="orders",
@@ -45,24 +45,24 @@ def get_order_menu() -> Window:
         Format('{text}'),
         Group(
             SwitchTo(
-                text=Const('Редактировать'),
+                text=Const('✏️Редактировать'),
                 id='update_order',
                 state=DeleteEditOrder.update_menu
             ),
             Button(
-                text=Const('Остановить'),
+                text=Const('⏸️Остановить'),
                 id='stop_order',
                 on_click=continue_or_stop_order,
                 when='active'
             ),
             Button(
-                text=Const('Возобновить'),
+                text=Const('▶️Возобновить'),
                 id='continue_order',
                 on_click=continue_or_stop_order,
                 when='stopped'
             ),
             Button(
-                text=Const('Удалить'),
+                text=Const('🗑Удалить'),
                 id='delete_order',
                 on_click=delete_order
                 # state=DeleteEditOrder.delete_order
@@ -151,7 +151,7 @@ def update_max_sum_order() -> Window:
 def update_cource_order() -> Window:
     return Window(
         Format(
-            "Укажите желаемую стоимость PRIZM в рублях.\nТекущий курс <b>{prizm_rate}</b> RUB/PZM "
+            "Укажите желаемую стоимость PRIZM в рублях.\nТекущий курс <b>{prizm_rate}</b> RUB/PZM\n"
             "https://coinmarketcap.com/currencies/prizm .\nРазница указанного вами курса не должна отличаться "
             "более чем на {prizm_rate_diff_percent}%"),
         TextInput(
@@ -164,5 +164,7 @@ def update_cource_order() -> Window:
         Button(Const("🔙 Назад"), id="back",
                on_click=on_back_edit_points_window),
         getter=get_prizm_rate,
-        state=DeleteEditOrder.update_course
+        state=DeleteEditOrder.update_course,
+        parse_mode="html",
+        disable_web_page_preview=True
     )

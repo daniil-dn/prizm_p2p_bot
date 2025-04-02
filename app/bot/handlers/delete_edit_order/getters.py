@@ -18,10 +18,19 @@ async def orders_getter(dialog_manager: DialogManager, **kwargs):
             mode = "Продажа"
         else:
             mode = "Покупка"
+        if order_request.status == OrderRequest.STOPPED:
+            stopped_text = "⏸️На паузе"
+        elif order_request.status == OrderRequest.LOCK:
+            stopped_text = "⏸️Заблокирован"
+        elif order_request.status == OrderRequest.WAIT_PRIZM:
+            stopped_text = "⏸️Ожидает пополнения"
+        else:
+            stopped_text = "▶️Активен"
         order_request_text = (
             f"Ордер №{order_request.id}\n"
+            f"{stopped_text}\n"
             f"{mode}\n"
-            f"{order_request.min_limit}-{order_request.max_limit} призм\n"
+            f"{order_request.min_limit}-{order_request.max_limit} PZM\n"
             f"Курс {order_request.rate}")
         order_requests_text_list.append(order_request_text)
 
@@ -31,6 +40,7 @@ async def orders_getter(dialog_manager: DialogManager, **kwargs):
         'orders': order_requests,
     }
 
+
 async def order_getter(dialog_manager: DialogManager, **kwargs):
     order_id = int(dialog_manager.dialog_data.get('order_id'))
     session = dialog_manager.middleware_data['session']
@@ -39,7 +49,16 @@ async def order_getter(dialog_manager: DialogManager, **kwargs):
         mode = "Продажа"
     else:
         mode = "Покупка"
+    if order_request.status == OrderRequest.STOPPED:
+        stopped_text = "⏸️На паузе"
+    elif order_request.status == OrderRequest.LOCK:
+        stopped_text = "⏸️Заблокирован"
+    elif order_request.status == OrderRequest.WAIT_PRIZM:
+        stopped_text = "⏸️Ожидает пополнения"
+    else:
+        stopped_text = "▶️Активен"
     text = (f"Ордер №{order_request.id}\n"
+            f"{stopped_text}\n"
             f"{mode}\n"
             f"{order_request.min_limit}-{order_request.max_limit} призм\n"
             f"Курс {order_request.rate}"

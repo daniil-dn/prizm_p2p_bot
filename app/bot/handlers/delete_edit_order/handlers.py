@@ -11,6 +11,7 @@ from app.core.dao import crud_order_request, crud_settings, crud_user
 from app.core.models import User, OrderRequest
 from app.utils.coinmarketcap import get_currency_rate, rate_difference
 
+
 async def on_back_edit_points_window(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
     await dialog_manager.switch_to(state=DeleteEditOrder.update_menu, show_mode=ShowMode.DELETE_AND_SEND)
 
@@ -20,7 +21,7 @@ async def start(callback, button, dialog_manager: DialogManager):
     await dialog_manager.done()
     await callback.bot.send_message(
         user_db.id, get_start_text(user_db.balance, user_db.order_count, user_db.cancel_order_count),
-        reply_markup=get_menu_kb(is_admin=user_db.role == User.ADMIN_ROLE)
+        reply_markup=get_menu_kb(is_admin=user_db.role in User.ALL_ADMINS)
     )
 
 
@@ -31,29 +32,39 @@ async def order_menu(callback: CallbackQuery, button: Button, dialog_manager: Di
 
 async def continue_or_stop_order(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
     session = dialog_manager.middleware_data['session']
-    if callback.data == 'continue_order':
-        order = await crud_order_request.get_by_id(session, id=int(dialog_manager.dialog_data['order_id']))
+    order = await crud_order_request.get_by_id(session, id=int(dialog_manager.dialog_data['order_id']))
+    if order.status == OrderRequest.STOPPED and callback.data == 'continue_order':
         await crud_order_request.update(session, db_obj=order, obj_in={'status': OrderRequest.IN_PROGRESS})
         await dialog_manager.switch_to(state=DeleteEditOrder.order_menu, show_mode=ShowMode.DELETE_AND_SEND)
-    else:
-        order = await crud_order_request.get_by_id(session, id=int(dialog_manager.dialog_data['order_id']))
+    elif order.status == OrderRequest.IN_PROGRESS and callback.data == 'stop_order':
         await crud_order_request.update(session, db_obj=order, obj_in={'status': OrderRequest.STOPPED})
         await dialog_manager.switch_to(state=DeleteEditOrder.order_menu, show_mode=ShowMode.DELETE_AND_SEND)
+    else:
+        await dialog_manager.switch_to(state=DeleteEditOrder.order_menu, show_mode=ShowMode.DELETE_AND_SEND)
+
 
 
 async def delete_order(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
     session = dialog_manager.middleware_data['session']
     order = await crud_order_request.get_by_id(session, id=int(dialog_manager.dialog_data['order_id']))
     if order.to_currency == 'RUB':
-        if order.status != OrderRequest.WAIT_PRIZM and order.status not in (
-                OrderRequest.LOCK, OrderRequest.DELETED, OrderRequest.STOPPED):
+        if order.status not in (
+                OrderRequest.LOCK, OrderRequest.DELETED, OrderRequest.WAIT_PRIZM):
             admin_settings = await crud_settings.get_by_id(session, id=1)
-            dialog_manager.middleware_data['user_db'] = await crud_user.increase_balance(session, id=callback.from_user.id, summ=order.max_limit + order.max_limit*admin_settings.commission_percent)
-            await callback.message.answer('Ордер удален. Для Вывода средств нажмите кнопку "Вывести PRIZM"')
+            dialog_manager.middleware_data['user_db'] = await crud_user.increase_balance(session,
+                                                                                         id=callback.from_user.id,
+                                                                                         summ=order.max_limit + order.max_limit * admin_settings.commission_percent)
+            await crud_order_request.update(session, db_obj=order, obj_in={'status': OrderRequest.DELETED})
+            await callback.message.reply('Ордер удален. Для Вывода средств нажмите кнопку "Вывести PRIZM"')
+        elif order.status == OrderRequest.WAIT_PRIZM:
+            admin_settings = await crud_settings.get_by_id(session, id=1)
+            await callback.message.reply(f'Сейчас ордер находится в стадии подтверждения. Пожалуйста, дождетесь поступления средств. В случае, если средства не поступят в течение {admin_settings.pay_wait_time} минут, ордер будет отменен автоматически.')
+        elif order.status == OrderRequest.DELETED:
+            await callback.message.reply('Ордер уже удален!')
+        elif order.status == OrderRequest.LOCK:
+            await callback.message.reply('Ордер используется при создании сделки, дождитесь подтверждения сделки по ордеру!')
         else:
-            await callback.message.answer('Ордер нельзя удалить, попробуйте позже!')
-
-    await crud_order_request.update(session, db_obj=order, obj_in={'status': OrderRequest.DELETED})
+            await callback.message.reply('Ордер нельзя удалить!')
 
     await start(callback, button, dialog_manager)
 
@@ -73,6 +84,10 @@ async def update_min_sum(message: Message,
                          data):
     session = dialog_manager.middleware_data['session']
     order = await crud_order_request.get_by_id(session, id=int(dialog_manager.dialog_data['order_id']))
+    if order.status in (OrderRequest.DELETED, OrderRequest.LOCK):
+        await message.answer('Ордер заблокирован для изменений')
+        await dialog_manager.switch_to(state=DeleteEditOrder.update_menu, show_mode=ShowMode.DELETE_AND_SEND)
+        return
     if float(data) < order.max_limit:
         await crud_order_request.update(session, db_obj=order, obj_in={'min_limit': float(data)})
         await message.answer('Обновлено')
@@ -86,6 +101,10 @@ async def update_max_sum(message: Message, widget: ManagedTextInput,
     data = float(data)
     session = dialog_manager.middleware_data['session']
     order_request = await crud_order_request.get_by_id(session, id=int(dialog_manager.dialog_data['order_id']))
+    if order_request.status in (OrderRequest.DELETED, OrderRequest.LOCK):
+        await message.answer('Ордер заблокирован для изменений')
+        await dialog_manager.switch_to(state=DeleteEditOrder.update_menu, show_mode=ShowMode.DELETE_AND_SEND)
+        return
     if data < order_request.max_limit or order_request.from_currency == 'RUB':
         await crud_order_request.update(session, db_obj=order_request, obj_in={'max_limit': data})
         await message.answer('Обновлено')
@@ -104,7 +123,7 @@ async def update_max_sum(message: Message, widget: ManagedTextInput,
     await message.answer(settings.PRIZM_WALLET_ADDRESS)
     await message.answer(f"request:{order_request.user_id}:{order_request.id}")
 
-    await crud_order_request.update(session, db_obj=order_request, obj_in={'status': OrderRequest.WAIT_PRIZM})
+    await crud_order_request.update(session, db_obj=order_request, obj_in={'status': OrderRequest.STOPPED})
     await dialog_manager.done()
 
 
@@ -124,7 +143,11 @@ async def update_cource(message: Message,
                                   f'%.\nТекущий курс: <b>{str(rate)[:7]}</b>')
         return
 
-    order = await crud_order_request.get_by_id(session, id=int(dialog_manager.dialog_data['order_id']))
-    await crud_order_request.update(session, db_obj=order, obj_in={'rate': data})
+    order_request = await crud_order_request.get_by_id(session, id=int(dialog_manager.dialog_data['order_id']))
+    if order_request.status in (OrderRequest.DELETED, OrderRequest.LOCK):
+        await message.answer('Ордер заблокирован для изменений')
+        await dialog_manager.switch_to(state=DeleteEditOrder.update_menu, show_mode=ShowMode.DELETE_AND_SEND)
+        return
+    await crud_order_request.update(session, db_obj=order_request, obj_in={'rate': data})
     await message.answer('Обновлено')
     await dialog_manager.switch_to(state=DeleteEditOrder.update_menu, show_mode=ShowMode.DELETE_AND_SEND)

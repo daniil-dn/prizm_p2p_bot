@@ -55,7 +55,7 @@ async def check_input_and_withdraw_balance(message: Message, state: FSMContext, 
 
     admin_settings = await crud_settings.get_by_id(session, id=1)
 
-    await crud_user.decrease_balance(session, id=message.from_user.id, summ=float(amount))
+    user_db = await crud_user.decrease_balance(session, id=message.from_user.id, summ=float(amount))
     amount_to_withdrawal = amount * (1 - admin_settings.withdrawal_commission_percent)
 
     main_secret_phrase = settings.PRIZM_WALLET_SECRET_ADDRESS
@@ -66,7 +66,7 @@ async def check_input_and_withdraw_balance(message: Message, state: FSMContext, 
                                        amount_nqt=int(amount_to_withdrawal * 100), deadline=60)
         await message.answer('Деньги выведены на указанный адрес')
         await message.answer(get_start_text(user_db.balance, user_db.order_count, user_db.cancel_order_count),
-            reply_markup=get_menu_kb(is_admin=user_db.role == User.ADMIN_ROLE)
+            reply_markup=get_menu_kb(is_admin=user_db.role in User.ALL_ADMINS)
         )
     except:
         await message.answer('Возникла ошибка, напишите в поддержку')

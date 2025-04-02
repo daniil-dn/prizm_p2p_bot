@@ -2,6 +2,7 @@ from aiogram.types import Message
 from aiogram_dialog import DialogManager
 
 from app.bot.ui import get_menu_kb
+from app.bot.ui.order_seller_accept import order_request_sended_pzm_transfer_button
 from app.bot.ui.texts import get_start_text
 from app.core.config import settings
 from app.core.dao import crud_settings, crud_order_request
@@ -20,11 +21,16 @@ async def create_order_and_wallet(dialog_manager: DialogManager, user_id: int, s
         from_currency = "PRIZM"
         to_currency = "RUB"
         wallet_currency = 'RUB'
+        if dialog_manager.dialog_data['card_method'] == "sbp":
+            wallet_type = OrderRequest.WALLET_SBP
+        else:
+            wallet_type = OrderRequest.WALLET_CARD
         order_request_status = OrderRequest.WAIT_PRIZM
     else:
         from_currency = "RUB"
         to_currency = "PRIZM"
         wallet_currency = 'PRIZM'
+        wallet_type = OrderRequest.WALLET_PZM
         order_request_status = OrderRequest.IN_PROGRESS
 
     order_request = OrderRequestCreate(
@@ -35,6 +41,7 @@ async def create_order_and_wallet(dialog_manager: DialogManager, user_id: int, s
         max_limit=dialog_manager.dialog_data['to_value'],
         min_limit_rub=min_limit_rub,
         max_limit_rub=max_limit_rub,
+        wallet_type=wallet_type,
         rate=dialog_manager.dialog_data['rate'],
         status=order_request_status
     )
@@ -61,21 +68,23 @@ async def send_notification(dialog_manager: DialogManager, admin_settings: Setti
         value_with_commission = dialog_manager.dialog_data['to_value'] + dialog_manager.dialog_data[
             'to_value'] * admin_settings.commission_percent
         text = (
-            f"Переведите {value_with_commission} PZM c коммиссией сервиса {admin_settings.commission_percent * 100}%"
+            f"Переведите {value_with_commission:.2f} PZM c коммиссией сервиса {admin_settings.commission_percent * 100}%"
             f"\nБез комментария платеж потеряется!\n"
             f"На кошелек сервиса:\n<b>{settings.PRIZM_WALLET_ADDRESS}</b>\n"
             f"Комментарий платежа:\n<b>request:{order_request.user_id}:{order_request.id}</b>\n\n"
             f"⏳Перевод надо совершить в течении {admin_settings.pay_wait_time} минут.")
-        await message.bot.send_message(message.from_user.id, text=text, parse_mode='html')
+        await message.bot.send_message(message.from_user.id, text=text, parse_mode='html',
+                                       reply_markup=order_request_sended_pzm_transfer_button(message.from_user.id,
+                                                                                             order_request.id))
         await message.bot.send_message(message.from_user.id, settings.PRIZM_WALLET_ADDRESS)
         await message.bot.send_message(message.from_user.id, f"request:{order_request.user_id}:{order_request.id}")
     else:
         text = (f"Ваш ордер №{order_request.id} на покупку PRIZM создан и размещен на бирже\n"
                 f"Ордер: №{order_request.id}\nКурс 1pzm - {order_request.rate}руб\nЛимит: {order_request.min_limit_rub} "
-                f"- {order_request.max_limit_rub}руб\nЧисло сделок:{user_db.order_count} Число отказов: "
+                f"- {order_request.max_limit_rub:.2f}руб\nЧисло сделок:{user_db.order_count} Число отказов: "
                 f"{user_db.cancel_order_count}\n\n") + get_start_text(
             user_db.balance, user_db.order_count,
             user_db.cancel_order_count)
 
         await message.bot.send_message(message.from_user.id, text=text,
-                                       reply_markup=get_menu_kb(is_admin=user_db.role == User.ADMIN_ROLE))
+                                       reply_markup=get_menu_kb(is_admin=user_db.role in User.ALL_ADMINS))

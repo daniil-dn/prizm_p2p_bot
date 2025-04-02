@@ -19,6 +19,10 @@ class OrderRequest(Base, ModelBase):
     DELETED = 4
     STOPPED = 5
 
+    WALLET_SBP = 1
+    WALLET_PZM = 2
+    WALLET_CARD = 3
+
     __table_args__ = (
         Index('ix_from_to_currency_count', "from_currency", "to_currency", 'min_limit', "max_limit"),
         Index('ix_from_to_currency_count', "from_currency", "to_currency", 'min_limit_rub', "max_limit_rub"),
@@ -43,6 +47,8 @@ class OrderRequest(Base, ModelBase):
     rate = Column(Numeric(18, 4, asdecimal=False), nullable=False)
 
     status = Column(SmallInteger, nullable=False)
+
+    wallet_type = Column(SmallInteger, nullable=True)
 
     created_at = Column(DateTime(timezone=True), index=True, default=func.now())
     updated_at = Column(DateTime(timezone=True), index=True, onupdate=func.now())

@@ -3,7 +3,7 @@ from datetime import timedelta, datetime
 from pytz import timezone
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.dao import crud_user, crud_settings
+from app.core.dao import crud_user, crud_settings, crud_order
 from app.core.db import session
 
 
@@ -25,14 +25,13 @@ async def get_partner_data(session: AsyncSession, user_id: int):
     count_orders = 0
     summ = 0
     for user in user_invites:
-        count_orders += len(user.to_orders)
-        summ += sum(order.prizm_value for order in user.to_orders)
+        orders = await crud_order.get_sell_orders(session, user_id=user.id)
+        count_orders += user.order_count
+        summ += sum(order.prizm_value for order in orders)
 
-    commission = round(summ * settings.partner_commission_percent, 5)
     return {
         'summ': summ,
         'count_orders': count_orders,
         'count_users': len(user_invites),
-        'commission': commission,
         'percent': settings.partner_commission_percent
     }

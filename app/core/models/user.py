@@ -11,6 +11,8 @@ class User(Base, ModelBase):
     USER_ROLE = 1
     ADMIN_ROLE = 2
 
+    ALL_ADMINS = (ADMIN_ROLE, MAIN_ADMIN)
+
     id = Column(BigInteger, primary_key=True)
     username = Column(String, unique=True, index=True, nullable=True)
     first_name = Column(String, nullable=True)

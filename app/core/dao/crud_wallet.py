@@ -12,7 +12,7 @@ from app.core.dao.base import CRUDBase
 logger = getLogger(__name__)
 
 
-class CRUDWallet(CRUDBase[Wallet, dto.WalletCreate, dto.OrderUpdate]):
+class CRUDWallet(CRUDBase[Wallet, dto.WalletCreate, dto.WalletUpdate]):
     async def get_by_user_id_currency(self,
                                       db: AsyncSession,
                                       user_id: int, currency: str) -> Wallet | None:

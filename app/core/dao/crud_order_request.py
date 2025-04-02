@@ -90,25 +90,34 @@ class CRUDOrderRequest(CRUDBase[OrderRequest, dto.OrderRequestCreate, dto.OrderR
                                              status,
                                              limit,
                                              offset, is_rub: bool = False) -> List[OrderRequest] | int:
+
         if is_rub:
             filters = [OrderRequest.user_id != filter_user_id,
                        OrderRequest.from_currency == from_currency,
-                       and_(OrderRequest.min_limit_rub <= value,
-                            OrderRequest.max_limit_rub >= value
-                            ),
                        OrderRequest.status == status
                        ]
+            if value:
+                filters.append(
+                    and_(OrderRequest.min_limit_rub <= value,
+                         OrderRequest.max_limit_rub >= value
+                         )
+                )
         else:
-            filters = [OrderRequest.user_id != filter_user_id, OrderRequest.from_currency == from_currency,
-                       and_(OrderRequest.min_limit <= value,
-                            OrderRequest.max_limit >= value
-                            ),
+            filters = [OrderRequest.user_id != filter_user_id,
+                       OrderRequest.from_currency == from_currency,
                        OrderRequest.status == status
                        ]
+            if value:
+                filters.append(
+                    and_(OrderRequest.min_limit <= value,
+                         OrderRequest.max_limit >= value
+                         )
+                )
         count_query = select(func.count(OrderRequest.id)).filter(*filters)
 
         query = select(OrderRequest).filter(*filters).options(joinedload(OrderRequest.user)).join(User,
-                                                                                                  User.id == OrderRequest.user_id).order_by( # todo зачем
+                                                                                                  User.id == OrderRequest.user_id).order_by(
+            # todo зачем
             User.order_count)
 
         query = query.limit(limit).offset(offset)

@@ -9,7 +9,10 @@ async def get_mode(dialog_manager: DialogManager, **kwargs):
     mode = dialog_manager.start_data['mode']
     if dialog_manager.dialog_data.get('card_method') == "sbp":
         mode = "sbp"
-    return {"mode": mode}
+    session = dialog_manager.middleware_data['session']
+    admin_settings = await crud_settings.get_by_id(session, id=1)
+
+    return {"mode": mode, "min_order_value": admin_settings.min_order_prizm_value}
 
 
 async def get_prizm_rate(dialog_manager: DialogManager, **kwargs):

@@ -14,5 +14,5 @@ async def transfer_to_myhome_msg(message: Message, bot: Bot, state: FSMContext, 
     await bot.send_message(
         # todo
         message.from_user.id,
-        """Тут ссылка будет""", reply_markup=get_menu_kb(is_admin=user_db.role == User.ADMIN_ROLE)
+        """https://t.me/MoyDom_Rielty_bot""", reply_markup=get_menu_kb(is_admin=user_db.role in User.ALL_ADMINS)
     )

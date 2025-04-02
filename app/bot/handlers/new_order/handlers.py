@@ -37,7 +37,15 @@ async def on_back(callback: CallbackQuery, button: Button, dialog_manager: Dialo
 
 
 async def on_from_value_selected(message: Message, text_widget: ManagedTextInput, dialog_manager: DialogManager, data):
-    dialog_manager.dialog_data['from_value'] = text_widget.get_value()
+    from_value = text_widget.get_value()
+    session = dialog_manager.middleware_data['session']
+    admin_settings = await crud_settings.get_by_id(session, id=1)
+
+    if from_value < admin_settings.min_order_prizm_value:
+        await message.answer(f"Минимальная сумма ордера должна быть больше {admin_settings.min_order_prizm_value} PZM.")
+        return
+
+    dialog_manager.dialog_data['from_value'] = from_value
     await dialog_manager.next(show_mode=ShowMode.DELETE_AND_SEND)
 
 

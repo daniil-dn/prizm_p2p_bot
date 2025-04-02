@@ -42,7 +42,7 @@ async def accept_order_payment_cb(cb: CallbackQuery, bot: Bot, state: FSMContext
                                           parse_mode='html',
                                           reply_markup=data['keyboard'])
         await cb.message.answer(text[1], parse_mode='html')
-        await cb.message.answer(text[2], arse_mode='html')
+        await cb.message.answer(text[2], parse_mode='html')
 
     try:
         await bot.edit_message_reply_markup(chat_id=cb.message.chat.id, message_id=message_id, reply_markup=None)

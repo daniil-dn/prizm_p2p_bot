@@ -1,10 +1,13 @@
+import asyncio
+
 from aiogram import Router, F, Bot
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.bot.handlers.menu.states import WithdrawPartner
-from app.bot.ui.partner_system import withdraw_partner_balance
+from app.bot.ui import get_menu_kb
+from app.bot.ui.partner_system import withdraw_partner_balance, admin_withdrawal_done
 from app.bot.ui.withdraw import cancel_withdraw
 from app.bot.utils.parce import get_partner_data
 from app.core.dao import crud_user, crud_settings
@@ -27,14 +30,15 @@ async def ask_how_many(callback: CallbackQuery, bot: Bot, session: AsyncSession,
 
     if count_users:
         text = (f'Всего приглашенных: {count_users}\n'
-                f'Их суммарный оборот призм: {data['summ']:.3f}\n'
-                f'Ваш реферальный баланс: {user_db.referral_balance:.3f}')
+                f'Их суммарный оборот: {data["summ"]:.3f} PZM\n'
+                f'Ваш реферальный баланс: {user_db.referral_balance:.3f} PZM')
     else:
         text = 'У вас пока нет приглашенных пользователей'
 
     await callback.message.answer("Приглашайте новых пользователей и получайте 10% от комиссии "
                                   "нашего бота с оборота всех привлеченных вами клиентов.\n\n"
-                                  f"Ваша ссылка: {link}\n\n{text}", reply_markup=withdraw_partner_balance)
+                                  f"Ваша ссылка: <code>{link}</code>\n\n{text}", reply_markup=withdraw_partner_balance,
+                                  parse_mode='html')
 
 
 @router.callback_query(F.data == 'withdraw_partner_balance')
@@ -77,14 +81,14 @@ async def check_input_and_withdraw_balance(message: Message, state: FSMContext,
         return
 
     amount = await state.get_value('amount')
-    main_admin = await crud_user.get_main_admin(session)
+    main_admins = await crud_user.get_main_admins(session)
 
     data = await get_partner_data(session, message.from_user.id)
 
     summ = data.get('summ', None)
     count_users = data.get('count_users', None)
     count_orders = data.get('count_orders', None)
-    commission = data.get('commission', None)
+    percent = data.get('percent', None)
 
     withdraw_create = WithdrawRefCreate(user_id=message.from_user.id, summ=amount)
     await crud_withdraw_ref.create(session, obj_in=withdraw_create)
@@ -92,17 +96,27 @@ async def check_input_and_withdraw_balance(message: Message, state: FSMContext,
 
     try:
         await message.answer('Деньги будут выведены на указанный адрес')
-        await bot.send_message(main_admin.id, text=f'Количество: {amount}\n'
-                                                   f'user: @{message.from_user.username} ({message.from_user.id})\n'
-                                                   f'Кол-во приглашенных {count_users}\n'
-                                                   f'Проведено сделок: {count_orders}\n'
-                                                   f'Общая сумма сделок: {summ:.3f} призм\n'
-                                                   f'Процент пользователя {commission}\n'
-                                                   f'Баланс пользователя: {user_db.referral_balance:.3f}')
+        for main_admin in main_admins:
+            await bot.send_message(main_admin.id, text=f'Количество: {amount}\n'
+                                                       f'User: @{message.from_user.username} ({message.from_user.id})\n'
+                                                       f'Кол-во приглашенных {count_users}\n'
+                                                       f'Проведено сделок: {count_orders}\n'
+                                                       f'Общая сумма сделок: {summ:.3f} PZM\n'
+                                                       f'Процент комиссии {percent * 100:.1f}\n'
+                                                       f'Баланс пользователя: {user_db.referral_balance:.3f} PZM\n'
+                                                       f'Кошелек: {message.text}')
+
+            await bot.send_message(main_admin.id, text=f'{message.text}',
+                                   reply_markup=admin_withdrawal_done(message.from_user.id))
+            await asyncio.sleep(0.5)
     except:
         await message.answer('Возникла ошибка, напишите в поддержку')
     await state.clear()
 
-
-
-
+@router.callback_query(F.data.startswith('admin-done-partner-withdraw-request'))
+async def admin_done_order(callback: CallbackQuery, state: FSMContext, user_db: User, session: AsyncSession):
+    user_id = callback.data.split('_')[1]
+    client_user_db = await crud_user.get_by_id(session, id=int(user_id))
+    await callback.bot.send_message(user_id, '💰Ваша заявка обработана. Монеты переведены на указанный вами кошелек.')
+    await callback.message.edit_reply_markup(None)
+    await callback.message.reply('✅Пользователь уведомлен!', reply_markup=get_menu_kb(is_admin=user_db.role in User.ALL_ADMINS))

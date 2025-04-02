@@ -11,7 +11,10 @@ from app.core.models import OrderRequest
 
 
 async def get_orders_getter(dialog_manager: DialogManager, **kwargs):
-    exact_value = dialog_manager.dialog_data['exact_value']
+    exact_value = dialog_manager.dialog_data.get('exact_value')
+    if dialog_manager.start_data['is_all_mode'] is True:
+        exact_value = None
+
     if dialog_manager.start_data['mode'] == 'buy':
         is_rub = True
         from_currency = "PRIZM"
@@ -35,15 +38,25 @@ async def get_orders_getter(dialog_manager: DialogManager, **kwargs):
     all_orders_text = ""
     for order in result:  # type: OrderRequest
         user = order.user
+        wallet_text = ""
+        if order.wallet_type == OrderRequest.WALLET_SBP:
+            wallet_text = "Способ оплаты: 🏦СБП\n"
+        elif order.wallet_type == OrderRequest.WALLET_CARD:
+            wallet_text = "Способ оплаты: 💳Карта\n"
         time_text = parce_time(user.last_online)
         if dialog_manager.start_data['mode'] == 'buy':
-            order_text = (f'Ордер: №{order.id}\nКурс 1pzm - {order.rate}руб\nЛимит: {order.min_limit_rub} - '
-                          f'{order.max_limit_rub}руб\nЧисло сделок:{order.user.order_count}\n'
-                          f'Число отказов: {order.user.cancel_order_count}\n{time_text}\n\n')
+            order_text = (f'Ордер: №{order.id}\nКурс 1pzm - {order.rate}руб\n'
+                          f'Лимит: {order.min_limit_rub} - {order.max_limit_rub}руб\n'
+                          f'{wallet_text}'
+                          f'Число сделок:{order.user.order_count}\n'
+                          f'Число отказов: {order.user.cancel_order_count}\n'
+                          f'{time_text}\n\n')
         else:
-            order_text = (f'Ордер : №{order.id}\nКурс 1pzm - {order.rate}руб\nЛимит: {order.min_limit} - '
-                          f'{order.max_limit}PZM\nЧисло сделок:{order.user.order_count}\nЧисло отказов: '
-                          f'{order.user.cancel_order_count}\n{time_text}\n\n')
+            order_text = (f'Ордер : №{order.id}\nКурс 1pzm - {order.rate}руб\n'
+                          f'Лимит: {order.min_limit} - {order.max_limit}PZM\n'
+                          f'Число сделок:{order.user.order_count}\n'
+                          f'Число отказов: {order.user.cancel_order_count}\n'
+                          f'{time_text}\n\n')
 
         all_orders_text += order_text
         order_button = f'№{order.id}'
@@ -55,9 +68,12 @@ async def get_orders_getter(dialog_manager: DialogManager, **kwargs):
 
 async def get_mode(dialog_manager: DialogManager, **kwargs):
     mode = dialog_manager.start_data['mode']
+    is_all_mode = dialog_manager.start_data['is_all_mode']
+    show_back_on_wallet_value = dialog_manager.start_data.get('show_back_on_wallet_value', True)
+    wallet_mode = dialog_manager.start_data['mode']
     if dialog_manager.dialog_data.get('card_method') == "sbp":
-        mode = "sbp"
-    return {"mode": mode}
+        wallet_mode = "sbp"
+    return {"wallet_mode": wallet_mode, "mode": mode, "is_all_mode": is_all_mode, "show_back_on_wallet_value": show_back_on_wallet_value}
 
 
 async def get_order_accept_wait_time(dialog_manager: DialogManager, **kwargs):
@@ -77,19 +93,19 @@ async def get_accept_order_text(dialog_manager: DialogManager, **kwargs) -> dict
         prizm_value = dialog_manager.dialog_data['exact_value']
         value_commission = prizm_value * admin_settings.commission_percent
         rub_value = dialog_manager.dialog_data['exact_value'] * order_request.rate
-        success_text = (f"Продажа PRIZM\n"
-                        f"Сумма в PRIZM: {prizm_value}\n"
-                        f"Рублей: {rub_value:.3f}\n"
-                        f"Общая сумма оплаты PRIZM {prizm_value + value_commission:.3f}, "
-                        f"включая комиссию сервиса {admin_settings.commission_percent * 100:.3f}%\n"
+        success_text = (f"Продажа PZM\n"
+                        f"Сумма в PZM: {prizm_value:.2f}\n"
+                        f"Рублей: {rub_value:.2f}\n"
+                        f"Общая сумма оплаты PZM {prizm_value + value_commission:.2f}, "
+                        f"включая комиссию сервиса {admin_settings.commission_percent * 100:.1f}%\n"
                         )
     else:
         prizm_value = dialog_manager.dialog_data['exact_value'] / order_request.rate
         rub_value = dialog_manager.dialog_data['exact_value']
-        success_text = (f"Покупка PRIZM\n"
-                        f"Сумма в рублях: {rub_value:.3f}\n"
-                        f"Количество покупаемых монет: {prizm_value:.3f}\n"
-                        f"Вы получите {prizm_value:.3f} PZM"
+        success_text = (f"Покупка PZM\n"
+                        f"Сумма в рублях: {rub_value:.2f}\n"
+                        f"Количество покупаемых PZM: {prizm_value:.2f}\n"
+                        f"Вы получите {prizm_value:.2f} PZM"
                         )
 
     return success_text

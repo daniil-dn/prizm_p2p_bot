@@ -28,13 +28,17 @@ async def admin_menu_cb(cb: CallbackQuery, bot: Bot, state: FSMContext, user_db:
         await dialog_manager.start(state=AdminSettingsState.new_value_commission, mode=StartMode.RESET_STACK)
     if admin_command == 'new-withdrawal-commission':
         await dialog_manager.start(state=AdminSettingsState.new_value_withdrawal_commission, mode=StartMode.RESET_STACK)
+    if admin_command == 'new-withdrawal-referal-min-sum':
+        await dialog_manager.start(state=AdminSettingsState.new_value_referal_withdrawal_minimum,
+                                   mode=StartMode.RESET_STACK)
     elif admin_command == 'new-order-wait-time':
         await dialog_manager.start(state=AdminSettingsState.new_order_time, mode=StartMode.RESET_STACK)
     elif admin_command == 'new-pay-order-wait-time':
         await dialog_manager.start(state=AdminSettingsState.new_pay_order_time, mode=StartMode.RESET_STACK)
     elif admin_command == 'new-rate-diff':
         await dialog_manager.start(state=AdminSettingsState.new_prizm_rate_diff_value, mode=StartMode.RESET_STACK)
-
+    elif admin_command == 'new-min-order-prizm-value':
+        await dialog_manager.start(state=AdminSettingsState.new_min_order_prizm_value, mode=StartMode.RESET_STACK)
     elif admin_command == 'add-admin-by-username':
         await dialog_manager.start(state=AdminSettingsState.add_admin_by_username, mode=StartMode.RESET_STACK)
 
@@ -63,7 +67,7 @@ async def mailing_to_users_handler(message: Message, scheduler: AsyncIOScheduler
 
     await state.clear()
     scheduler.add_job(mailing_to_users, trigger='date', kwargs={'text': message.text, 'users': users, 'bot': bot})
-    await message.answer('Выберите пункт меню', reply_markup=get_menu_kb(is_admin=user_db.role == User.ADMIN_ROLE))
+    await message.answer('Выберите пункт меню', reply_markup=get_menu_kb(is_admin=user_db.role in User.ALL_ADMINS))
 
 
 @router.message(UpdatePartnerPercent.new_partner_percent)
@@ -80,7 +84,7 @@ async def update_partner_percet(message: Message, state: FSMContext, session: As
                                obj_in={"id": 1, "partner_commission_percent": int(message.text) / 100})
     await state.clear()
     await message.answer('Значение изменено')
-    await message.answer('Выберите пункт меню', reply_markup=get_menu_kb(is_admin=user_db.role == User.ADMIN_ROLE))
+    await message.answer('Выберите пункт меню', reply_markup=get_menu_kb(is_admin=user_db.role in User.ALL_ADMINS))
 
 
 @router.message(GetHistoryMessage.wait_for_id)
@@ -113,4 +117,4 @@ async def get_history(message: Message, state: FSMContext, session: AsyncSession
                 await message.answer_document(file)
         except:
             pass
-    await message.answer('Выберите пункт меню', reply_markup=get_menu_kb(is_admin=user_db.role == User.ADMIN_ROLE))
+    await message.answer('Выберите пункт меню', reply_markup=get_menu_kb(is_admin=user_db.role in User.ALL_ADMINS))
