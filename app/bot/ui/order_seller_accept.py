@@ -11,7 +11,7 @@ def order_seller_accept_kb(order_id) -> InlineKeyboardMarkup:
 
 def sent_card_transfer(order, user_id=None) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
-    builder.button(text='✅ Оплатил', callback_data=f"sent_card_transfer_{order.id}")
+    builder.button(text='✅ Оплатил(а)', callback_data=f"sent_card_transfer_{order.id}")
     builder.button(text='💬Поддержка', url="https://t.me/Nikita_Kononenko")
     if user_id:
         button = _get_contact_user_button(user_id, order)
@@ -23,15 +23,15 @@ def sent_card_transfer(order, user_id=None) -> InlineKeyboardMarkup:
 
 def recieved_card_transfer(order, user_id) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
-    builder.button(text='✅ Получил', callback_data=f"card_transfer_recieved_{order.id}")
+    builder.button(text='✅ Получил(а)', callback_data=f"card_transfer_recieved_{order.id}")
     builder.button(text='💬Поддержка', url="https://t.me/Nikita_Kononenko")
     if user_id:
         button = _get_contact_user_button(user_id, order)
         builder.add(button)
 
-
     builder.adjust(2, 1)
     return builder.as_markup(resize_keyboard=True)
+
 
 def _get_contact_user_button(user_id, order):
     if order.mode == "buy":
@@ -61,10 +61,17 @@ def contact_to_user(user_id, order) -> InlineKeyboardMarkup:
 
 
 def sended_pzm_transfer_button(user_id, order) -> InlineKeyboardButton:
-    button = InlineKeyboardButton(text='✅Перевел', callback_data=f'pzm_sended_accept_order-{user_id}-{order.id}')
+    button = InlineKeyboardButton(text='✅Перевел(а)', callback_data=f'pzm_sended_accept_order-{user_id}-{order.id}')
 
     return button
 
+
+
+def order_request_sended_pzm_transfer_button(user_id, order_request_id) -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    button = InlineKeyboardButton(text='✅Перевел(а)',
+                                  callback_data=f'pzm_sended_accept_order_request-{user_id}-{order_request_id}')
+    builder.add(button)
 
 def contact_to_user_and_back(user_id, order) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()

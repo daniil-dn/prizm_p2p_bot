@@ -55,7 +55,7 @@ class Scheduler:
                         decrypted_message = decrypted_message_data.get(
                             'decryptedMessage') if decrypted_message_data.get(
                             "errorCode") is None else None
-                        # decrypted_message = "order:6185258473:2"
+                        # decrypted_message = "order:6185258473:34" # todo remove
                         from_message_order_id = None
                         from_user_id = None
                         txn_type = None
@@ -86,6 +86,7 @@ class Scheduler:
                             extra_data=transaction,
                             type=txn_type
                         )
+                        # transaction_data.value = Decimal(121.2) # todo remove
                         exist_transaction = await crud_transaction.create(session, obj_in=transaction_data)
                         logger.info(
                             f"Транзакция {transaction['transaction']} записана в БД с id: {exist_transaction.id}.")
@@ -107,14 +108,20 @@ class Scheduler:
                                 order_value_commission = order.prizm_value + (
                                         order.prizm_value * order.commission_percent)
                                 if user_balance >= order_value_commission:
+                                    user = await crud_user.lock_row(db=session, id=transfer_user_id)
+                                    upd_user_balance = user.balance - order_value_commission
+                                    await crud_user.update(db=session, db_obj=user,
+                                                           obj_in={"balance": upd_user_balance})
+
                                     logger.info(
                                         f"Сделка {order.id} принята баланс продавца: {user.balance}. Нужно монет для ордера {order.prizm_value} ")
                                     await crud_order.update(db=session, db_obj=order,
                                                             obj_in={"status": Order.IN_PROGRESS})
 
                                     message = await bot.send_message(transfer_user_id,
-                                                           f"Сделка №{order.id}. Вы перевели PRIZM в бота. Ждите перевода на карту",
-                                                           reply_markup=contact_to_user(order.from_user_id, order))
+                                                                     f"Сделка №{order.id}. Вы перевели PRIZM в бота. Ждите перевода на карту",
+                                                                     reply_markup=contact_to_user(order.from_user_id,
+                                                                                                  order))
                                     await message_manager.set_message_and_keyboard(
                                         user_id=transfer_user_id,
                                         order_id=order.id,
@@ -127,12 +134,13 @@ class Scheduler:
                                                                                              user_id=order.to_user_id,
                                                                                              currency=order.from_currency)
                                     message = await bot.send_message(order.from_user_id,
-                                                           f"Продавец перевел PRIZM. Переведите {order.rub_value} 'RUB' на карту: {buyer_wallet.value}",
-                                                           reply_markup=sent_card_transfer(order, order.to_user_id))
+                                                                     f"Продавец перевел(а) PRIZM. Переведите {order.rub_value:.2f} 'RUB' на карту: {buyer_wallet.value}",
+                                                                     reply_markup=sent_card_transfer(order,
+                                                                                                     order.to_user_id))
                                     await message_manager.set_message_and_keyboard(
                                         user_id=order.from_user_id,
                                         order_id=order.id,
-                                        text=f"Продавец перевел PRIZM. Переведите {order.rub_value} 'RUB' на карту: {buyer_wallet.value}",
+                                        text=f"Продавец перевел(а) PRIZM. Переведите {order.rub_value:.2f} 'RUB' на карту: {buyer_wallet.value}",
                                         keyboard=sent_card_transfer(order, order.to_user_id),
                                         message_id=message.message_id
                                     )
@@ -155,16 +163,27 @@ class Scheduler:
                                 f"Ордер реквест {from_message_order_id}. В БД  {order_request.id}")
                             if order_request:
                                 user = await crud_user.lock_row(db=session, id=order_request.user_id)
-                                user_balance = user.balance + exist_transaction.value
-                                await crud_user.update(db=session, db_obj=user, obj_in={"balance": user_balance})
-                                prizm_max_limit = min(user_balance, order_request.max_limit)
-                                rub_max_limit = min(user_balance, order_request.max_limit * order_request.rate)
+                                admin_settings = await crud_settings.get_by_id(session, id=1)
+                                order_request_pzm_commission = order_request.max_limit * admin_settings.commission_percent
+                                all_user_balance = user.balance + exist_transaction.value - order_request_pzm_commission
+
+
+                                balance_ramain = all_user_balance - order_request.max_limit
+                                if balance_ramain < 0:
+                                    balance_ramain = 0
+                                else:
+                                    balance_ramain = balance_ramain
+                                await crud_user.update(db=session, db_obj=user, obj_in={"balance": balance_ramain})
+
+                                prizm_max_limit = min(all_user_balance, order_request.max_limit)
+                                rub_max_limit = min(all_user_balance * order_request.rate,
+                                                    order_request.max_limit * order_request.rate)
                                 order_request = await crud_order_request.update(db=session, db_obj=order_request,
                                                                                 obj_in={
                                                                                     "status": OrderRequest.IN_PROGRESS,
                                                                                     "max_limit": prizm_max_limit,
                                                                                     "max_limit_rub": rub_max_limit})
-                                if user_balance <= order_request.max_limit:
+                                if all_user_balance < order_request.max_limit:
                                     text = (
                                         f"Ваш Ордер №{order_request.id} на продажу PRIZM создан и размещен в боте.\nЛимит скорректирован от суммы платежа. \nТекущий лимит от {order_request.min_limit} до {order_request.max_limit} PZM\n\n"
                                         f"Курс 1pzm - {order_request.rate}руб\nЛимит: {order_request.min_limit_rub} - {order_request.max_limit_rub}руб\nЧисло сделок:{user.order_count} Число отказов: {user.cancel_order_count}\n\n")
@@ -182,7 +201,7 @@ class Scheduler:
                                                        text + get_start_text(
                                                            user.balance, user.order_count,
                                                            user.cancel_order_count),
-                                                       reply_markup=get_menu_kb(is_admin=user.role == User.ADMIN_ROLE))
+                                                       reply_markup=get_menu_kb(is_admin=user.role in User.ALL_ADMINS))
                                 logger.info(
                                     f"Ордер реквест {order_request.id}. Сообщение продавцу {order_request.user_id} отправлено. ")
                             except Exception as err:
@@ -217,13 +236,13 @@ class Scheduler:
                                                    get_start_text(order.from_user.balance, order.from_user.order_count,
                                                                   order.from_user.cancel_order_count),
                                                    reply_markup=get_menu_kb(
-                                                       is_admin=order.from_user.role == User.ADMIN_ROLE))
+                                                       is_admin=order.from_user.role in User.ALL_ADMINS))
                             await bot.send_message(order.to_user_id,
                                                    f"Время ожидания ордера превышено. Ордер №{order.id} отменен.\n\n" +
                                                    get_start_text(order.to_user.balance, order.to_user.order_count,
                                                                   order.to_user.cancel_order_count),
                                                    reply_markup=get_menu_kb(
-                                                       is_admin=order.to_user.role == User.ADMIN_ROLE))
+                                                       is_admin=order.to_user.role in User.ALL_ADMINS))
                             await crud_order.update(db=session, db_obj=order, obj_in={"status": Order.CANCELED})
                             logger.info(
                                 f"Ордер {order.id} - {order_updated_at} отменен. Сообщения для продавца и покупателя отправлены.")
@@ -251,13 +270,13 @@ class Scheduler:
                                                    get_start_text(order.from_user.balance, order.from_user.order_count,
                                                                   order.from_user.cancel_order_count),
                                                    reply_markup=get_menu_kb(
-                                                       is_admin=order.from_user.role == User.ADMIN_ROLE))
+                                                       is_admin=order.from_user.role in User.ALL_ADMINS))
                             await bot.send_message(order.to_user_id,
                                                    f"Время ожидания платежа превышено. Ордер №{order.id} отменен.\n\n" +
                                                    get_start_text(order.to_user.balance, order.to_user.order_count,
                                                                   order.to_user.cancel_order_count),
                                                    reply_markup=get_menu_kb(
-                                                       is_admin=order.to_user.role == User.ADMIN_ROLE))
+                                                       is_admin=order.to_user.role in User.ALL_ADMINS))
                             await crud_order.update(db=session, db_obj=order, obj_in={"status": Order.CANCELED})
                             logger.info(
                                 f" Ордер {order.id} отменен. Сообщения отправлены. Последнее обновление {order_updated_at}. Настройка {admin_settings.pay_wait_time}")

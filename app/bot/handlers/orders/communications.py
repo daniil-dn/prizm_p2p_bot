@@ -44,8 +44,7 @@ async def send_message_to_user(message: Message, state: FSMContext, bot: Bot, se
 
     order_id = await state.get_value('order_id')
 
-    async with session:
-        order = await crud_order.get_by_id(session, id=order_id)
+    order = await crud_order.get_by_id(session, id=order_id)
     await state.clear()
 
     document = None
@@ -62,10 +61,9 @@ async def send_message_to_user(message: Message, state: FSMContext, bot: Bot, se
         pass
     await message.answer('Сообщение отправлено',
                          reply_markup=contact_to_user_and_back(to_user_tg_id, order))
-    async with session:
-        to_user = await crud_user.get(session, to_user_tg_id)
-        from_user = await crud_user.get(session, message.from_user.id)
+    to_user = await crud_user.get(session, to_user_tg_id)
+    from_user = await crud_user.get(session, message.from_user.id)
 
-        message_to_create = MessageCreate(from_user_id=from_user.id, to_user_id=to_user.id, photo=photo,
-                                          document=document, text=message.text or message.caption, order_id=order_id)
-        await crud_message.create(session, obj_in=message_to_create)
+    message_to_create = MessageCreate(from_user_id=from_user.id, to_user_id=to_user.id, photo=photo,
+                                      document=document, text=message.text or message.caption, order_id=order_id)
+    await crud_message.create(session, obj_in=message_to_create)

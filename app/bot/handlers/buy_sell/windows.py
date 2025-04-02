@@ -1,3 +1,4 @@
+from aiogram import F
 from aiogram_dialog import ShowMode
 from typing import Any
 from aiogram_dialog.widgets.kbd import Group, Select, Back, \
@@ -14,7 +15,8 @@ from aiogram_dialog import (
 from app.bot.handlers.buy_sell.getters import get_orders_getter, get_mode, get_order_accept_wait_time
 from app.bot.handlers.buy_sell.handlers import cancel_logic, \
     process_order_request_selected, \
-    on_card_info_input, on_back, on_accept_order_request_input, on_value_selected, on_card_method_selected
+    on_card_info_input, on_back, on_accept_order_request_input, on_value_selected, on_card_method_selected, \
+    on_back_accept_order, on_back_exactly_value
 from app.bot.handlers.buy_sell.state import BuyState
 
 
@@ -45,13 +47,14 @@ def get_value() -> Window:
         Case(
             {
                 'buy': Const("Укажите в рублях сумму сделки\nУказывайте только цифры"),
-                'sell': Const("Укажите в Prizm сумму сделки\nУказывайте только цифры"),
+                'sell': Const("Укажите в PZM сумму сделки\nУказывайте только цифры"),
             },
             selector='mode'
         ),
         TextInput(id="from_value", on_success=on_value_selected, on_error=error,
                   type_factory=float),
         Button(Const("❌ Отмена"), id="cancel", on_click=cancel_logic),
+        Button(Const("🔙 Назад"), id="back", on_click=on_back_exactly_value, when=F['is_all_mode'] == True),
         state=BuyState.exact_value,
         getter=get_mode
     )
@@ -64,7 +67,6 @@ def get_wallet_method() -> Window:
         Button(text=Const("Карта"), id="card", on_click=on_card_method_selected),
         Button(Const("❌ Отмена"), id="cancel", on_click=cancel_logic),
         Button(Const("🔙 Назад"), id="back", on_click=Back(show_mode=ShowMode.DELETE_AND_SEND)),
-
         state=BuyState.card_method_details,
         getter=get_mode
     )
@@ -78,7 +80,7 @@ def get_wallet_info() -> Window:
                 'sell': Const("Укажите номер карты (только цифры)"),
                 'sbp': Const("Укажите номер телефона (только цифры) и банк\nПример: +79181081081 Сбербанк"),
             },
-            selector='mode',
+            selector='wallet_mode',
         ),
         TextInput(id="card_info", on_success=on_card_info_input, on_error=error_card_info,
                   type_factory=str),
@@ -140,12 +142,13 @@ def orders_list() -> Window:
     )
 
 
-def get_exactly_value() -> Window:
+
+def get_accept_order() -> Window:
     return Window(
         Format("{text}\n\nПодтвердите ордер. У вас есть {wait_time} минут на подтверждение"),
         Button(text=Const("✅Подтвердить"), id="accept_order", on_click=on_accept_order_request_input),
         Button(Const("❌ Отмена"), id="cancel", on_click=cancel_logic),
-        Button(Const("🔙 Назад"), id="back", on_click=Back(show_mode=ShowMode.DELETE_AND_SEND)),
+        Button(Const("🔙 Назад"), id="back", on_click=on_back_accept_order),
 
         state=BuyState.accept_order_request,
         getter=get_order_accept_wait_time

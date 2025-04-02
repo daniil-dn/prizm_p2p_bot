@@ -5,7 +5,7 @@ from aiogram_dialog import DialogManager, ShowMode
 from aiogram_dialog.widgets.kbd import Button
 from aiogram_dialog.widgets.input import ManagedTextInput
 
-from app.bot.handlers.common import start_cmd
+from app.bot.handlers.common import start_cmd_cb
 from app.bot.handlers.new_order.state import NewOrderState
 from app.bot.ui import get_menu_kb
 from app.bot.ui.texts import get_start_text
@@ -24,8 +24,8 @@ logger = getLogger(__name__)
 async def cancel_logic(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
     await callback.message.answer("Вы отменили создание ордера")
     await dialog_manager.done()
-    await start_cmd(callback.message, callback.bot, dialog_manager.middleware_data['state'],
-                    dialog_manager.middleware_data['user_db'], dialog_manager)
+    await start_cmd_cb(callback.message, callback.bot, dialog_manager.middleware_data['state'],
+                       dialog_manager.middleware_data['user_db'], dialog_manager)
 
 
 async def on_back(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
@@ -37,7 +37,15 @@ async def on_back(callback: CallbackQuery, button: Button, dialog_manager: Dialo
 
 
 async def on_from_value_selected(message: Message, text_widget: ManagedTextInput, dialog_manager: DialogManager, data):
-    dialog_manager.dialog_data['from_value'] = text_widget.get_value()
+    from_value = text_widget.get_value()
+    session = dialog_manager.middleware_data['session']
+    admin_settings = await crud_settings.get_by_id(session, id=1)
+
+    if from_value < admin_settings.min_order_prizm_value:
+        await message.answer(f"Минимальная сумма ордера должна быть больше {admin_settings.min_order_prizm_value} PZM.")
+        return
+
+    dialog_manager.dialog_data['from_value'] = from_value
     await dialog_manager.next(show_mode=ShowMode.DELETE_AND_SEND)
 
 
@@ -50,9 +58,9 @@ async def on_to_value_selected(message: Message, text_widget: ManagedTextInput, 
 async def on_rate_selected(message: Message, text_widget: ManagedTextInput, dialog_manager: DialogManager, data):
     dialog_manager.dialog_data['rate'] = user_rate = text_widget.get_value()
     rate = await get_currency_rate("PZM", "RUB", settings.COINMARKETCAP_API_KEY)
-    async with dialog_manager.middleware_data['session'] as session:
-        admin_settings = await crud_settings.get_by_id(session, id=1)
-        prizm_rate_diff_percent = admin_settings.prizm_rate_diff * 100
+    session = dialog_manager.middleware_data['session']
+    admin_settings = await crud_settings.get_by_id(session, id=1)
+    prizm_rate_diff_percent = admin_settings.prizm_rate_diff * 100
 
     if rate_difference(rate, user_rate, prizm_rate_diff_percent):
         await message.answer(parse_mode='html',

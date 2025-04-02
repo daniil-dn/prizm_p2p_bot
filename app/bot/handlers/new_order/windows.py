@@ -37,8 +37,8 @@ def get_from_value() -> Window:
     return Window(
         Case(
             {
-                'buy': Const("Укажите в Prizm минимальную сумму покупки\nУказывайте только цифры"),
-                'sell': Const("Укажите в Prizm минимальную сумму продажи\nУказывайте только цифры"),
+                'buy': Format("Укажите в Prizm минимальную сумму покупки\nУказывайте только цифры\n\nМинимальная сумма ордера {min_order_value} PZM"),
+                'sell': Format("Укажите в Prizm минимальную сумму продажи\nУказывайте только цифры\n\nМинимальная сумма ордера {min_order_value} PZM"),
             },
             selector='mode',
         ),
@@ -72,7 +72,7 @@ def get_to_value() -> Window:
 def get_rate() -> Window:
     return Window(
         Format(
-            "Укажите желаемую стоимость PRIZM в рублях.\nТекущий курс <b>{prizm_rate}</b> PZM/RUB "
+            "Укажите желаемую стоимость PRIZM в рублях.\nТекущий курс <b>{prizm_rate}</b> RUB/PZM\n"
             "https://coinmarketcap.com/currencies/prizm .\nРазница указанного вами курса не должна отличаться "
             "более чем на <b>{prizm_rate_diff_percent}</b>%"),
 
@@ -82,7 +82,8 @@ def get_rate() -> Window:
         Button(Const("🔙 Назад"), id="back", on_click=Back(show_mode=ShowMode.DELETE_AND_SEND)),
         getter=get_prizm_rate,
         state=NewOrderState.rate,
-        parse_mode='html'
+        parse_mode='html',
+        disable_web_page_preview=True
     )
 
 

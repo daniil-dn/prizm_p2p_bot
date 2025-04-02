@@ -1,22 +1,37 @@
+from aiogram.types import InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder, InlineKeyboardMarkup
 
 
-def admin_panel_commot_kb() -> InlineKeyboardMarkup:
+def admin_panel_commot_kb(is_main_admin: bool = False) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
-    builder.button(text='Получить историю сообщений по ID сделки', callback_data=f"admin_panel_command_message-history")
-    builder.button(text='💰Изменить процент комиссии', callback_data=f"admin_panel_command_new-commission")
+    builder.button(text='Получить историю сообщений по ID сделки', callback_data=f"admin-panel-command_message-history")
+    builder.button(text='💰Изменить процент комиссии', callback_data=f"admin-panel-command_new-commission")
+    builder.button(text='💰Изменить процент комиссии вывода',
+                   callback_data=f"admin-panel-command_new-withdrawal-commission")
+    builder.button(text='💰Изменить мин. вывод по реферальной программе',
+                   callback_data=f"admin-panel-command_new-withdrawal-referal-min-sum")
+    builder.button(text='💰Изменить мин. лимит ордера',
+                   callback_data=f"admin-panel-command_new-min-order-prizm-value")
+    builder.button(text='💰Изменить процент партнерской системы',
+                   callback_data=f"admin-panel-command_new-withdrawal-partner-commission")
     builder.button(text='📊Изменить разницу курса',
-                   callback_data=f"admin_panel_command_new-rate-diff")
-    # todo добавить бота для проверки ордеров по времени
-    builder.button(text='💳Изменить время ожидания оплаты', callback_data=f"admin_panel_command_new-pay-order-wait-time")
+                   callback_data=f"admin-panel-command_new-rate-diff")
+    builder.button(text='💳Изменить время ожидания оплаты', callback_data=f"admin-panel-command_new-pay-order-wait-time")
+    builder.button(text='Провести рассылку', callback_data='admin-panel-command_mailing')
     builder.button(text='⏳Изменить время подтверждения ордера',
-                   callback_data=f"admin_panel_command_new-order-wait-time")
-    builder.button(text='🧑‍🏭Добавить админа',
-                   callback_data=f"admin_panel_command_add-admin-by-username")
-    builder.button(text='🗑Удалить админа',
-                   callback_data=f"admin_panel_command_remove-admin-by-username")
+                   callback_data=f"admin-panel-command_new-order-wait-time")
+    if is_main_admin:
+        builder.button(text='🧑‍🏭Добавить админа',
+                       callback_data=f"admin-panel-command_add-admin-by-username")
+        builder.button(text='🗑Удалить админа',
+                       callback_data=f"admin-panel-command_remove-admin-by-username")
     builder.button(text='🔙Назад',
                    callback_data=f"start_bot")
 
     builder.adjust(1)
     return builder.as_markup(resize_keyboard=True)
+
+
+cancel_admin = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text='❌ Отмена', callback_data='cancel_withdraw')]
+], resize_keyboard=True)

@@ -15,9 +15,13 @@ from app.core.models.user import User
 class OrderRequest(Base, ModelBase):
     WAIT_PRIZM = 0
     IN_PROGRESS = 1
-    ACCESSED = 2
     LOCK = 3
-    CLOSED = 4
+    DELETED = 4
+    STOPPED = 5
+
+    WALLET_SBP = 1
+    WALLET_PZM = 2
+    WALLET_CARD = 3
 
     __table_args__ = (
         Index('ix_from_to_currency_count', "from_currency", "to_currency", 'min_limit', "max_limit"),
@@ -44,5 +48,7 @@ class OrderRequest(Base, ModelBase):
 
     status = Column(SmallInteger, nullable=False)
 
-    created_at = Column(index=True, default=func.now())
-    updated_at = Column(onupdate=func.now())
+    wallet_type = Column(SmallInteger, nullable=True)
+
+    created_at = Column(DateTime(timezone=True), index=True, default=func.now())
+    updated_at = Column(DateTime(timezone=True), index=True, onupdate=func.now())

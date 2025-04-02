@@ -11,6 +11,8 @@ class WalletRequestBase(BaseModel):
 
 class WalletInDB(WalletRequestBase):
     user_id: Optional[int]
+    order_id: Optional[int] = None
+    order_request_id: Optional[int] = None
     currency: Optional[str]
     value: Optional[str]
     updated_at: datetime
@@ -19,11 +21,15 @@ class WalletInDB(WalletRequestBase):
 
 class WalletCreate(BaseModel):
     user_id: Optional[int]
+    order_id: Optional[int] = None
+    order_request_id: Optional[int] = None
     currency: Optional[str]
     value: Optional[str]
 
 
 class WalletUpdate(WalletRequestBase):
     user_id: Optional[int] = None
+    order_id: Optional[int] = None
+    order_request_id: Optional[int] = None
     currency: Optional[str] = None
     value: Optional[str] = None

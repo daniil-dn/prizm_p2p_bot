@@ -14,7 +14,7 @@ async def profile_msg(cb: CallbackQuery, bot: Bot, state: FSMContext, user_db: U
     await bot.send_message(
         cb.from_user.id,
         f"""
-Ваш баланс: {user_db.balance}
+Ваш баланс: {user_db.balance:.3f}
 Кол-во сделок: {user_db.order_count}
 Кол-во отказов: {user_db.cancel_order_count}
         """

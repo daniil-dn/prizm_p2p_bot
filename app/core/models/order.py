@@ -1,10 +1,9 @@
-from sqlalchemy import Column, DateTime, BigInteger, func, ForeignKey, Index, SmallInteger, Numeric, String
+from sqlalchemy import Column, BigInteger, func, ForeignKey, Index, SmallInteger, Numeric, String, DateTime
 
 from sqlalchemy.orm import relationship, Mapped
 
 from app.core.db.base_class import Base
 from app.core.models.model_base import ModelBase
-from app.core.models.user import User
 
 
 class Order(Base, ModelBase):
@@ -23,13 +22,13 @@ class Order(Base, ModelBase):
     from_user_id = Column(ForeignKey('user.id'), index=True, nullable=False)
     from_user: Mapped["User"] = relationship(
         "User",
-        backref="from_orders",
+        back_populates="from_orders",
         foreign_keys=[from_user_id])
 
     to_user_id = Column(ForeignKey('user.id'), index=True, nullable=False)
     to_user: Mapped["User"] = relationship(
         "User",
-        backref="to_orders",
+        back_populates="to_orders",
         foreign_keys=[to_user_id])
 
     from_currency = Column(String(5), nullable=False)
@@ -45,5 +44,5 @@ class Order(Base, ModelBase):
     status = Column(SmallInteger, nullable=False)
     mode = Column(String, nullable=False)
 
-    created_at = Column(index=True, default=func.now())
-    updated_at = Column(onupdate=func.now())
+    created_at = Column(DateTime(timezone=True), index=True, default=func.now())
+    updated_at = Column(DateTime(timezone=True), index=True, onupdate=func.now())

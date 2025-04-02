@@ -30,6 +30,7 @@ class OrderRequestCreate(BaseModel):
     max_limit_rub: Optional[Decimal]
     rate: Optional[Decimal]
     status: Optional[int]
+    wallet_type: Optional[int]
 
 
 class OrderRequestUpdate(BaseModel):
@@ -39,3 +40,4 @@ class OrderRequestUpdate(BaseModel):
     max_limit_rub: Optional[Decimal] = None
     rate: Optional[Decimal] = None
     status: Optional[int] = None
+    wallet_type: Optional[int] = None
