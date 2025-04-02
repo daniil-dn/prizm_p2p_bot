@@ -70,7 +70,7 @@ async def delete_order(callback: CallbackQuery, button: Button, dialog_manager: 
     else:
         await callback.message.reply('Ордер нельзя удалить!')
 
-    await dialog_manager.switch_to(state=DeleteEditOrder.order_menu, show_mode=ShowMode.DELETE_AND_SEND)
+    await dialog_manager.switch_to(state=DeleteEditOrder.orders, show_mode=ShowMode.DELETE_AND_SEND)
 
 
 async def error_handler(
