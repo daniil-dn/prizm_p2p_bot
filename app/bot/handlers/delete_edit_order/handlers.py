@@ -43,7 +43,6 @@ async def continue_or_stop_order(callback: CallbackQuery, button: Button, dialog
         await dialog_manager.switch_to(state=DeleteEditOrder.order_menu, show_mode=ShowMode.DELETE_AND_SEND)
 
 
-
 async def delete_order(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
     session = dialog_manager.middleware_data['session']
     order = await crud_order_request.get_by_id(session, id=int(dialog_manager.dialog_data['order_id']))
@@ -52,7 +51,7 @@ async def delete_order(callback: CallbackQuery, button: Button, dialog_manager: 
             OrderRequest.LOCK, OrderRequest.DELETED, OrderRequest.WAIT_PRIZM):
         withdraw_text = ''
         if order.to_currency == 'RUB':
-            withdraw_text =  ' Для Вывода средств нажмите кнопку "Вывести PRIZM"'
+            withdraw_text = ' Для Вывода средств нажмите кнопку "Вывести PRIZM"'
             admin_settings = await crud_settings.get_by_id(session, id=1)
             dialog_manager.middleware_data['user_db'] = await crud_user.increase_balance(session,
                                                                                          id=callback.from_user.id,
@@ -61,15 +60,17 @@ async def delete_order(callback: CallbackQuery, button: Button, dialog_manager: 
         await callback.message.reply(f'Ордер удален. {withdraw_text}')
     elif order.status == OrderRequest.WAIT_PRIZM:
         admin_settings = await crud_settings.get_by_id(session, id=1)
-        await callback.message.reply(f'Сейчас ордер находится в стадии подтверждения. Пожалуйста, дождетесь поступления средств. В случае, если средства не поступят в течение {admin_settings.pay_wait_time} минут, ордер будет отменен автоматически.')
+        await callback.message.reply(
+            f'Сейчас ордер находится в стадии подтверждения. Пожалуйста, дождетесь поступления средств. В случае, если средства не поступят в течение {admin_settings.pay_wait_time} минут, ордер будет отменен автоматически.')
     elif order.status == OrderRequest.DELETED:
         await callback.message.reply('Ордер уже удален!')
     elif order.status == OrderRequest.LOCK:
-        await callback.message.reply('Ордер используется при создании сделки, дождитесь подтверждения сделки по ордеру!')
+        await callback.message.reply(
+            'Ордер используется при создании сделки, дождитесь подтверждения сделки по ордеру!')
     else:
         await callback.message.reply('Ордер нельзя удалить!')
 
-    await start(callback, button, dialog_manager)
+    await dialog_manager.switch_to(state=DeleteEditOrder.order_menu, show_mode=ShowMode.DELETE_AND_SEND)
 
 
 async def error_handler(
