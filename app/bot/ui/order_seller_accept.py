@@ -66,13 +66,12 @@ def sended_pzm_transfer_button(user_id, order) -> InlineKeyboardButton:
     return button
 
 
+
 def order_request_sended_pzm_transfer_button(user_id, order_request_id) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     button = InlineKeyboardButton(text='✅Перевел(а)',
                                   callback_data=f'pzm_sended_accept_order_request-{user_id}-{order_request_id}')
     builder.add(button)
-    return builder.as_markup()
-
 
 def contact_to_user_and_back(user_id, order) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()

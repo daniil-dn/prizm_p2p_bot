@@ -25,9 +25,6 @@ async def accept_accept_order_cb(cb: CallbackQuery, bot: Bot, state: FSMContext,
     await send_notification_to_actings(order=order, bot=bot, cb=cb, session=session,
                                        message_manager=message_manager)
 
-    order_request = await crud_order_request.get_by_id(session, id=order.order_request_id)
-    order = await crud_order.update(session, db_obj=order, obj_in={"status": Order.ACCEPTED})
-
     if order_request.max_limit > order.prizm_value:
         new_max_limit = order_request.max_limit - order.prizm_value
         new_max_limit_rub = order_request.max_limit_rub - order.rub_value
@@ -60,7 +57,6 @@ async def accept_accept_order_cb(cb: CallbackQuery, bot: Bot, state: FSMContext,
 async def accept_cancel_order_cb(cb: CallbackQuery, bot: Bot, state: FSMContext, user_db: User,
                                  session: AsyncSession) -> None:
     order = await crud_order.lock_row(session, id=int(cb.data.split('_')[3]))
-
     order = await crud_order.update(session, db_obj=order, obj_in={"status": Order.CANCELED})
     user_db = await crud_user.lock_row(session, id=user_db.id)
     from_cb_userdb = await crud_user.update(session, db_obj=user_db,
@@ -83,7 +79,6 @@ async def accept_cancel_order_cb(cb: CallbackQuery, bot: Bot, state: FSMContext,
     await crud_order_request.update(session, db_obj=order_request,
                                     obj_in={"status": OrderRequest.IN_PROGRESS})
 
-
 @router.callback_query(F.data.startswith('pzm_sended_accept_order-'))
 async def pzm_sended_accept_order_cb(cb: CallbackQuery, bot: Bot, state: FSMContext, user_db: User,
                                      session: AsyncSession, message_manager: MessageManager) -> None:
@@ -92,6 +87,7 @@ async def pzm_sended_accept_order_cb(cb: CallbackQuery, bot: Bot, state: FSMCont
     order_id = int(cb.data.split('-')[-1])
     order = await crud_order.get_by_id(session, id=order_id)
     contact_to_user_id = order.from_user_id if order.from_user_id != cb.from_user.id else order.to_user_id
+
     markup = contact_to_user(contact_to_user_id, order)
     text = "⏳Ожидаем подтверждения перевода"
     message = await bot.send_message(cb.from_user.id, text, reply_markup=markup)
