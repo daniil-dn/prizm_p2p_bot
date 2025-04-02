@@ -24,7 +24,8 @@ async def accept_accept_order_cb(cb: CallbackQuery, bot: Bot, state: FSMContext,
 
     await send_notification_to_actings(order=order, bot=bot, cb=cb, session=session,
                                        message_manager=message_manager)
-
+    order_request = await crud_order_request.get_by_id(session, id=order.order_request_id)
+    order = await crud_order.update(session, db_obj=order, obj_in={"status": Order.ACCEPTED})
     if order_request.max_limit > order.prizm_value:
         new_max_limit = order_request.max_limit - order.prizm_value
         new_max_limit_rub = order_request.max_limit_rub - order.rub_value
