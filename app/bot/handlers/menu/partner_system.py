@@ -37,7 +37,7 @@ async def ask_how_many(callback: CallbackQuery, bot: Bot, session: AsyncSession,
 
     await callback.message.answer("Приглашайте новых пользователей и получайте 10% от комиссии "
                                   "нашего бота с оборота всех привлеченных вами клиентов.\n\n"
-                                  f"Ваша ссылка: <code>{link}</code>\n\n{text}", reply_markup=withdraw_partner_balance,
+                                  f"Ваша ссылка (👇нажми):\n<code>{link}</code>\n\n{text}", reply_markup=withdraw_partner_balance,
                                   parse_mode='html')
 
 

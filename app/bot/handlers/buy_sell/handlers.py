@@ -131,6 +131,9 @@ async def on_accept_order_request_input(cb: CallbackQuery, button, dialog_manage
 
     order_request_wallet = await crud_wallet.get_by_order_request_user_id(session, user_id=order_request.user_id,
                                                                           order_request_id=order_request_id)
+    # todo временно
+    if not order_request_wallet:
+        order_request_wallet = await crud_wallet.get_by_user_id_currency(session, user_id=order_request.user_id, currency=order_request.from_currency)
 
     await crud_order_request.update(session, db_obj=order_request, obj_in={'status': OrderRequest.LOCK})
     if dialog_manager.start_data['mode'] == 'sell':
