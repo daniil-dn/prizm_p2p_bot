@@ -40,3 +40,8 @@ def get_menu_kb(is_admin: bool = False) -> InlineKeyboardMarkup:
         buttons.append([InlineKeyboardButton(text='Админ-панель', callback_data='admin_panel_menu')])
     builder = InlineKeyboardBuilder(markup=buttons)
     return builder.as_markup(resize_keyboard=True)
+
+
+menu_button = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text='Главное меню', callback_data='start_bot')]
+], resize_keyboard=True)

@@ -24,8 +24,9 @@ logger = getLogger(__name__)
 async def cancel_logic(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
     await callback.message.answer("Вы отменили создание ордера")
     await dialog_manager.done()
-    await start_cmd_cb(callback.message, callback.bot, dialog_manager.middleware_data['state'],
-                       dialog_manager.middleware_data['user_db'], dialog_manager)
+    await start_cmd_cb(callback, callback.bot, dialog_manager.middleware_data['state'],
+                       dialog_manager.middleware_data['user_db'], dialog_manager,
+                       dialog_manager.middleware_data['session'])
 
 
 async def on_back(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):

@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.bot.handlers.menu.states import Withdraw
 from app.bot.ui import get_menu_kb
+from app.bot.ui.menu import menu_button
 from app.bot.ui.texts import get_start_text
 from app.bot.ui.withdraw import cancel_withdraw
 from app.core.config import settings
@@ -17,14 +18,16 @@ router = Router()
 
 
 @router.callback_query(F.data == 'withdraw_balance')
-async def ask_how_many(callback: CallbackQuery, state: FSMContext, user_db: User):
+async def ask_how_many(callback: CallbackQuery, state: FSMContext, user_db: User, session: AsyncSession):
     await state.set_state(Withdraw.get_count_money)
-    await callback.message.answer(f'Введите сумму для вывода. Ваш текущий баланс: {user_db.balance}',
-                                  reply_markup=cancel_withdraw)
+    admin_settings = await crud_settings.get_by_id(session, id=1)
+    await callback.message.answer(
+        f'Введите сумму для вывода. Ваш текущий баланс: {user_db.balance}.\nКомиссия сервиса {admin_settings.commission_percent * 100}%',
+        reply_markup=cancel_withdraw)
 
 
 @router.message(Withdraw.get_count_money)
-async def check_input_and_ask_address(message: Message, state: FSMContext, user_db: User):
+async def check_input_and_ask_address(message: Message, state: FSMContext, user_db: User, session: AsyncSession):
     try:
         amount = float(message.text)
     except:
@@ -38,14 +41,20 @@ async def check_input_and_ask_address(message: Message, state: FSMContext, user_
     await state.set_data({'amount': amount})
     await state.set_state(Withdraw.get_prizm_address)
 
-    await message.answer('Отправьте адрес кошелька в таком формате: PRIZM-****-****-****-****',
+    admin_settings = await crud_settings.get_by_id(session, id=1)
+    amount_to_withdrawal = amount * (1 - admin_settings.withdrawal_commission_percent)
+
+    await message.answer(f'Отправьте адрес кошелька в таком формате:\nPRIZM-****-****-****-****\n\n'
+                         f'Комиссия сервиса {admin_settings.commission_percent * 100}%\n'
+                         f'Сумма для вывода: {amount:.2f} PZM\n'
+                         f'Вы получите с учетом комиссии: {amount_to_withdrawal:.2f} PZM\n',
                          reply_markup=cancel_withdraw)
 
 
 @router.message(Withdraw.get_prizm_address)
 async def check_input_and_withdraw_balance(message: Message, state: FSMContext, user_db: User, session: AsyncSession):
     if not check_wallet_format(message.text):
-        await message.answer('Отправьте адрес кошелька в таком формате: PRIZM-****-****-****-****',
+        await message.answer(f'Отправьте адрес кошелька в таком формате: PRIZM-****-****-****-****',
                              reply_markup=cancel_withdraw)
         return
 
@@ -62,12 +71,12 @@ async def check_input_and_withdraw_balance(message: Message, state: FSMContext, 
 
     prizm_fetcher = PrizmWalletFetcher(settings.PRIZM_API_URL)
     try:
-        await prizm_fetcher.send_money(prizm_wallet, secret_phrase=main_secret_phrase,
+        res = await prizm_fetcher.send_money(prizm_wallet, secret_phrase=main_secret_phrase,
                                        amount_nqt=int(amount_to_withdrawal * 100), deadline=60)
-        await message.answer('Деньги выведены на указанный адрес')
-        await message.answer(get_start_text(user_db.balance, user_db.order_count, user_db.cancel_order_count),
-            reply_markup=get_menu_kb(is_admin=user_db.role in User.ALL_ADMINS)
-        )
-    except:
-        await message.answer('Возникла ошибка, напишите в поддержку')
+        if res.get('errorCode'):
+            raise Exception(res)
+        await message.answer('Деньги выведены на указанный адрес', reply_markup=menu_button)
+    except :
+        user_db = await crud_user.increase_balance(session, id=message.from_user.id, summ=float(amount))
+        await message.answer('Возникла ошибка, напишите в поддержку', reply_markup=menu_button)
     await state.clear()
