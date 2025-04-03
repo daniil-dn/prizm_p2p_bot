@@ -38,7 +38,7 @@ def get_new_commission_value() -> Window:
     return Window(
         Const("Изменение комиссии \nНовое значение в процентах. Например 10"),
         TextInput(id="new_value", on_success=on_new_commission_percent_value, on_error=error,
-                  type_factory=int),
+                  type_factory=float),
         Button(Const("❌ Отмена"), id="cancel", on_click=cancel_logic),
         state=AdminSettingsState.new_value_commission,
     )
@@ -47,7 +47,7 @@ def get_new_withdrawal_commission_value() -> Window:
     return Window(
         Const("Изменение комиссии вывода \nНовое значение в процентах. Например 10"),
         TextInput(id="new_value", on_success=on_new_withdrawal_commission_percent_value, on_error=error,
-                  type_factory=int),
+                  type_factory=float),
         Button(Const("❌ Отмена"), id="cancel", on_click=cancel_logic),
         state=AdminSettingsState.new_value_withdrawal_commission,
     )
@@ -84,7 +84,7 @@ def get_prizm_rate_diff_value() -> Window:
     return Window(
         Const("Изменение процента разницы курса\n Новое значение в процентах. Например 20"),
         TextInput(id="new_value", on_success=on_prizm_rate_diff_value, on_error=error,
-                  type_factory=int),
+                  type_factory=float),
         Button(Const("❌ Отмена"), id="cancel", on_click=cancel_logic),
         state=AdminSettingsState.new_prizm_rate_diff_value,
     )
