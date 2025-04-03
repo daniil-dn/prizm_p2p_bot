@@ -45,7 +45,7 @@ async def check_input_and_ask_address(message: Message, state: FSMContext, user_
     amount_to_withdrawal = amount * (1 - admin_settings.withdrawal_commission_percent)
 
     await message.answer(f'Отправьте адрес кошелька в таком формате:\nPRIZM-****-****-****-****\n\n'
-                         f'Комиссия сервиса {admin_settings.commission_percent * 100}%\n'
+                         f'Комиссия сервиса {admin_settings.withdrawal_commission_percent * 100}%\n'
                          f'Сумма для вывода: {amount:.2f} PZM\n'
                          f'Вы получите с учетом комиссии: {amount_to_withdrawal:.2f} PZM\n',
                          reply_markup=cancel_withdraw)
