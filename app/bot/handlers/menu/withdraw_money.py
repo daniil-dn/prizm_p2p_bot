@@ -22,7 +22,7 @@ async def ask_how_many(callback: CallbackQuery, state: FSMContext, user_db: User
     await state.set_state(Withdraw.get_count_money)
     admin_settings = await crud_settings.get_by_id(session, id=1)
     await callback.message.answer(
-        f'Введите сумму для вывода. Ваш текущий баланс: {user_db.balance}.\nКомиссия сервиса {admin_settings.commission_percent * 100}%',
+        f'Введите сумму для вывода. Ваш текущий баланс: {user_db.balance}.\nКомиссия сервиса {admin_settings.withdrawal_commission_percent * 100}%',
         reply_markup=cancel_withdraw)
 
 
