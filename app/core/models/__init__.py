@@ -7,3 +7,4 @@ from .settings import Settings
 from .transaction import Transaction
 from .message_between import MessageBetween
 from .withdraw_referral import WithdrawReferral
+from .withdrawal import Withdrawal

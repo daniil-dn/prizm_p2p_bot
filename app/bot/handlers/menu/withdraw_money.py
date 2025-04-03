@@ -9,8 +9,9 @@ from app.bot.ui.menu import menu_button
 from app.bot.ui.texts import get_start_text
 from app.bot.ui.withdraw import cancel_withdraw
 from app.core.config import settings
-from app.core.dao import crud_user, crud_settings
-from app.core.models import User
+from app.core.dao import crud_user, crud_settings, crud_withdrawal
+from app.core.dto import WithdrawalCreate
+from app.core.models import User, Withdrawal
 from app.prizm_check_scheduler.prizm_fetcher import PrizmWalletFetcher
 from app.utils.text_check import check_wallet_format
 
@@ -67,16 +68,27 @@ async def check_input_and_withdraw_balance(message: Message, state: FSMContext, 
     user_db = await crud_user.decrease_balance(session, id=message.from_user.id, summ=float(amount))
     amount_to_withdrawal = amount * (1 - admin_settings.withdrawal_commission_percent)
 
+    withdrawal_data = WithdrawalCreate(
+        user_id=message.from_user.id,
+        amount=amount,
+        commission_percent=admin_settings.withdrawal_commission_percent,
+        wallet=prizm_wallet,
+        status=Withdrawal.IN_PROGRESS
+    )
+    withdrawal = await crud_withdrawal.create(session, obj_in=withdrawal_data)
+
     main_secret_phrase = settings.PRIZM_WALLET_SECRET_ADDRESS
 
     prizm_fetcher = PrizmWalletFetcher(settings.PRIZM_API_URL)
     try:
         res = await prizm_fetcher.send_money(prizm_wallet, secret_phrase=main_secret_phrase,
-                                       amount_nqt=int(amount_to_withdrawal * 100), deadline=60)
+                                             amount_nqt=int(amount_to_withdrawal * 100), deadline=60)
         if res.get('errorCode'):
             raise Exception(res)
         await message.answer('Деньги выведены на указанный адрес', reply_markup=menu_button)
-    except :
+        withdrawal = await crud_withdrawal.update(session, db_obj=withdrawal, obj_in={"status": Withdrawal.DONE})
+    except:
         user_db = await crud_user.increase_balance(session, id=message.from_user.id, summ=float(amount))
+        withdrawal = await crud_withdrawal.update(session, db_obj=withdrawal, obj_in={"status": Withdrawal.FAILED})
         await message.answer('Возникла ошибка, напишите в поддержку', reply_markup=menu_button)
     await state.clear()
