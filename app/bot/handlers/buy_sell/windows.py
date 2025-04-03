@@ -16,7 +16,7 @@ from app.bot.handlers.buy_sell.getters import get_orders_getter, get_mode, get_o
 from app.bot.handlers.buy_sell.handlers import cancel_logic, \
     process_order_request_selected, \
     on_card_info_input, on_back, on_accept_order_request_input, on_value_selected, on_card_method_selected, \
-    on_back_accept_order, on_back_exactly_value
+    on_back_accept_order, on_back_exactly_value, on_back_orders_list
 from app.bot.handlers.buy_sell.state import BuyState
 
 
@@ -135,7 +135,7 @@ def orders_list() -> Window:
             ),
         ),
         Button(Const("❌ Отмена"), id="cancel", on_click=cancel_logic),
-        Button(Const("🔙 Назад"), id="back", on_click=Back(show_mode=ShowMode.DELETE_AND_SEND)),
+        Button(Const("🔙 Назад"), id="back", on_click=on_back_orders_list),
         getter=get_orders_getter,
         state=BuyState.orders_list,
 

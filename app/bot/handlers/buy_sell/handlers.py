@@ -35,6 +35,17 @@ async def on_back_exactly_value(callback: CallbackQuery, button: Button, dialog_
     await dialog_manager.switch_to(state=BuyState.orders_list, show_mode=ShowMode.DELETE_AND_SEND)
 
 
+async def on_back_orders_list(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
+    if dialog_manager.start_data['is_all_mode'] is True:
+        await dialog_manager.done()
+        await start_cmd_cb(callback, callback.bot, dialog_manager.middleware_data['state'],
+                           dialog_manager.middleware_data['user_db'], dialog_manager,
+                           dialog_manager.middleware_data['session'])
+        return
+    await dialog_manager.back(show_mode=ShowMode.DELETE_AND_SEND)
+
+
+
 async def on_back_accept_order(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
     if dialog_manager.start_data['is_all_mode'] is True:
         await dialog_manager.switch_to(state=BuyState.wallet_details, show_mode=ShowMode.DELETE_AND_SEND)
