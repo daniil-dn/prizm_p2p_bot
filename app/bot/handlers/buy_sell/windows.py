@@ -138,7 +138,6 @@ def orders_list() -> Window:
         Button(Const("🔙 Назад"), id="back", on_click=on_back_orders_list),
         getter=get_orders_getter,
         state=BuyState.orders_list,
-
     )
 
 

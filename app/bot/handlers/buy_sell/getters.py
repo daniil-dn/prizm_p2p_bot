@@ -22,7 +22,7 @@ async def get_orders_getter(dialog_manager: DialogManager, **kwargs):
         is_rub = False
         from_currency = "RUB"
     current_page = await dialog_manager.find("ID_STUB_SCROLL").get_page()
-    limit = 10
+    limit = 5
     offset = current_page * limit
     result, count = await crud_order_request.get_by_value_filter_pagination(dialog_manager.middleware_data['session'],
                                                                             filter_user_id=
