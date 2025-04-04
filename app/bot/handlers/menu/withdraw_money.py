@@ -1,3 +1,5 @@
+from logging import getLogger
+
 from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
@@ -15,6 +17,7 @@ from app.core.models import User, Withdrawal
 from app.prizm_check_scheduler.prizm_fetcher import PrizmWalletFetcher
 from app.utils.text_check import check_wallet_format
 
+logger = getLogger(__name__)
 router = Router()
 
 
@@ -81,13 +84,12 @@ async def check_input_and_withdraw_balance(message: Message, state: FSMContext, 
 
     prizm_fetcher = PrizmWalletFetcher(settings.PRIZM_API_URL)
     try:
-        res = await prizm_fetcher.send_money(prizm_wallet, secret_phrase=main_secret_phrase,
-                                             amount_nqt=int(amount_to_withdrawal * 100), deadline=60)
-        if res.get('errorCode'):
-            raise Exception(res)
+        await prizm_fetcher.send_money(prizm_wallet, secret_phrase=main_secret_phrase,
+                                       amount_nqt=int(amount_to_withdrawal * 100), deadline=60)
         await message.answer('Деньги выведены на указанный адрес', reply_markup=menu_button)
         withdrawal = await crud_withdrawal.update(session, db_obj=withdrawal, obj_in={"status": Withdrawal.DONE})
-    except:
+    except Exception as err:
+        logger.error(f"Send pzm to {prizm_wallet} Error: {err}")
         user_db = await crud_user.increase_balance(session, id=message.from_user.id, summ=float(amount))
         withdrawal = await crud_withdrawal.update(session, db_obj=withdrawal, obj_in={"status": Withdrawal.FAILED})
         await message.answer('Возникла ошибка, напишите в поддержку', reply_markup=menu_button)
