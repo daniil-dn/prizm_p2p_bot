@@ -186,9 +186,9 @@ async def on_accept_order_request_input(cb: CallbackQuery, button, dialog_manage
                                                     user_id=user_db.id)
     if not wallet:
         wallet = WalletCreate(user_id=user_db.id, order_id=order.id, currency=currency, value=user_wallet_value)
-        await crud_wallet.create(session, obj_in=wallet)
+        wallet = await crud_wallet.create(session, obj_in=wallet)
     elif wallet.value != user_wallet_value:
-        await crud_wallet.update(session, db_obj=wallet, obj_in={"value": user_wallet_value})
+        wallet = await crud_wallet.update(session, db_obj=wallet, obj_in={"value": user_wallet_value})
     logger.info(
         f"Wallet to user. id:{wallet.id} user_id: {wallet.user_id} value: {wallet.value} currency: {wallet.currency} order_id: {wallet.order_id}")
     # todo вынести в менеджер
