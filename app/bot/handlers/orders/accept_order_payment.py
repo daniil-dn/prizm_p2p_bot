@@ -93,7 +93,6 @@ async def accept_card_transfer_recieved_cb(cb: CallbackQuery, bot: Bot, state: F
     seller = await crud_user.update(session, db_obj=seller,
                                     obj_in={"order_count": seller.order_count + 1})
     order = await crud_order.update(session, db_obj=order, obj_in={'status': Order.WAIT_DONE_TRANSFER})
-    logger.info(f"Сняли с баланса пользователя {seller.id} - {prizm_value}. Сделка ждет завершения")
 
     await cb.message.reply(
         "Вы подтвердили оплату. Сделка завершена. 🎉🎉🎉 \n" + get_start_text(seller.balance, seller.order_count,
@@ -112,12 +111,12 @@ async def accept_card_transfer_recieved_cb(cb: CallbackQuery, bot: Bot, state: F
 
     prizm_fetcher = PrizmWalletFetcher(settings.PRIZM_API_URL)
     try:
-        result = await prizm_fetcher.send_money(buyer_wallet.value, secret_phrase=main_secret_phrase,
-                                                amount_nqt=int(prizm_value * 100), deadline=60)
+        if partner_commission > 0:
+            result = await prizm_fetcher.send_money(buyer_wallet.value, secret_phrase=main_secret_phrase,
+                                                    amount_nqt=int(prizm_value * 100), deadline=60)
 
-        logger.info(
-            f"Сделка №{order.id} Перевод комиссии покупателя. адрес: {settings.PRIZM_WALLET_ADDRESS_PARTNER_COMMISSION}, сумма: {partner_commission:.3f} -> {result}")
-
+            logger.info(
+                f"Сделка №{order.id} Перевод комиссии покупателя. адрес: {settings.PRIZM_WALLET_ADDRESS_PARTNER_COMMISSION}, сумма: {partner_commission:.3f} -> {result}")
 
     except Exception as err:
         logger.error(

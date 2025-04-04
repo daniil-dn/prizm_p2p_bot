@@ -36,7 +36,7 @@ async def on_back_exactly_value(callback: CallbackQuery, button: Button, dialog_
 
 
 async def on_back_orders_list(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
-    if dialog_manager.start_data['is_all_mode'] is True:
+    if dialog_manager.start_data.get('is_all_mode') is True:
         await dialog_manager.done()
         await start_cmd_cb(callback, callback.bot, dialog_manager.middleware_data['state'],
                            dialog_manager.middleware_data['user_db'], dialog_manager,

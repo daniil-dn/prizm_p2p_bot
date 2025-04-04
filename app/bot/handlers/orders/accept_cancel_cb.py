@@ -1,3 +1,5 @@
+from logging import getLogger
+
 from aiogram import Router, Bot, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
@@ -10,6 +12,8 @@ from app.bot.utils.accept_cancel import send_notification_to_actings
 from app.core.dao import crud_order, crud_user, crud_order_request, crud_settings
 from app.core.dto import OrderRequestUpdate
 from app.core.models import User, Order, OrderRequest
+
+logger = getLogger(__name__)
 
 router = Router()
 
@@ -24,15 +28,17 @@ async def accept_accept_order_cb(cb: CallbackQuery, bot: Bot, state: FSMContext,
 
     await send_notification_to_actings(order=order, bot=bot, cb=cb, session=session,
                                        message_manager=message_manager)
-    order_request = await crud_order_request.get_by_id(session, id=order.order_request_id)
+    order_request = await crud_order_request.lock_row(session, id=order.order_request_id)
     order = await crud_order.update(session, db_obj=order, obj_in={"status": Order.ACCEPTED})
+    admin_settings = await crud_settings.get_by_id(session, id=1)
 
     new_max_limit = order_request.max_limit - order.prizm_value
     new_max_limit_rub = order_request.max_limit_rub - order.rub_value
-    order_request = await crud_order_request.lock_row(session, id=order.order_request_id)
-    admin_settings = await crud_settings.get_by_id(session, id=1)
+
 
     if order_request.min_limit > new_max_limit or admin_settings.min_order_prizm_value > new_max_limit:
+        logger.info(f"Order request DELETED {order_request.id} min: {order_request.min_limit} max: {order_request.max_limit}, max_rub: {order_request.max_limit_rub}. new max: new_max_limit: {new_max_limit}, new_max_rub: {new_max_limit_rub}")
+
         user_db = await crud_user.increase_balance(session, id=order_request.user_id,
                                                                                      summ=new_max_limit + new_max_limit * admin_settings.commission_percent)
         order_request_update_data = OrderRequestUpdate(
@@ -43,6 +49,8 @@ async def accept_accept_order_cb(cb: CallbackQuery, bot: Bot, state: FSMContext,
             min_limit_rub=new_max_limit_rub
         )
     else:
+        logger.info(
+            f"Order request IN PROGRESS {order_request.id} min: {order_request.min_limit} max: {order_request.max_limit}, max_rub: {order_request.max_limit_rub}. new max: new_max_limit: {new_max_limit}, new_max_rub: {new_max_limit_rub}")
         order_request_update_data = OrderRequestUpdate(
             max_limit=new_max_limit,
             max_limit_rub=new_max_limit_rub,
