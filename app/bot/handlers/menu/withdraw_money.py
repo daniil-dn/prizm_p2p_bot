@@ -79,6 +79,8 @@ async def check_input_and_withdraw_balance(message: Message, state: FSMContext, 
         status=Withdrawal.IN_PROGRESS
     )
     withdrawal = await crud_withdrawal.create(session, obj_in=withdrawal_data)
+    logger.info(
+        f"Вывод средств {withdrawal.id} user: {message.from_user.id} amount: {amount} prizm_wallet: {prizm_wallet} amount_to_withdrawal: {amount_to_withdrawal}")
 
     main_secret_phrase = settings.PRIZM_WALLET_SECRET_ADDRESS
 

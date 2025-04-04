@@ -1,3 +1,5 @@
+from logging import getLogger
+
 from aiogram import Router, Bot, F
 from aiogram.filters import CommandStart, Command, CommandObject
 from aiogram.fsm.context import FSMContext
@@ -11,6 +13,7 @@ from ..ui.texts import get_start_text
 from ...core.dao import crud_user
 from ...core.dto import UserCreate
 
+logger = getLogger(__name__)
 router = Router()
 
 
@@ -28,6 +31,9 @@ async def start_cmd_message(message: Message, bot: Bot, state: FSMContext, user_
             partner_id=partner_id
         )
         user_db = await crud_user.create(session, obj_in=create_user_data)
+        logger.info(
+            f"New user {user_db.id} partner_id: {partner_id} username: {user_db.username}")
+
     await dialog_manager.reset_stack(remove_keyboard=True)
     await state.clear()
     await bot.send_message(

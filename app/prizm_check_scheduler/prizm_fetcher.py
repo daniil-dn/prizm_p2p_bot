@@ -35,6 +35,7 @@ class PrizmWalletFetcher:
         return res
 
     async def send_money(self, recipient, secret_phrase, amount_nqt, deadline):
+
         async with aiohttp.ClientSession() as session:
             url = f"{self.base_url}?requestType=sendMoney"
             params = {
@@ -46,7 +47,7 @@ class PrizmWalletFetcher:
             async with session.post(url, params=params) as response:
                 res = await response.json(content_type=None)
             await session.close()
+        logger.info(f'Send money to {recipient} {amount_nqt} PZM')
         if res.get('errorCode'):
             raise Exception(res)
-        logger.info(f'Send money to {recipient} {amount_nqt}PZM: {res}')
         return res

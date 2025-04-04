@@ -1,5 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
+from logging import getLogger
 
 from aiogram.types import CallbackQuery, Message
 from aiogram_dialog import DialogManager, ShowMode
@@ -14,6 +15,8 @@ from app.core.dao.crud_wallet import crud_wallet
 from app.core.dto import OrderCreate, WalletCreate
 from app.core.models import OrderRequest, Order
 from app.utils.text_check import check_phone_format, check_card_format, check_wallet_format
+
+logger = getLogger(__name__)
 
 
 async def cancel_logic(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
@@ -43,7 +46,6 @@ async def on_back_orders_list(callback: CallbackQuery, button: Button, dialog_ma
                            dialog_manager.middleware_data['session'])
         return
     await dialog_manager.back(show_mode=ShowMode.DELETE_AND_SEND)
-
 
 
 async def on_back_accept_order(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
@@ -136,6 +138,7 @@ async def on_accept_order_request_input(cb: CallbackQuery, button, dialog_manage
         return
     order_request = await crud_order_request.lock_row(session, id=order_request_id)
     if order_request.status != OrderRequest.IN_PROGRESS:
+        logger.info(f"Ордер №{order_request.id} заблокирован.")
         await cb.message.answer(f"Ордер №{order_request.id} заблокирован. Выберите другой ордер")
         await dialog_manager.switch_to(BuyState.orders_list, show_mode=ShowMode.DELETE_AND_SEND)
         return
@@ -144,10 +147,12 @@ async def on_accept_order_request_input(cb: CallbackQuery, button, dialog_manage
                                                                           order_request_id=order_request_id)
     # todo временно
     if not order_request_wallet:
+        logger.info(f"OLD Wallet Ордер {order_request.id} user_id: {order_request.user_id} {order_request.to_currency}")
         order_request_wallet = await crud_wallet.get_by_user_id_currency(session, user_id=order_request.user_id,
                                                                          currency=order_request.to_currency)
+    logger.info(
+        f"Wallet Ордер {order_request.id} user_id: {order_request.user_id} id: {order_request_wallet.id} value: {order_request_wallet.value} wallet_currency:{order_request_wallet.currency}")
 
-    # await crud_order_request.update(session, db_obj=order_request, obj_in={'status': OrderRequest.LOCK})
     if dialog_manager.start_data['mode'] == 'sell':
 
         prizm_value = dialog_manager.dialog_data['exact_value']
@@ -171,7 +176,8 @@ async def on_accept_order_request_input(cb: CallbackQuery, button, dialog_manage
         order_request_id=order_request.id
     )
     order = await crud_order.create(session, obj_in=order)
-
+    logger.info(
+        f"Новая сделка {order.id}: from_user_id: {order.from_user_id} to_user_id: {order.to_user_id} {order.mode} from_currency:{order.from_currency} to_currency: {order.to_currency} prizm_value:{order.prizm_value} Rub:{order.rub_value} commission_percent: {order.commission_percent} order_request_id: {order.order_request_id}")
     if dialog_manager.start_data['mode'] == 'sell':
         currency = 'RUB'
     else:
@@ -183,10 +189,14 @@ async def on_accept_order_request_input(cb: CallbackQuery, button, dialog_manage
         await crud_wallet.create(session, obj_in=wallet)
     elif wallet.value != user_wallet_value:
         await crud_wallet.update(session, db_obj=wallet, obj_in={"value": user_wallet_value})
+    logger.info(
+        f"Wallet to user. id:{wallet.id} user_id: {wallet.user_id} value: {wallet.value} currency: {wallet.currency} order_id: {wallet.order_id}")
     # todo вынести в менеджер
-    from_wallet = WalletCreate(user_id=order_request.user_id, order_id=order.id, currency=currency,
+    from_wallet_data = WalletCreate(user_id=order_request.user_id, order_id=order.id, currency=currency,
                                value=order_request_wallet.value)
-    await crud_wallet.create(session, obj_in=from_wallet)
+    from_wallet = await crud_wallet.create(session, obj_in=from_wallet_data)
+    logger.info(
+        f"Wallet from user. id:{from_wallet.id} user_id: {from_wallet.user_id} value: {from_wallet.value} currency: {from_wallet.currency} order_id: {from_wallet.order_id}")
     if dialog_manager.start_data['mode'] == 'sell':
         success_text = (f"Сделка №{order.id}.\n"
                         f"Продажа PZM\n"

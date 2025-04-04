@@ -26,18 +26,26 @@ class CRUDUser(CRUDBase[User, dto.UserCreate, dto.UserUpdate]):
 
     async def increase_balance(self, db: AsyncSession, *, id: int, summ: float):
         user = await crud_user.lock_row(db, id=id)
+        logger.info(
+            f"Increase_balance: User {user.id} balance: {user.balance} summ: {summ}")
         return await crud_user.update(db, db_obj=user, obj_in={"balance": user.balance + summ})
 
     async def decrease_balance(self, db: AsyncSession, *, id: int, summ: float):
         user = await crud_user.lock_row(db, id=id)
+        logger.info(
+            f"Decrease_balance: User {user.id} balance: {user.balance} summ: {summ}")
         return await crud_user.update(db, db_obj=user, obj_in={"balance": user.balance - summ})
 
     async def increase_referral_balance(self, db: AsyncSession, *, id: int, summ: float):
         user = await crud_user.lock_row(db, id=id)
+        logger.info(
+            f"Increase_referral_balance: User {user.id} referral_balance: {user.referral_balance} summ: {summ}")
         return await crud_user.update(db, db_obj=user, obj_in={"referral_balance": user.referral_balance + summ})
 
     async def decrease_referral_balance(self, db: AsyncSession, *, id: int, summ: float):
         user = await crud_user.lock_row(db, id=id)
+        logger.info(
+            f"Decrease_referral_balance: User {user.id} referral_balance: {user.referral_balance} summ: {summ}")
         return await crud_user.update(db, db_obj=user, obj_in={"referral_balance": user.referral_balance - summ})
 
     async def get_invites(self, db: AsyncSession, *, id: int):
