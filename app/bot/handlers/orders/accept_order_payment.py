@@ -111,12 +111,11 @@ async def accept_card_transfer_recieved_cb(cb: CallbackQuery, bot: Bot, state: F
 
     prizm_fetcher = PrizmWalletFetcher(settings.PRIZM_API_URL)
     try:
-        if partner_commission > 0:
-            result = await prizm_fetcher.send_money(buyer_wallet.value, secret_phrase=main_secret_phrase,
-                                                    amount_nqt=int(prizm_value * 100), deadline=60)
+        result = await prizm_fetcher.send_money(buyer_wallet.value, secret_phrase=main_secret_phrase,
+                                                amount_nqt=int(prizm_value * 100), deadline=60)
 
-            logger.info(
-                f"Сделка №{order.id} Перевод комиссии покупателя. адрес: {settings.PRIZM_WALLET_ADDRESS_PARTNER_COMMISSION}, сумма: {partner_commission:.3f} -> {result}")
+        logger.info(
+            f"Сделка №{order.id} Перевод покупателю. адрес: {buyer_wallet.value}, сумма: {prizm_value:.3f} -> {result}")
 
     except Exception as err:
         logger.error(
@@ -143,7 +142,7 @@ async def accept_card_transfer_recieved_cb(cb: CallbackQuery, bot: Bot, state: F
                                                                amount_nqt=int(partner_commission * 100),
                                                                deadline=60)
             logger.info(
-                f"Перевод реф прибыли Сделка №{order.id} Partner_id: {buyer.partner_id} адрес: {settings.PRIZM_WALLET_ADDRESS_PARTNER_COMMISSION} -> {result_commission}")
+                f"Перевод реф прибыли партнера Сделка №{order.id} Partner_id: {buyer.partner_id} адрес: {settings.PRIZM_WALLET_ADDRESS_PARTNER_COMMISSION} -> {result_commission}")
 
 
     except Exception as err:
