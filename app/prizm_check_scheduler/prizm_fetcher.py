@@ -47,7 +47,7 @@ class PrizmWalletFetcher:
             async with session.post(url, params=params) as response:
                 res = await response.json(content_type=None)
             await session.close()
-        logger.info(f'Send money to {recipient} {amount_nqt} PZM')
+        logger.info(f'Send money to {recipient} {amount_nqt} PZM: {res}')
         if res.get('errorCode'):
             raise Exception(res)
         return res
