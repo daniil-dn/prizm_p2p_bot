@@ -1,5 +1,6 @@
 import aiogram
 from aiogram.fsm.storage.base import DefaultKeyBuilder
+from aiogram.utils.callback_answer import CallbackAnswerMiddleware
 from aiogram_dialog import setup_dialogs
 from aiogram.fsm.storage.redis import RedisStorage
 from redis.asyncio.client import Redis
@@ -53,6 +54,7 @@ class Bot:
         self.dp.callback_query.middleware(db_session_middleware)
         self.dp.callback_query.middleware(exists_user_middleware)
         self.dp.callback_query.middleware(update_online_middleware)
+        self.dp.callback_query.middleware(CallbackAnswerMiddleware())
 
     async def start_pooling(self):
         self.dp.include_routers(*get_routers())

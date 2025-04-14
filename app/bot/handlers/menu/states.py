@@ -12,7 +12,8 @@ class WithdrawPartner(StatesGroup):
 
 
 class AddChannel(StatesGroup):
-    get_link = State()
+    get_chat_channel_id = State()
     get_count_in_day = State()
+    accept = State()
     get_interval = State()
     get_interval_in_day = State()

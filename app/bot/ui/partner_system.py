@@ -21,3 +21,9 @@ def admin_withdrawal_done(user_id) -> InlineKeyboardMarkup:
 cancel_partner_system = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='❌ Отмена', callback_data='start_bot')]
 ], resize_keyboard=True)
+
+
+accept_add_bot = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text='✅ бот добавлен в администраторы канала', callback_data='add_bot')],
+    [InlineKeyboardButton(text='❌ Отмена', callback_data='start_bot')]
+], resize_keyboard=True)

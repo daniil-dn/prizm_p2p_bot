@@ -6,7 +6,7 @@ def check_phone_format(text):
     pattern = r'^\+7\d{10}\s'
 
     # Выполняем проверку
-    return bool(re.match(pattern, text))
+    return bool(re.match(pattern, text)) #todo лучше использовать фулмач, иначе может случиться казус
 
 
 def check_card_format(text):
@@ -26,6 +26,5 @@ def check_wallet_format(text):
 
 
 def check_interval(text):
-    pattern = r'(2[0-4])|([01][0-9]):([0-5][0-9])-(2[0-4])|([01][0-9]):([0-5][0-9])'
-
-    return bool(re.match(pattern, text))
+    pattern = r'((2[0-3]|[01]?[0-9]):([0-5][0-9]))-((2[0-3]|[01]?[0-9]):([0-5][0-9]))'
+    return bool(re.fullmatch(pattern, text))

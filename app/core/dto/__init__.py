@@ -6,3 +6,4 @@ from .settings import SettingsInDB, SettingsUpdate, SettingsCreate
 from .transaction import TransactionCreate, TransactionUpdate, TransactionInDB
 from .message_between import MessageCreate
 from .withdrawal import WithdrawalCreate, WithdrawalUpdate, WithdrawalInDB
+from .chat_channel import ChatChannelCreate

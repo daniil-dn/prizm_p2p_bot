@@ -2,35 +2,35 @@ version: '3.5'
 
 services:
 
-  app:
-    build: .
-    restart: always
-    depends_on:
-      - db
-    command: python main.py bot
-    networks:
-      - default
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+#  app:
+#    build: .
+#    restart: always
+#    depends_on:
+#      - db
+#    command: python main.py bot
+#    networks:
+#      - default
+#    extra_hosts:
+#      - "host.docker.internal:host-gateway"
 
-  scheduler:
-    build: .
-    restart: always
-    depends_on:
-      - db
-    command: python main.py prizm_check_scheduler
-    networks:
-      - default
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+#  scheduler:
+#    build: .
+#    restart: always
+#    depends_on:
+#      - db
+#    command: python main.py prizm_check_scheduler
+#    networks:
+#      - default
+#    extra_hosts:
+#      - "host.docker.internal:host-gateway"
 
   db:
     image: postgres:13
     restart: always
     ports:
-      - "5438:5432"
+      - "5432:5432"
     volumes:
-      - prizm_bot_db:/var/lib/postgresql/data
+      - ./prizm_bot_db:/var/lib/postgresql/data
     environment:
       - POSTGRES_PORT=5432
       - POSTGRES_USER=postgres
@@ -45,7 +45,7 @@ services:
     ports:
       - "6392:6379"
     volumes:
-      - redis_data:/data
+      - ./redis_data:/data
     command: >
       --requirepass lQ1IEcHimk9aWKV
     networks:
