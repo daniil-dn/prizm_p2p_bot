@@ -23,3 +23,9 @@ def check_wallet_format(text):
 
     # Выполняем проверку
     return bool(re.match(pattern, text))
+
+
+def check_interval(text):
+    pattern = r'(2[0-4])|([01][0-9]):([0-5][0-9])-(2[0-4])|([01][0-9]):([0-5][0-9])'
+
+    return bool(re.match(pattern, text))

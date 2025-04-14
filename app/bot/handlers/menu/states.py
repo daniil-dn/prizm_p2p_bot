@@ -9,3 +9,10 @@ class Withdraw(StatesGroup):
 class WithdrawPartner(StatesGroup):
     get_count_money = State()
     get_prizm_address = State()
+
+
+class AddChannel(StatesGroup):
+    get_link = State()
+    get_count_in_day = State()
+    get_interval = State()
+    get_interval_in_day = State()

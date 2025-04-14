@@ -5,16 +5,16 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.bot.handlers.menu.states import WithdrawPartner
+from app.bot.handlers.menu.states import WithdrawPartner, AddChannel
 from app.bot.ui import get_menu_kb
-from app.bot.ui.partner_system import withdraw_partner_balance, admin_withdrawal_done
+from app.bot.ui.partner_system import withdraw_partner_balance, admin_withdrawal_done, cancel_partner_system
 from app.bot.ui.withdraw import cancel_withdraw
 from app.bot.utils.parce import get_partner_data
 from app.core.dao import crud_user, crud_settings
 from app.core.dao.crud_withdraw_ref import crud_withdraw_ref
 from app.core.dto.withdraw_ref import WithdrawRefCreate
 from app.core.models import User
-from app.utils.text_check import check_wallet_format
+from app.utils.text_check import check_wallet_format, check_interval
 
 router = Router()
 
@@ -37,7 +37,8 @@ async def ask_how_many(callback: CallbackQuery, bot: Bot, session: AsyncSession,
 
     await callback.message.answer("Приглашайте новых пользователей и получайте 10% от комиссии "
                                   "нашего бота с оборота всех привлеченных вами клиентов.\n\n"
-                                  f"Ваша ссылка (👇нажми):\n<code>{link}</code>\n\n{text}", reply_markup=withdraw_partner_balance,
+                                  f"Ваша ссылка (👇нажми):\n<code>{link}</code>\n\n{text}",
+                                  reply_markup=withdraw_partner_balance,
                                   parse_mode='html')
 
 
@@ -113,10 +114,74 @@ async def check_input_and_withdraw_balance(message: Message, state: FSMContext,
         await message.answer('Возникла ошибка, напишите в поддержку')
     await state.clear()
 
+
 @router.callback_query(F.data.startswith('admin-done-partner-withdraw-request'))
 async def admin_done_order(callback: CallbackQuery, state: FSMContext, user_db: User, session: AsyncSession):
     user_id = callback.data.split('_')[1]
     client_user_db = await crud_user.get_by_id(session, id=int(user_id))
     await callback.bot.send_message(user_id, '💰Ваша заявка обработана. Монеты переведены на указанный вами кошелек.')
     await callback.message.edit_reply_markup(None)
-    await callback.message.reply('✅Пользователь уведомлен!', reply_markup=get_menu_kb(is_admin=user_db.role in User.ALL_ADMINS))
+    await callback.message.reply('✅Пользователь уведомлен!',
+                                 reply_markup=get_menu_kb(is_admin=user_db.role in User.ALL_ADMINS))
+
+
+# владельцам групп
+
+
+@router.callback_query(F.data == 'group_channel_owners')
+async def group_channel_menu(callback: CallbackQuery, state: FSMContext, session: AsyncSession, bot: Bot):
+    await callback.message.answer(
+        'Наш бот может публиковать самые выгодные ордера на покупку и продажу PZM в вашей группе или '
+        'канале, а также текущий курс на Coinmarketcap. В сообщении будет указана Ваша реферальная '
+        'ссылка для перехода в наш бот. Таким образом Ваши подписчики будут переходить в бота по Вашей '
+        'реферальной ссылке. \n\nСделайте это всего лишь в 3 шага:\n\n'
+        f'1. Добавьте нашего бота {(await bot.get_me()).url} в администраторы своей группы/канала\n\n'
+        '2. Отправьте нам ссылку на свою группу/канал\n\n3', reply_markup=cancel_partner_system)
+    await state.set_state(AddChannel.get_link)
+
+
+@router.message(AddChannel.get_link, F.text)
+async def save_link(message: Message, state: FSMContext, bot: Bot):
+    if not message.text.startswith('https://t.me/') or not message.text.startswith('t.me/'):
+        await message.answer('Отправьте, пожалуйста, корректную ссылку', reply_markup=cancel_partner_system)
+        return
+
+    await state.update_data(link=message.text)
+    await state.set_state(AddChannel.get_count_in_day)
+    await message.answer('Сколько раз в день должен выходить пост?', reply_markup=cancel_partner_system)
+
+
+@router.message(AddChannel.get_count_in_day)
+async def save_count(message: Message, state: FSMContext):
+    if not message.text.isdigit():
+        await message.answer('Отправьте, пожалуйста, корректное число', reply_markup=cancel_partner_system)
+        return
+
+    await state.update_data(count_in_day=int(message.text))
+    await state.set_state(AddChannel.get_interval)
+    await message.answer('Как часто в минутах должен выходить пост?', reply_markup=cancel_partner_system)
+
+
+@router.message(AddChannel.get_interval)
+async def save_count(message: Message, state: FSMContext):
+    if not message.text.isdigit():
+        await message.answer('Отправьте, пожалуйста, корректное число', reply_markup=cancel_partner_system)
+        return
+
+    await state.update_data(interval=int(message.text))
+    await state.set_state(AddChannel.get_interval_in_day)
+    await message.answer('Укажите интервал по мск (в формате 09:00-21:00)', reply_markup=cancel_partner_system)
+
+
+@router.message(AddChannel.get_interval_in_day)
+async def save_count(message: Message, state: FSMContext):
+    if check_interval(message.text):
+        await message.answer('Отправьте, пожалуйста, корректный интервал (в формате 09:00-21:00)', reply_markup=cancel_partner_system)
+        return
+
+    interval_in_day = message.text
+    interval = await state.get_value('interval')
+    count_in_day = await state.get_value('count_in_day')
+    link = await state.get_value('link')
+    await state.clear()
+    await message.answer('🎉 Поздравляем, Ваша группа/канал добавлена')
