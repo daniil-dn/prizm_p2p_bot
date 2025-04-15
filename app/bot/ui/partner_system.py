@@ -1,6 +1,8 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
+from app.core.models import ChatChannel
+
 withdraw_partner_balance = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Вывести вознаграждение', callback_data='withdraw_partner_balance')],
     [InlineKeyboardButton(text='Владельцам групп/каналов', callback_data='group_channel_owners')],
@@ -33,4 +35,23 @@ owners_menu = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Добавить канал', callback_data='add_channel')],
     [InlineKeyboardButton(text='Мои каналы', callback_data='my_channels')],
     [InlineKeyboardButton(text='Назад', callback_data='partner_system')]
+], resize_keyboard=True)
+
+
+def update_chats(chats: list[ChatChannel]):
+    kb = InlineKeyboardBuilder()
+    for chat in chats:
+        kb.button(text=str(chat.id), callback_data=f'update_{chat.id}')
+
+    kb.button(text='Назад', callback_data='partner_system')
+    kb.adjust(1)
+
+    return kb.as_markup(resize_keyboard=True)
+
+
+update_chat_options = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text='Колво в день', callback_data='count_in_day')],
+    [InlineKeyboardButton(text='Время между постами', callback_data='interval')],
+    [InlineKeyboardButton(text='Интервал в течение дня', callback_data='interval_in_day')],
+    [InlineKeyboardButton(text='❌ Отмена', callback_data='start_bot')]
 ], resize_keyboard=True)

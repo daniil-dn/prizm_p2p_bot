@@ -2,21 +2,19 @@ import asyncio
 
 from aiogram import Router, F, Bot
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, Message, ChatMemberAdministrator
+from aiogram.types import CallbackQuery, Message
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.bot.handlers.menu.states import WithdrawPartner, AddChannel
+from app.bot.handlers.partner_system.states import WithdrawPartner
 from app.bot.ui import get_menu_kb
-from app.bot.ui.partner_system import withdraw_partner_balance, admin_withdrawal_done, cancel_partner_system, \
-    accept_add_bot, owners_menu
+from app.bot.ui.partner_system import admin_withdrawal_done
 from app.bot.ui.withdraw import cancel_withdraw
 from app.bot.utils.parce import get_partner_data
-from app.core.dao import crud_user, crud_settings, crud_chat_channel
+from app.core.dao import crud_user, crud_settings
 from app.core.dao.crud_withdraw_ref import crud_withdraw_ref
-from app.core.dto import ChatChannelCreate
 from app.core.dto.withdraw_ref import WithdrawRefCreate
 from app.core.models import User
-from app.utils.text_check import check_wallet_format, check_interval
+from app.utils.text_check import check_wallet_format
 
 router = Router()
 

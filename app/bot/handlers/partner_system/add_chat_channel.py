@@ -3,7 +3,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message, ChatMemberAdministrator
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.bot.handlers.menu.states import AddChannel
+from app.bot.handlers.partner_system.states import AddChannel
 from app.bot.ui.partner_system import cancel_partner_system, accept_add_bot
 from app.core.dao import crud_chat_channel
 from app.core.dto import ChatChannelCreate
@@ -83,7 +83,7 @@ async def save_count(message: Message, state: FSMContext, session: AsyncSession)
     interval = await state.get_value('interval')
     interval_in_day = message.text
     create_chat_channel = ChatChannelCreate(user_id=message.from_user.id,
-                                            chat_channel_id=chat_channel_id,
+                                            id=chat_channel_id,
                                             count_in_day=count_in_day,
                                             interval=interval,
                                             is_bot_admin=True,
