@@ -27,3 +27,10 @@ accept_add_bot = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='✅ бот добавлен в администраторы канала', callback_data='add_bot')],
     [InlineKeyboardButton(text='❌ Отмена', callback_data='start_bot')]
 ], resize_keyboard=True)
+
+
+owners_menu = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text='Добавить канал', callback_data='add_channel')],
+    [InlineKeyboardButton(text='Мои каналы', callback_data='my_channels')],
+    [InlineKeyboardButton(text='Назад', callback_data='partner_system')]
+], resize_keyboard=True)
