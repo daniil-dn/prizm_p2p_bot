@@ -13,6 +13,8 @@ class ChatChannel(Base, ModelBase):
     count_in_day = Column(Integer)
     interval_in_day = Column(String)
     interval = Column(Integer)
+    current_count = Column(Integer, default=count_in_day)
+    last_post = Column(DateTime(timezone=True), index=True, nullable=True)
 
     created_at = Column(DateTime(timezone=True), index=True, default=func.now())
 
