@@ -1,7 +1,6 @@
 from typing import List
 
-from sqlalchemy import select
-from sqlalchemy.orm import joinedload
+from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.models import ChatChannel
@@ -22,5 +21,11 @@ class CRUDChatChannel(CRUDBase[ChatChannel, dto.ChatChannelCreate, None]):
         res = await db.execute(q)
         return res.scalars().all()
 
+
+    async def drop_every_day_data(self, sessionmaker):
+        async with sessionmaker() as session:
+            query = update(ChatChannel).values(current_count=0, last_post=None)
+            await session.execute(query)
+            await session.commit()
 
 crud_chat_channel = CRUDChatChannel(ChatChannel)

@@ -14,7 +14,7 @@ from app.bot.ui.admin import cancel_admin
 from app.core.dao import crud_settings, crud_user
 from app.core.dao.crud_message import crud_message
 from app.core.models import User
-from app.utils.mailing import mailing_to_users
+from app.utils.schedule_funcs.mailing import mailing_to_users
 
 router = Router()
 

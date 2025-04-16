@@ -5,6 +5,7 @@ from aiogram_dialog import setup_dialogs
 from aiogram.fsm.storage.redis import RedisStorage
 from redis.asyncio.client import Redis
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.cron import CronTrigger
 
 from app.bot.handlers import get_routers
 from app.bot.middlewares import DbSessionMiddleware, ExistsUserMiddleware
@@ -12,7 +13,9 @@ from app.bot.middlewares.update_online import UpdateOnline
 from app.bot.services.message_manager import MessageManager
 from app.bot.ui import get_default_commands
 from app.core.config import settings
+from app.core.dao import crud_chat_channel
 from app.core.db.session import SessionLocal
+from app.utils.schedule_funcs.notification_in_channel import notification_sheduled
 
 
 class Bot:
@@ -62,9 +65,12 @@ class Bot:
 
         self._setup_middleware()
 
-        # self.scheduler.add_job(..., 'cron', month='6-8,11-12', day='3rd fri', hour='0-3',
-        #                        kwargs={'bot': self.bot, 'session': SessionLocal})
-
+        self.scheduler.add_job(notification_sheduled, 'interval',
+                               minutes=1,
+                               kwargs={'bot': self.bot, 'session': SessionLocal})
+        self.scheduler.add_job(crud_chat_channel.drop_every_day_data,
+                               trigger=CronTrigger(hour=18, minute=17),
+                               kwargs={'sessionmaker': SessionLocal})
         self.scheduler.start()
 
         setup_dialogs(self.dp)
