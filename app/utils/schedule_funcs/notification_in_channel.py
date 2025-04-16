@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from pytz import timezone
 from aiogram import Bot
 
+from app.bot.ui.partner_system import url_button
 from app.bot.utils.parce import parce_time
 from app.core.config import settings
 from app.core.dao import crud_chat_channel, crud_order_request
@@ -50,8 +51,10 @@ async def notification_sheduled(bot: Bot, session):
         if not (start_time <= now.time() <= end_time):
             continue
 
+        link = f'https://t.me/{(await bot.get_me()).username}' + '?start=' + hex(chat.user_id)
+
         try:
-            await bot.send_message(chat.id, text)
+            await bot.send_message(chat.id, text, reply_markup=url_button(link))
             await crud_chat_channel.update(session, obj_in={'id': chat.id,
                                                             'current_count': chat.current_count + 1,
                                                             'last_post': now})

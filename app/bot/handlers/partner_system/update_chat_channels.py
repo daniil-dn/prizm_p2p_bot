@@ -89,7 +89,8 @@ async def wait_new_value(message: Message, session: AsyncSession, state: FSMCont
             f'{'Название:' + chat.name + '\n' if chat.name else ''}'
             f'Колво в день: {chat.count_in_day}\n'
             f'Время между постами: {chat.interval}\n'
-            f'Интервал в течение дня: {chat.interval_in_day}.\n\n'
+            f'Интервал в течение дня: {chat.interval_in_day}.\n'
+            f'{'На паузе ⏸️' if chat.is_stopped else 'Активен ▶️'}\n\n'
             f'Выберите, что вы хотите изменить:')
 
     await state.set_state(UpdateChannel.select_option)
@@ -99,16 +100,32 @@ async def wait_new_value(message: Message, session: AsyncSession, state: FSMCont
 @router.callback_query(F.data == 'stop_posting', UpdateChannel.select_option)
 async def off_chat(callback: CallbackQuery, session: AsyncSession, state: FSMContext, user_db: User):
     chat_id = await state.get_value('chat_id')
-    chat = await crud_chat_channel.get_by_id(session, id=chat_id)
-    await crud_chat_channel.update(session, obj_in={'id': chat_id, 'is_stopped': True})
-    await callback.message.answer('Чат остановлен')
-    await state.clear()
+    chat = await crud_chat_channel.update(session, obj_in={'id': chat_id, 'is_stopped': True})
+    text = (f'ID чата: {chat.id}\n'
+            f'{'Username: ' + chat.username + '\n' if chat.username else ''}'
+            f'{'Название:' + chat.name + '\n' if chat.name else ''}'
+            f'Колво в день: {chat.count_in_day}\n'
+            f'Время между постами: {chat.interval}\n'
+            f'Интервал в течение дня: {chat.interval_in_day}.\n'
+            f'{'На паузе ⏸️' if chat.is_stopped else 'Активен ▶️'}\n\n'
+            f'Выберите, что вы хотите изменить:')
+
+    await state.set_state(UpdateChannel.select_option)
+    await callback.message.answer(text, reply_markup=update_chat_options(chat))
 
 
 @router.callback_query(F.data == 'continue_posting', UpdateChannel.select_option)
 async def on_chat(callback: CallbackQuery, session: AsyncSession, state: FSMContext, user_db: User):
     chat_id = await state.get_value('chat_id')
-    chat = await crud_chat_channel.get_by_id(session, id=chat_id)
-    await crud_chat_channel.update(session, obj_in={'id': chat_id, 'is_stopped': False})
-    await callback.message.answer('Чат запущен')
-    await state.clear()
+    chat = await crud_chat_channel.update(session, obj_in={'id': chat_id, 'is_stopped': False})
+    text = (f'ID чата: {chat.id}\n'
+            f'{'Username: ' + chat.username + '\n' if chat.username else ''}'
+            f'{'Название:' + chat.name + '\n' if chat.name else ''}'
+            f'Колво в день: {chat.count_in_day}\n'
+            f'Время между постами: {chat.interval}\n'
+            f'Интервал в течение дня: {chat.interval_in_day}.\n'
+            f'{'На паузе ⏸️' if chat.is_stopped else 'Активен ▶️'}\n\n'
+            f'Выберите, что вы хотите изменить:')
+
+    await state.set_state(UpdateChannel.select_option)
+    await callback.message.answer(text, reply_markup=update_chat_options(chat))

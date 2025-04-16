@@ -77,3 +77,12 @@ def update_chat_options(chat: ChatChannel):
 
     kb.adjust(1)
     return kb.as_markup(resize_keyboard=True)
+
+
+def url_button(link: str):
+    kb = InlineKeyboardBuilder()
+    kb.button(text='👉 ПЕРЕЙТИ В БОТА', url=link)
+
+
+    kb.adjust(1)
+    return kb.as_markup(resize_keyboard=True)
