@@ -61,6 +61,10 @@ class Bot:
         await self.bot.set_my_commands(get_default_commands())
 
         self._setup_middleware()
+
+        self.scheduler.add_job(..., 'cron', month='6-8,11-12', day='3rd fri', hour='0-3',
+                               kwargs={'bot': self.bot, 'session': SessionLocal})
+
         self.scheduler.start()
 
         setup_dialogs(self.dp)
