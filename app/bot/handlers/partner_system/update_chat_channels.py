@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.bot.handlers.partner_system.states import UpdateChannel
 from app.bot.ui import get_menu_kb
-from app.bot.ui.partner_system import cancel_partner_system, update_chats, update_chat_options
+from app.bot.ui.partner_system import cancel_partner_system, update_chats, update_chat_options, cancel_to_my_channels
 from app.core.dao import crud_chat_channel
 from app.core.models import User
 from app.utils.text_check import check_interval
@@ -23,7 +23,7 @@ async def my_chats(callback: CallbackQuery, session: AsyncSession):
     text = ''
 
     for chat in chats:
-        text += f'{chat.id}\n'
+        text += f'{chat.username or chat.name or chat.id}\n'
 
     await callback.message.answer(f'Ваши чаты:\n{text}', reply_markup=update_chats(chats))
 
@@ -36,8 +36,10 @@ async def my_chats(callback: CallbackQuery, session: AsyncSession, state: FSMCon
     await state.set_state(UpdateChannel.select_option)
     await state.update_data(chat_id=chat_id)
 
-    text = (f'ID чата: {chat.id}\n'
-            f'Колво в день: {chat.count_in_day}\n'
+    text = (f'ID чата: {chat.id}\n' +
+            (f'Username: @{chat.username}\n' if chat.username else '') +
+            (f'Название: {chat.name}\n' if chat.name else '') +
+            f'Кол-во в день: {chat.count_in_day}\n'
             f'Время между постами: {chat.interval}\n'
             f'Интервал в течение дня: {chat.interval_in_day}.\n\n'
             f'Выберите, что вы хотите изменить:')
@@ -53,7 +55,12 @@ async def wait_new_value(callback: CallbackQuery, session: AsyncSession, state: 
     await state.set_state(UpdateChannel.get_new_value)
     await state.update_data(option=callback.data)
 
-    await callback.message.answer('Введите новое значение', reply_markup=cancel_partner_system)
+    if callback.data == 'interval_in_day':
+        await callback.message.answer('Введите интервал в течение дня (в формате 09:00-21:00)',
+                                      reply_markup=cancel_to_my_channels)
+        return
+
+    await callback.message.answer('Введите новое значение', reply_markup=cancel_to_my_channels)
 
 
 @router.message(UpdateChannel.get_new_value)
@@ -63,18 +70,25 @@ async def wait_new_value(message: Message, session: AsyncSession, state: FSMCont
     option = await state.get_value('option')
     if option in ['count_in_day', 'interval']:
         if not message.text.isdigit():
-            await message.answer('Введите число', reply_markup=cancel_partner_system)
+            await message.answer('Введите число', reply_markup=cancel_to_my_channels)
             return
         value = int(message.text)
     elif option == 'interval_in_day':
         if not check_interval(message.text):
             await message.answer('Отправьте, пожалуйста, корректный интервал (в формате 09:00-21:00)',
-                                 reply_markup=cancel_partner_system)
+                                 reply_markup=cancel_to_my_channels)
             return
         value = message.text
 
+    chat = await crud_chat_channel.update(session, obj_in={'id': chat_id, option: value})
 
-    await crud_chat_channel.update(session, obj_in={'id': chat_id, option: value})
+    text = (f'ID чата: {chat.id}\n'
+            f'Username: {chat.username}\n' if chat.username else ''
+                                                                 f'Название: {chat.name}\n' if chat.name else ''
+                                                                                                              f'Колво в день: {chat.count_in_day}\n'
+                                                                                                              f'Время между постами: {chat.interval}\n'
+                                                                                                              f'Интервал в течение дня: {chat.interval_in_day}.\n\n'
+                                                                                                              f'Выберите, что вы хотите изменить:')
 
-    await message.answer('Выполнено', reply_markup=get_menu_kb(is_admin=user_db.role in User.ALL_ADMINS)
-    )
+    await state.set_state(UpdateChannel.select_option)
+    await message.answer(text, reply_markup=update_chat_options)

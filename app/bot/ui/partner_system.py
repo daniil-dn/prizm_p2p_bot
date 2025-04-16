@@ -21,7 +21,11 @@ def admin_withdrawal_done(user_id) -> InlineKeyboardMarkup:
 
 
 cancel_partner_system = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='❌ Отмена', callback_data='start_bot')]
+    [InlineKeyboardButton(text='❌ Отмена', callback_data='group_channel_owners')]
+], resize_keyboard=True)
+
+cancel_to_my_channels = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text='❌ Отмена', callback_data='my_channels')]
 ], resize_keyboard=True)
 
 
@@ -33,7 +37,12 @@ accept_add_bot = InlineKeyboardMarkup(inline_keyboard=[
 
 owners_menu = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Добавить канал', callback_data='add_channel')],
-    [InlineKeyboardButton(text='Мои каналы', callback_data='my_channels')],
+    [InlineKeyboardButton(text='Мои группы/каналы', callback_data='my_channels')],
+    [InlineKeyboardButton(text='Назад', callback_data='partner_system')]
+], resize_keyboard=True)
+
+success_add_channel = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text='Мои группы/каналы', callback_data='my_channels')],
     [InlineKeyboardButton(text='Назад', callback_data='partner_system')]
 ], resize_keyboard=True)
 
@@ -41,7 +50,7 @@ owners_menu = InlineKeyboardMarkup(inline_keyboard=[
 def update_chats(chats: list[ChatChannel]):
     kb = InlineKeyboardBuilder()
     for chat in chats:
-        kb.button(text=str(chat.id), callback_data=f'update_{chat.id}')
+        kb.button(text=f'✅ {chat.username or chat.name or chat.id}', callback_data=f'update_{chat.id}')
 
     kb.button(text='Назад', callback_data='partner_system')
     kb.adjust(1)
@@ -50,8 +59,8 @@ def update_chats(chats: list[ChatChannel]):
 
 
 update_chat_options = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='Колво в день', callback_data='count_in_day')],
+    [InlineKeyboardButton(text='Кол-во в день', callback_data='count_in_day')],
     [InlineKeyboardButton(text='Время между постами', callback_data='interval')],
     [InlineKeyboardButton(text='Интервал в течение дня', callback_data='interval_in_day')],
-    [InlineKeyboardButton(text='❌ Отмена', callback_data='start_bot')]
+    [InlineKeyboardButton(text='❌ Отмена', callback_data='my_channels')]
 ], resize_keyboard=True)

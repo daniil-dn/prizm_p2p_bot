@@ -1,10 +1,11 @@
 from aiogram import Router, F, Bot
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, Message, ChatMemberAdministrator
+from aiogram.types import CallbackQuery, Message, ChatMemberAdministrator, ChatFullInfo
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.bot.handlers.partner_system.states import AddChannel
-from app.bot.ui.partner_system import cancel_partner_system, accept_add_bot
+from app.bot.ui.menu import menu_button
+from app.bot.ui.partner_system import cancel_partner_system, accept_add_bot, success_add_channel
 from app.core.dao import crud_chat_channel
 from app.core.dto import ChatChannelCreate
 from app.utils.text_check import check_interval
@@ -15,11 +16,8 @@ router = Router()
 @router.callback_query(F.data == 'add_channel')
 async def group_channel_menu(callback: CallbackQuery, state: FSMContext, session: AsyncSession, bot: Bot):
     await callback.message.answer(
-        'Наш бот может публиковать самые выгодные ордера на покупку и продажу PZM в вашей группе или '
-        'канале, а также текущий курс на Coinmarketcap. В сообщении будет указана Ваша реферальная '
-        'ссылка для перехода в наш бот. Таким образом Ваши подписчики будут переходить в бота по Вашей '
-        'реферальной ссылке. \n\nСделайте это всего лишь в 3 шага:\n\n'
-        f'1. Добавьте нашего бота {(await bot.get_me()).url} в администраторы своей группы/канала\n\n'  # ссылку получить
+        'Наш бот может публиковать самые выгодные ордера на покупку и продажу PZM в вашей группе или канале, а также текущий курс на Coinmarketcap. В сообщении будет указана Ваша реферальная ссылка для перехода в наш бот. Таким образом Ваши подписчики будут переходить в бота по Вашей реферальной ссылке, а вы будете получать вознаграждение от нашего бота: 10% от прибыли с привлеченных Вами пользователей.\n\nСделайте это всего лишь в 3 шага:\n\n'
+        f'1. Добавьте нашего бота @{(await bot.get_me()).username} в администраторы своей группы/канала\n\n'  # ссылку получить
         '2. Отправьте нам айди группы/канала. Это можно сделать в данном боте: @username_to_id_bot',
         reply_markup=cancel_partner_system)
     await state.set_state(AddChannel.get_chat_channel_id)
@@ -57,7 +55,7 @@ async def save_count(message: Message, state: FSMContext):
 
     await state.set_state(AddChannel.get_interval)
     await state.update_data(count_in_day=int(message.text))
-    await message.answer('Как часто в минутах должен выходить пост?', reply_markup=cancel_partner_system)
+    await message.answer('Частота выхода поста в минутах?', reply_markup=cancel_partner_system)
 
 
 @router.message(AddChannel.get_interval)
@@ -82,8 +80,16 @@ async def save_count(message: Message, state: FSMContext, session: AsyncSession)
     count_in_day = await state.get_value('count_in_day')
     interval = await state.get_value('interval')
     interval_in_day = message.text
+    channel_instance = await message.bot.get_chat(chat_channel_id)
+    name = None
+    username = None
+    if type(channel_instance) is ChatFullInfo and channel_instance.type == "channel":
+        name = channel_instance.title
+        username = channel_instance.username
     create_chat_channel = ChatChannelCreate(user_id=message.from_user.id,
                                             id=chat_channel_id,
+                                            name=name,
+                                            username=username,
                                             count_in_day=count_in_day,
                                             interval=interval,
                                             is_bot_admin=True,
@@ -92,4 +98,4 @@ async def save_count(message: Message, state: FSMContext, session: AsyncSession)
 
     await crud_chat_channel.create(session, obj_in=create_chat_channel)
     await state.clear()
-    await message.answer('🎉 Поздравляем, Ваша группа/канал добавлена')
+    await message.answer('🎉 Поздравляем, Ваша группа/канал добавлена', reply_markup=success_add_channel)

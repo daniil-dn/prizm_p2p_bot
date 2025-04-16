@@ -1,9 +1,10 @@
 from logging import getLogger
 
-from aiogram import Router, Bot, F
-from aiogram.filters import CommandStart, Command, CommandObject
+from aiogram import Router, Bot, F, types
+from aiogram.filters import CommandStart, Command, CommandObject, ChatMemberUpdatedFilter, IS_MEMBER, IS_NOT_MEMBER, \
+    LEFT, KICKED
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message, CallbackQuery, ChatMemberUpdated
 from aiogram_dialog import DialogManager
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -52,3 +53,19 @@ async def start_cmd_cb(callback: CallbackQuery, bot: Bot, state: FSMContext, use
         user_db.id, get_start_text(user_db.balance, user_db.order_count, user_db.cancel_order_count),
         reply_markup=get_menu_kb(is_admin=user_db.role in User.ALL_ADMINS)
     )
+
+
+# @router.chat_member(ChatMemberUpdatedFilter(member_status_changed=IS_MEMBER))
+# async def new_member(event: ChatMemberUpdated, bot: Bot, state: FSMContext, **kwargs):
+#     # Здесь ты можешь обработать событие добавления нового участника
+#     print("value")
+#
+#
+# @router.message(F.chat.type == 'supergroup')
+# async def echo(message: Message, bot: Bot, **kwargs) -> None:
+#     print("value")
+#
+#
+# @router.message_reaction()
+# async def echo(message: Message, bot: Bot, **kwargs) -> None:
+#     print("value")

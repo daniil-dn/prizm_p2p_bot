@@ -7,7 +7,7 @@ from app.core import dto
 from app.core.dao.base import CRUDBase
 
 
-class CRUDChatChannel(CRUDBase[ChatChannel, None, None]):
+class CRUDChatChannel(CRUDBase[ChatChannel, dto.ChatChannelCreate, None]):
     async def get_by_user_id(self, session: AsyncSession, user_id: int):
         query = select(ChatChannel).where(ChatChannel.user_id == user_id)
         result = await session.execute(query)
