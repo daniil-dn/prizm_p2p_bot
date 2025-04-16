@@ -8,7 +8,7 @@ from app.core.dao import crud_chat_channel
 
 async def notification_shediuled(bot: Bot, session):
     async with session() as session:
-        chats = await crud_chat_channel.get_all(session)
+        chats = await crud_chat_channel.get_all_active(session)
         best_order_to_buy = ...
         best_order_to_sell = ...
 

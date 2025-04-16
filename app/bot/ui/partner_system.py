@@ -28,12 +28,10 @@ cancel_to_my_channels = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='❌ Отмена', callback_data='my_channels')]
 ], resize_keyboard=True)
 
-
 accept_add_bot = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='✅ бот добавлен в администраторы канала', callback_data='add_bot')],
     [InlineKeyboardButton(text='❌ Отмена', callback_data='start_bot')]
 ], resize_keyboard=True)
-
 
 owners_menu = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Добавить канал/группу', callback_data='add_channel')],
@@ -58,9 +56,18 @@ def update_chats(chats: list[ChatChannel]):
     return kb.as_markup(resize_keyboard=True)
 
 
-update_chat_options = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='Кол-во в день', callback_data='count_in_day')],
-    [InlineKeyboardButton(text='Время между постами', callback_data='interval')],
-    [InlineKeyboardButton(text='Интервал в течение дня', callback_data='interval_in_day')],
-    [InlineKeyboardButton(text='❌ Отмена', callback_data='my_channels')]
-], resize_keyboard=True)
+def update_chat_options(chat: ChatChannel):
+    kb = InlineKeyboardBuilder()
+    kb.button(text='Кол-во в день', callback_data='count_in_day')
+    kb.button(text='Время между постами', callback_data='interval')
+    kb.button(text='Интервал в течение дня', callback_data='interval_in_day')
+
+    if chat.is_stopped:
+        kb.button(text='▶️продолжить постинг', callback_data='continue_posting')
+    else:
+        kb.button(text='⏸️Остановить постинг', callback_data='stop_posting')
+
+    kb.button(text='❌ Отмена', callback_data='my_channels')
+
+    kb.adjust(1)
+    return kb.as_markup(resize_keyboard=True)

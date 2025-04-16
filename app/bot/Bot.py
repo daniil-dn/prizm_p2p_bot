@@ -62,8 +62,8 @@ class Bot:
 
         self._setup_middleware()
 
-        self.scheduler.add_job(..., 'cron', month='6-8,11-12', day='3rd fri', hour='0-3',
-                               kwargs={'bot': self.bot, 'session': SessionLocal})
+        # self.scheduler.add_job(..., 'cron', month='6-8,11-12', day='3rd fri', hour='0-3',
+        #                        kwargs={'bot': self.bot, 'session': SessionLocal})
 
         self.scheduler.start()
 

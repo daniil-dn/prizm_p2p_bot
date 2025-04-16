@@ -16,6 +16,7 @@ class ChatChannel(Base, ModelBase):
     interval_in_day = Column(String)
     interval = Column(Integer)
     current_count = Column(Integer, default=0)
+    is_stopped = Column(Boolean, default=False)
     last_post = Column(DateTime(timezone=True), index=True, nullable=True)
 
     created_at = Column(DateTime(timezone=True), index=True, default=func.now())
