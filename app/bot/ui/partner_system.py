@@ -56,6 +56,12 @@ def update_chats(chats: list[ChatChannel]):
     return kb.as_markup(resize_keyboard=True)
 
 
+def cancel_to_select_option(chat: ChatChannel):
+    kb = InlineKeyboardBuilder()
+    kb.button(text=f'❌ Отмена', callback_data=f'update_{chat.id}')
+
+    return kb.as_markup(resize_keyboard=True)
+
 def update_chat_options(chat: ChatChannel):
     kb = InlineKeyboardBuilder()
     kb.button(text='Кол-во в день', callback_data='count_in_day')

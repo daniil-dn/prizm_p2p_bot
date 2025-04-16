@@ -5,7 +5,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.bot.handlers.partner_system.states import UpdateChannel
 from app.bot.ui import get_menu_kb
-from app.bot.ui.partner_system import cancel_partner_system, update_chats, update_chat_options, cancel_to_my_channels
+from app.bot.ui.partner_system import cancel_partner_system, update_chats, update_chat_options, cancel_to_my_channels, \
+    cancel_to_select_option
 from app.core.dao import crud_chat_channel
 from app.core.models import User
 from app.utils.text_check import check_interval
@@ -50,18 +51,18 @@ async def my_chats(callback: CallbackQuery, session: AsyncSession, state: FSMCon
 
 @router.callback_query(F.data.in_(['count_in_day', 'interval', 'interval_in_day']), UpdateChannel.select_option)
 async def wait_new_value(callback: CallbackQuery, session: AsyncSession, state: FSMContext):
-    # chat_id = await state.get_value('chat_id')
-    # chat = await crud_chat_channel.get_by_id(session, id=chat_id)
+    chat_id = await state.get_value('chat_id')
+    chat = await crud_chat_channel.get_by_id(session, id=chat_id)
 
     await state.set_state(UpdateChannel.get_new_value)
     await state.update_data(option=callback.data)
 
     if callback.data == 'interval_in_day':
         await callback.message.answer('Введите интервал в течение дня (в формате 09:00-21:00)',
-                                      reply_markup=cancel_to_my_channels)
+                                      reply_markup=cancel_to_select_option(chat))
         return
 
-    await callback.message.answer('Введите новое значение', reply_markup=cancel_to_my_channels)
+    await callback.message.answer('Введите новое значение', reply_markup=cancel_to_select_option(chat))
 
 
 @router.message(UpdateChannel.get_new_value)
@@ -71,13 +72,13 @@ async def wait_new_value(message: Message, session: AsyncSession, state: FSMCont
     option = await state.get_value('option')
     if option in ['count_in_day', 'interval']:
         if not message.text.isdigit():
-            await message.answer('Введите число', reply_markup=cancel_to_my_channels)
+            await message.answer('Введите число', reply_markup=cancel_to_select_option(chat))
             return
         value = int(message.text)
     elif option == 'interval_in_day':
         if not check_interval(message.text):
             await message.answer('Отправьте, пожалуйста, корректный интервал (в формате 09:00-21:00)',
-                                 reply_markup=cancel_to_my_channels)
+                                 reply_markup=cancel_to_select_option(chat))
             return
         value = message.text
 

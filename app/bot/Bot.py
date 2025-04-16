@@ -69,7 +69,7 @@ class Bot:
                                minutes=1,
                                kwargs={'bot': self.bot, 'session': SessionLocal})
         self.scheduler.add_job(crud_chat_channel.drop_every_day_data,
-                               trigger=CronTrigger(hour=18, minute=17),
+                               trigger=CronTrigger(hour=0, minute=0),
                                kwargs={'sessionmaker': SessionLocal})
         self.scheduler.start()
 
