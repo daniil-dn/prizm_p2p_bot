@@ -18,7 +18,9 @@ async def group_channel_menu(callback: CallbackQuery, state: FSMContext, session
     await callback.message.answer(
         'Наш бот может публиковать самые выгодные ордера на покупку и продажу PZM в вашей группе или канале, а также текущий курс на Coinmarketcap. В сообщении будет указана Ваша реферальная ссылка для перехода в наш бот. Таким образом Ваши подписчики будут переходить в бота по Вашей реферальной ссылке, а вы будете получать вознаграждение от нашего бота: 10% от прибыли с привлеченных Вами пользователей.\n\nСделайте это всего лишь в 3 шага:\n\n'
         f'1. Добавьте нашего бота @{(await bot.get_me()).username} в администраторы своей группы/канала\n\n'  # ссылку получить
-        '2. Отправьте нам айди группы/канала. Это можно сделать в данном боте: @username_to_id_bot',
+        '2. Отправьте нам айди группы/канала. Это можно сделать в данном боте: @username_to_id_bot\n'
+        '3. Подтвердите что добавили бота в администраторы канала\n\n'
+        'Введите ID канала, например -100123456789',
         reply_markup=cancel_partner_system)
     await state.set_state(AddChannel.get_chat_channel_id)
 
@@ -31,7 +33,7 @@ async def save_link(message: Message, state: FSMContext, bot: Bot):
 
     await state.update_data(chat_channel_id=int(message.text))
     await state.set_state(AddChannel.accept)
-    await message.answer('Текст', reply_markup=accept_add_bot)  # todo
+    await message.answer('Если добавили бота нажмите кнопку 👇 ', reply_markup=accept_add_bot)  # todo
 
 
 @router.callback_query(F.data == 'add_bot', AddChannel.accept)
@@ -40,7 +42,7 @@ async def accept_add_bot_handler(callback: CallbackQuery, state: FSMContext, bot
         assert isinstance(await bot.get_chat_member(await state.get_value('chat_channel_id'), bot.id),
                           ChatMemberAdministrator)
     except:
-        await callback.message.answer('Добавьте бота в администраторы', reply_markup=accept_add_bot)
+        await callback.message.answer('Вы не добавили бота в администраторы канала. Попробуйте еще раз', reply_markup=accept_add_bot)
         return
 
     await state.set_state(AddChannel.get_count_in_day)

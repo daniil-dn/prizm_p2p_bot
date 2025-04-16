@@ -36,7 +36,7 @@ accept_add_bot = InlineKeyboardMarkup(inline_keyboard=[
 
 
 owners_menu = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='Добавить канал', callback_data='add_channel')],
+    [InlineKeyboardButton(text='Добавить канал/группу', callback_data='add_channel')],
     [InlineKeyboardButton(text='Мои группы/каналы', callback_data='my_channels')],
     [InlineKeyboardButton(text='Назад', callback_data='partner_system')]
 ], resize_keyboard=True)
