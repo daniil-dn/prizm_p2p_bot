@@ -15,5 +15,8 @@ class AddChannel(StatesGroup):
 
 
 class UpdateChannel(StatesGroup):
+    select_chat = State()
     select_option = State()
-    get_new_value = State()
+    count_in_day = State()
+    interval = State()
+    interval_in_day = State()

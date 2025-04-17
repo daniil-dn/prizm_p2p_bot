@@ -1,7 +1,9 @@
 from aiogram import Router, F, Bot
 from aiogram.types import CallbackQuery
+from aiogram_dialog import DialogManager
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.bot.handlers.partner_system.states import UpdateChannel
 from app.bot.ui.partner_system import withdraw_partner_balance, owners_menu
 from app.bot.utils.parce import get_partner_data
 from app.core.models import User
@@ -38,3 +40,8 @@ async def group_channel_menu(callback: CallbackQuery):
         'Выберите пункт меню',
         reply_markup=owners_menu
     )
+
+
+@router.callback_query(F.data == 'my_channels')
+async def my_chats(callback: CallbackQuery, session: AsyncSession, dialog_manager: DialogManager):
+    await dialog_manager.start(UpdateChannel.select_chat)
