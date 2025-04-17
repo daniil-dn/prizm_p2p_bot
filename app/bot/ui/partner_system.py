@@ -14,7 +14,7 @@ def admin_withdrawal_done(user_id) -> InlineKeyboardMarkup:
     button = InlineKeyboardButton(text='✅Перевел(а)', callback_data=f'admin-done-partner-withdraw-request_{user_id}')
 
     builder = InlineKeyboardBuilder()
-    builder.add(button)
+    builder.add(button)ё
     builder.adjust(1)
 
     return builder.as_markup(resize_keyboard=True)
@@ -29,8 +29,8 @@ cancel_to_my_channels = InlineKeyboardMarkup(inline_keyboard=[
 ], resize_keyboard=True)
 
 accept_add_bot = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='✅ бот добавлен в администраторы канала', callback_data='add_bot')],
-    [InlineKeyboardButton(text='❌ Отмена', callback_data='start_bot')]
+    [InlineKeyboardButton(text='✅ Бот добавлен в администраторы канала', callback_data='add_bot')],
+    [InlineKeyboardButton(text='❌ Отмена', callback_data='group_channel_owners')]
 ], resize_keyboard=True)
 
 owners_menu = InlineKeyboardMarkup(inline_keyboard=[

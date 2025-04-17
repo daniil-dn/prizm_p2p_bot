@@ -22,17 +22,17 @@ async def notification_sheduled(bot: Bot, session):
     now = datetime.now(tz=timezone('Europe/Moscow'))
 
     text = ('Prizm Exchange\n\n'
-            f'курс руб/PZM {now.strftime("%H:%M")} на {now.strftime("%d.%m.%y")} - {rate:.4f}\n\n'  # todo получить курс
-            'самый выгодный ордер на покупку:\n\n'
+            f'Курс руб/PZM {now.strftime("%H:%M")} на {now.strftime("%d.%m.%y")} - {rate:.4f}\n\n'
+            'Самый выгодный ордер на покупку:\n\n'
             f'Ордер : №{best_order_to_buy.id}\n'
-            f'Курс 1pzm - {best_order_to_buy.rate:.4f} руб\n'
+            f'Курс 1pzm - {best_order_to_buy.rate:.3f} руб\n'
             f'Лимит: {best_order_to_buy.min_limit} - {best_order_to_buy.max_limit} PZM\n'
             f'Число сделок: {best_order_to_buy.user.order_count}\n'
             f'Число отказов: {best_order_to_buy.user.cancel_order_count}\n'
             f'{buy_last_online_text}\n\n'
-            f'самый выгодный ордер на продажу:\n\n'
+            f'Самый выгодный ордер на продажу:\n\n'
             f'Ордер: №{best_order_to_sell.id}\n'
-            f'Курс 1pzm - {best_order_to_sell.rate:.4f} руб\n'
+            f'Курс 1pzm - {best_order_to_sell.rate:.3f} руб\n'
             f'Лимит: {best_order_to_sell.min_limit_rub} - {best_order_to_sell.max_limit_rub} руб\n'
             f'Число сделок: {best_order_to_sell.user.order_count}\n'
             f'Число отказов: {best_order_to_sell.user.cancel_order_count}\n'

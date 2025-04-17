@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Any
 
 from pydantic import BaseModel
 
@@ -16,6 +16,8 @@ class UserInDB(UserBase):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     description: Optional[str] = None
+    is_wallet_activated: Optional[bool] = None
+    structure_path: Optional[Any] = None
     updated_at: datetime
     created_at: datetime
 
@@ -27,8 +29,10 @@ class UserCreate(UserBase):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     description: Optional[str] = None
+    is_wallet_activated: Optional[bool] = False
     role: Optional[int] = 1
     partner_id: Optional[int] = None
+    structure_path: Optional[Any] = None
 
 
 class UserUpdate(UserBase):
@@ -38,3 +42,5 @@ class UserUpdate(UserBase):
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     description: Optional[str] = None
+    is_wallet_activated: Optional[bool] = None
+    structure_path: Optional[Any] = None

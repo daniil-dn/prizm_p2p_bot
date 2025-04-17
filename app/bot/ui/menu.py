@@ -24,6 +24,9 @@ def get_menu_kb(is_admin: bool = False) -> InlineKeyboardMarkup:
             InlineKeyboardButton(text='🤝 Партнерская программа', callback_data='partner_system')
         ],
         [
+            InlineKeyboardButton(text='👛 Создать кошелек PZM', callback_data='create_wallet_prizm')
+        ],
+        [
             InlineKeyboardButton(text='🎓 Правила сервиса', callback_data='rules')
         ],
         [

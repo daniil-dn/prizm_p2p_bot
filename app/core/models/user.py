@@ -1,6 +1,6 @@
-from sqlalchemy import Column, String, DateTime, BigInteger, func, Numeric, SmallInteger, TIMESTAMP
+from sqlalchemy import Column, String, DateTime, BigInteger, func, Numeric, SmallInteger, TIMESTAMP, Boolean
 from sqlalchemy.orm import Mapped, relationship
-
+from sqlalchemy_utils import LtreeType, Ltree
 from app.core.db.base_class import Base
 from app.core.models import Order
 from app.core.models.model_base import ModelBase
@@ -25,6 +25,8 @@ class User(Base, ModelBase):
     referral_balance = Column(Numeric(18, 4, asdecimal=False), default=0, server_default="0", nullable=False)
     order_count = Column(BigInteger, default=0)
     cancel_order_count = Column(BigInteger, default=0)
+    structure_path = Column(LtreeType, nullable=True)
+    is_wallet_activated = Column(Boolean, default=False, nullable=False)
     last_online = Column(TIMESTAMP(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), index=True, default=func.now())
     updated_at = Column(DateTime(timezone=True), index=True, onupdate=func.now())

@@ -1,4 +1,5 @@
 from aiogram import Router, F, Bot
+from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 from aiogram_dialog import DialogManager
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -35,9 +36,10 @@ async def ask_how_many(callback: CallbackQuery, bot: Bot, session: AsyncSession,
 
 
 @router.callback_query(F.data == 'group_channel_owners')
-async def group_channel_menu(callback: CallbackQuery):
+async def group_channel_menu(callback: CallbackQuery, state: FSMContext):
+    await state.clear()
     await callback.message.answer(
-        'Выберите пункт меню',
+        'Наш бот может публиковать самые выгодные ордера на покупку и продажу PZM в вашей группе или канале, а также текущий курс на Coinmarketcap. В сообщении будет указана Ваша реферальная ссылка для перехода в наш бот. Таким образом Ваши подписчики будут переходить в бота по Вашей реферальной ссылке, а вы будете получать вознаграждение от нашего бота: 10% от прибыли с привлеченных Вами пользователей.\n\nСделайте это всего лишь в 3 шага:\n\n',
         reply_markup=owners_menu
     )
 

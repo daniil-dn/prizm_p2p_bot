@@ -43,7 +43,7 @@ async def my_chats(callback: CallbackQuery, session: AsyncSession, state: FSMCon
             f'Кол-во в день: {chat.count_in_day}\n'
             f'Время между постами: {chat.interval}\n'
             f'Интервал в течение дня: {chat.interval_in_day}.\n'
-            f'{'На паузе ⏸️' if chat.is_stopped else 'Активен ▶️'}\n\n'
+            f'{"На паузе ⏸️" if chat.is_stopped else "Активен ▶️"}\n\n'
             f'Выберите, что вы хотите изменить:')
 
     await callback.message.answer(text, reply_markup=update_chat_options(chat))
@@ -60,10 +60,10 @@ async def wait_new_value(callback: CallbackQuery, session: AsyncSession, state: 
     if callback.data == 'interval_in_day':
         await callback.message.answer('Введите интервал в течение дня (в формате 09:00-21:00)',
                                       reply_markup=cancel_to_select_option(chat))
-        return
-
-    await callback.message.answer('Введите новое значение', reply_markup=cancel_to_select_option(chat))
-
+    elif callback.data == 'interval':
+        await callback.message.answer('Введите новое значение в минутах, например 10 ', reply_markup=cancel_to_select_option(chat))
+    elif callback.data == 'count_in_day':
+        await callback.message.answer('Введите новое значение, например 10', reply_markup=cancel_to_select_option(chat))
 
 @router.message(UpdateChannel.get_new_value)
 async def wait_new_value(message: Message, session: AsyncSession, state: FSMContext, user_db: User):
@@ -84,15 +84,15 @@ async def wait_new_value(message: Message, session: AsyncSession, state: FSMCont
 
     chat = await crud_chat_channel.update(session, obj_in={'id': chat_id, option: value})
 
+    slash = "\n"
     text = (f'ID чата: {chat.id}\n'
-            f'{'Username: ' + chat.username + '\n' if chat.username else ''}'
-            f'{'Название:' + chat.name + '\n' if chat.name else ''}'
+            f"{'Username: ' + chat.username + slash if chat.username else ''}"
+            f"{'Название:' + chat.name + slash if chat.name else ''}"
             f'Колво в день: {chat.count_in_day}\n'
             f'Время между постами: {chat.interval}\n'
             f'Интервал в течение дня: {chat.interval_in_day}.\n'
             f'{'На паузе ⏸️' if chat.is_stopped else 'Активен ▶️'}\n\n'
             f'Выберите, что вы хотите изменить:')
-
     await state.set_state(UpdateChannel.select_option)
     await message.answer(text, reply_markup=update_chat_options(chat))
 
