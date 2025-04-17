@@ -29,9 +29,10 @@ async def start_cmd_message(message: Message, bot: Bot, state: FSMContext, user_
             username=message.from_user.username,
             first_name=message.from_user.first_name,
             last_name=message.from_user.last_name,
-            partner_id=partner_id
+            partner_id=partner_id,
         )
         user_db = await crud_user.create(session, obj_in=create_user_data)
+        await crud_user.update_structure(session, user_db, partner_id)
         logger.info(
             f"New user {user_db.id} partner_id: {partner_id} username: {user_db.username}")
 
@@ -53,19 +54,3 @@ async def start_cmd_cb(callback: CallbackQuery, bot: Bot, state: FSMContext, use
         user_db.id, get_start_text(user_db.balance, user_db.order_count, user_db.cancel_order_count),
         reply_markup=get_menu_kb(is_admin=user_db.role in User.ALL_ADMINS)
     )
-
-
-# @router.chat_member(ChatMemberUpdatedFilter(member_status_changed=IS_MEMBER))
-# async def new_member(event: ChatMemberUpdated, bot: Bot, state: FSMContext, **kwargs):
-#     # Здесь ты можешь обработать событие добавления нового участника
-#     print("value")
-#
-#
-# @router.message(F.chat.type == 'supergroup')
-# async def echo(message: Message, bot: Bot, **kwargs) -> None:
-#     print("value")
-#
-#
-# @router.message_reaction()
-# async def echo(message: Message, bot: Bot, **kwargs) -> None:
-#     print("value")

@@ -100,10 +100,18 @@ async def accept_card_transfer_recieved_cb(cb: CallbackQuery, bot: Bot, state: F
 
     partner_commission = 0
     if seller.partner_id:
-        partner_commission = payout_value * admin_settings.partner_commission_percent
-        await crud_user.increase_referral_balance(session, id=seller.partner_id,
-                                                  summ=round(
-                                                      partner_commission, 2))
+        partner_commissions = [6, 3, 1]
+        index = 0
+        for partner_id in seller.structure_path[:-1]:
+            if index <= 2:
+                partner_commission_percent = partner_commissions[index]
+                partner_commission = payout_value * partner_commission_percent
+                await crud_user.increase_referral_balance(session, id=int(partner_id.path),
+                                                      summ=round(
+                                                          partner_commission, 2))
+            else:
+                break
+            index += 1
     buyer = await crud_user.lock_row(session, id=buyer_id)
     buyer = await crud_user.update(session, db_obj=buyer,
                                    obj_in={"order_count": buyer.order_count + 1})
