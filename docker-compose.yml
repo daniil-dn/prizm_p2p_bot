@@ -43,7 +43,7 @@ services:
   redis:
     image: redis
     ports:
-      - "6393:6379"
+      - "6392:6379"
     volumes:
       - redis_data:/data
     command: >
