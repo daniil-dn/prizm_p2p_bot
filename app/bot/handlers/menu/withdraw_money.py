@@ -84,7 +84,7 @@ async def check_input_and_withdraw_balance(message: Message, state: FSMContext, 
 
     main_secret_phrase = settings.PRIZM_WALLET_SECRET_ADDRESS
 
-    prizm_fetcher = PrizmWalletFetcher(settings.PRIZM_API_URL)
+    prizm_fetcher = await PrizmWalletFetcher().init_with_active_node(session)
     try:
         await prizm_fetcher.send_money(prizm_wallet, secret_phrase=main_secret_phrase,
                                        amount_nqt=int(amount_to_withdrawal * 100), deadline=60)

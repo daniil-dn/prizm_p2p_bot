@@ -20,7 +20,7 @@ async def start(callback, button, dialog_manager: DialogManager):
     user_db = dialog_manager.middleware_data['user_db']
     await dialog_manager.done()
     await callback.bot.send_message(
-        user_db.id, get_start_text(user_db.balance, user_db.order_count, user_db.cancel_order_count),
+        user_db.id, get_start_text(user_db.balance, user_db.referral_balance, user_db.order_count, user_db.cancel_order_count),
         reply_markup=get_menu_kb(is_admin=user_db.role in User.ALL_ADMINS)
     )
 

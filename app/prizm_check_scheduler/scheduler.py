@@ -31,13 +31,13 @@ class Scheduler:
 
     async def check_prizm_wallet(self):
         message_manager = MessageManager()
-        prizm_fetcher = PrizmWalletFetcher(settings.PRIZM_API_URL)
-        main_account = settings.PRIZM_WALLET_ADDRESS
-        main_secret_phrase = settings.PRIZM_WALLET_SECRET_ADDRESS
-        transactions_data = await prizm_fetcher.get_blockchain_transactions(main_account)
-        transactions = transactions_data['transactions']
-        async with Bot(settings.BOT_TOKEN) as bot:
-            async with SessionLocal() as session:
+        async with SessionLocal() as session:
+            prizm_fetcher = await PrizmWalletFetcher().init_with_active_node(session)
+            main_account = settings.PRIZM_WALLET_ADDRESS
+            main_secret_phrase = settings.PRIZM_WALLET_SECRET_ADDRESS
+            transactions_data = await prizm_fetcher.get_blockchain_transactions(main_account)
+            transactions = transactions_data['transactions']
+            async with Bot(settings.BOT_TOKEN) as bot:
                 for transaction in transactions:
                     if transaction['recipientRS'] != main_account:
                         logger.info(f"Транзакция {transaction['transaction']} исходящая. Без проверок")
@@ -50,11 +50,16 @@ class Scheduler:
                                                                                          transaction['transaction']))
                     if not exist_transaction:
                         logger.info(f"Новая транзакция: {transaction['transaction']}. Записываем в БД.")
-                        decrypted_message_data = await prizm_fetcher.read_message(main_secret_phrase,
-                                                                                  transaction['transaction'])
-                        decrypted_message = decrypted_message_data.get(
-                            'decryptedMessage') if decrypted_message_data.get(
-                            "errorCode") is None else None
+                        try:
+                            decrypted_message_data = await prizm_fetcher.read_message(main_secret_phrase,
+                                                                                      transaction['transaction'])
+                        except Exception as err:
+                            logger.error(f"Read message error: {err}")
+                            decrypted_message = None
+                        else:
+                            decrypted_message = decrypted_message_data.get(
+                                'decryptedMessage') if decrypted_message_data.get(
+                                "errorCode") is None else None
                         # decrypted_message = "order:6185258473:34" # todo remove
                         from_message_order_id = None
                         from_user_id = None
@@ -111,7 +116,7 @@ class Scheduler:
                                     user = await crud_user.lock_row(db=session, id=transfer_user_id)
                                     upd_user_balance = user.balance - order_value_commission
                                     user = await crud_user.update(db=session, db_obj=user,
-                                                           obj_in={"balance": upd_user_balance})
+                                                                  obj_in={"balance": upd_user_balance})
 
                                     logger.info(
                                         f"Сделка {order.id} принята. баланс продавца {user.id}: {user.balance}. Нужно монет для ордера {order.prizm_value} баланс юзера{upd_user_balance} ")
@@ -169,7 +174,6 @@ class Scheduler:
                                 order_request_pzm_commission = order_request.max_limit * admin_settings.commission_percent
                                 all_user_balance = user.balance + exist_transaction.value - order_request_pzm_commission
 
-
                                 balance_ramain = all_user_balance - order_request.max_limit
                                 if balance_ramain < 0:
                                     balance_ramain = 0
@@ -203,14 +207,14 @@ class Scheduler:
                             try:
                                 await bot.send_message(order_request.user_id,
                                                        text + get_start_text(
-                                                           user.balance, user.order_count,
+                                                           user.balance, user.referral_balance, user.order_count,
                                                            user.cancel_order_count),
                                                        reply_markup=get_menu_kb(is_admin=user.role in User.ALL_ADMINS))
                                 logger.info(
                                     f"Ордер реквест {order_request.id}. Сообщение продавцу {order_request.user_id} отправлено. ")
                             except Exception as err:
                                 logger.error(
-                                    f"OrderRequest не существует. Error: {str(err)}")
+                                    f"OrderRequest {order_request.id} ошибки при отправке сообщния для {order_request.user_id}. Error: {str(err)}")
                                 continue
 
                     else:
@@ -237,13 +241,13 @@ class Scheduler:
                                 f"Время для ордера {order.id} вышло - {order_updated_at}. Настройка {admin_settings.order_wait_minutes} минут")
                             await bot.send_message(order.from_user_id,
                                                    f"Время ожидания ордера превышено. Ордер №{order.id} отменен.\n\n" +
-                                                   get_start_text(order.from_user.balance, order.from_user.order_count,
+                                                   get_start_text(order.from_user.balance, order.from_user.referral_balance, order.from_user.order_count,
                                                                   order.from_user.cancel_order_count),
                                                    reply_markup=get_menu_kb(
                                                        is_admin=order.from_user.role in User.ALL_ADMINS))
                             await bot.send_message(order.to_user_id,
                                                    f"Время ожидания ордера превышено. Ордер №{order.id} отменен.\n\n" +
-                                                   get_start_text(order.to_user.balance, order.to_user.order_count,
+                                                   get_start_text(order.to_user.balance, order.to_user.referral_balance, order.to_user.order_count,
                                                                   order.to_user.cancel_order_count),
                                                    reply_markup=get_menu_kb(
                                                        is_admin=order.to_user.role in User.ALL_ADMINS))
@@ -271,13 +275,13 @@ class Scheduler:
                         if (current_time - order_updated_at).total_seconds() > admin_settings.pay_wait_time * 60:
                             await bot.send_message(order.from_user_id,
                                                    f"Время ожидания платежа превышено. Ордер №{order.id} отменен.\n\n" +
-                                                   get_start_text(order.from_user.balance, order.from_user.order_count,
+                                                   get_start_text(order.from_user.balance, order.from_user.referral_balance, order.from_user.order_count,
                                                                   order.from_user.cancel_order_count),
                                                    reply_markup=get_menu_kb(
                                                        is_admin=order.from_user.role in User.ALL_ADMINS))
                             await bot.send_message(order.to_user_id,
                                                    f"Время ожидания платежа превышено. Ордер №{order.id} отменен.\n\n" +
-                                                   get_start_text(order.to_user.balance, order.to_user.order_count,
+                                                   get_start_text(order.to_user.balance, order.to_user.referral_balance, order.to_user.order_count,
                                                                   order.to_user.cancel_order_count),
                                                    reply_markup=get_menu_kb(
                                                        is_admin=order.to_user.role in User.ALL_ADMINS))

@@ -1,7 +1,7 @@
 from logging import getLogger
 from typing import List
 
-from sqlalchemy import or_, func, and_
+from sqlalchemy import or_, func, and_, desc, asc, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.orm import joinedload
@@ -147,6 +147,25 @@ class CRUDOrderRequest(CRUDBase[OrderRequest, dto.OrderRequestCreate, dto.OrderR
 
         res = await db.execute(query)
         return res.scalars().all()
+
+    async def get_best_sell(self,
+                            db: AsyncSession) -> OrderRequest:
+        query = select(OrderRequest).where(OrderRequest.status == OrderRequest.IN_PROGRESS,
+                                           OrderRequest.from_currency == 'PRIZM').order_by(
+            desc(OrderRequest.rate)).options(joinedload(OrderRequest.user))
+
+        res = await db.execute(query)
+        return res.scalar()
+
+
+    async def get_best_buy(self,
+                            db: AsyncSession) -> OrderRequest:
+        query = select(OrderRequest).where(OrderRequest.status == OrderRequest.IN_PROGRESS,
+                                           OrderRequest.from_currency == 'RUB').order_by(
+            asc(OrderRequest.rate)).options(joinedload(OrderRequest.user))
+
+        res = await db.execute(query)
+        return res.scalar()
 
 
 crud_order_request = CRUDOrderRequest(OrderRequest)

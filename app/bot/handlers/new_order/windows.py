@@ -73,7 +73,7 @@ def get_rate() -> Window:
     return Window(
         Format(
             "Укажите желаемую стоимость PRIZM в рублях.\nТекущий курс <b>{prizm_rate}</b> RUB/PZM\n"
-            "https://coinmarketcap.com/currencies/prizm .\nРазница указанного вами курса не должна отличаться "
+            "<a href='https://coinmarketcap.com/currencies/prizm'>🔗Coinmarketcap</a> .\nРазница указанного вами курса не должна отличаться "
             "более чем на <b>{prizm_rate_diff_percent}</b>%"),
 
         TextInput(id="rate", on_success=on_rate_selected, on_error=error_rate,

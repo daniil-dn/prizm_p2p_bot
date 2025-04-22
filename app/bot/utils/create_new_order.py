@@ -83,7 +83,7 @@ async def send_notification(dialog_manager: DialogManager, admin_settings: Setti
                 f"Ордер: №{order_request.id}\nКурс 1pzm - {order_request.rate}руб\nЛимит: {order_request.min_limit_rub} "
                 f"- {order_request.max_limit_rub:.2f}руб\nЧисло сделок:{user_db.order_count} Число отказов: "
                 f"{user_db.cancel_order_count}\n\n") + get_start_text(
-            user_db.balance, user_db.order_count,
+            user_db.balance, user_db.referral_balance, user_db.order_count,
             user_db.cancel_order_count)
 
         await message.bot.send_message(message.from_user.id, text=text,

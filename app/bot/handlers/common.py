@@ -1,9 +1,10 @@
 from logging import getLogger
 
-from aiogram import Router, Bot, F
-from aiogram.filters import CommandStart, Command, CommandObject
+from aiogram import Router, Bot, F, types
+from aiogram.filters import CommandStart, Command, CommandObject, ChatMemberUpdatedFilter, IS_MEMBER, IS_NOT_MEMBER, \
+    LEFT, KICKED
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message, CallbackQuery, ChatMemberUpdated
 from aiogram_dialog import DialogManager
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -28,16 +29,17 @@ async def start_cmd_message(message: Message, bot: Bot, state: FSMContext, user_
             username=message.from_user.username,
             first_name=message.from_user.first_name,
             last_name=message.from_user.last_name,
-            partner_id=partner_id
+            partner_id=partner_id,
         )
         user_db = await crud_user.create(session, obj_in=create_user_data)
+        await crud_user.update_structure(session, user_db, partner_id)
         logger.info(
             f"New user {user_db.id} partner_id: {partner_id} username: {user_db.username}")
 
     await dialog_manager.reset_stack(remove_keyboard=True)
     await state.clear()
     await bot.send_message(
-        user_db.id, get_start_text(user_db.balance, user_db.order_count, user_db.cancel_order_count),
+        user_db.id, get_start_text(user_db.balance, user_db.referral_balance, user_db.order_count, user_db.cancel_order_count),
         reply_markup=get_menu_kb(is_admin=user_db.role in User.ALL_ADMINS)
     )
 
@@ -49,6 +51,6 @@ async def start_cmd_cb(callback: CallbackQuery, bot: Bot, state: FSMContext, use
     await dialog_manager.reset_stack(remove_keyboard=True)
     await state.clear()
     await bot.send_message(
-        user_db.id, get_start_text(user_db.balance, user_db.order_count, user_db.cancel_order_count),
+        user_db.id, get_start_text(user_db.balance, user_db.referral_balance, user_db.order_count, user_db.cancel_order_count),
         reply_markup=get_menu_kb(is_admin=user_db.role in User.ALL_ADMINS)
     )

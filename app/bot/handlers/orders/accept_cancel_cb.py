@@ -37,7 +37,7 @@ async def accept_accept_order_cb(cb: CallbackQuery, bot: Bot, state: FSMContext,
 
 
     if order_request.min_limit > new_max_limit or admin_settings.min_order_prizm_value > new_max_limit:
-        logger.info(f"Order request DELETED {order_request.id} min: {order_request.min_limit} max: {order_request.max_limit}, max_rub: {order_request.max_limit_rub}. new max: new_max_limit: {new_max_limit}, new_max_rub: {new_max_limit_rub}")
+        logger.info(f"Order request DELETED {order_request.id} min: {order_request.min_limit} max: {order_request.max_limit}, max_rub: {order_request.max_limit_rub}. new max: new_max_limit: {new_max_limit}, new_max_rub: {new_max_limit_rub}. order.prizm_value: {order.prizm_value}, order.rub_value: {order.rub_value}")
 
         user_db = await crud_user.increase_balance(session, id=order_request.user_id,
                                                                                      summ=new_max_limit + new_max_limit * admin_settings.commission_percent)
@@ -73,6 +73,7 @@ async def accept_cancel_order_cb(cb: CallbackQuery, bot: Bot, state: FSMContext,
     await bot.send_message(
         cb.from_user.id,
         "Отмена сделки, ваш рейтинг понижен\n\n" + get_start_text(from_cb_userdb.balance,
+                                                                  from_cb_userdb.referral_balance,
                                                                   from_cb_userdb.order_count,
                                                                   from_cb_userdb.cancel_order_count),
         reply_markup=get_menu_kb(is_admin=from_cb_userdb.role in User.ALL_ADMINS)
@@ -80,7 +81,7 @@ async def accept_cancel_order_cb(cb: CallbackQuery, bot: Bot, state: FSMContext,
     to_user_db = await crud_user.get_by_id(session, id=order.to_user_id)
     await bot.send_message(
         order.to_user_id,
-        f"Отмена сделки №{order.id}\n" + get_start_text(to_user_db.balance, to_user_db.order_count,
+        f"Отмена сделки №{order.id}\n" + get_start_text(to_user_db.balance, to_user_db.referral_balance, to_user_db.order_count,
                                                         to_user_db.cancel_order_count),
         reply_markup=get_menu_kb(is_admin=to_user_db.role in User.ALL_ADMINS)
     )

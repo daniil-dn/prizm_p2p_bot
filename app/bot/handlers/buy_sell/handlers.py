@@ -150,6 +150,10 @@ async def on_accept_order_request_input(cb: CallbackQuery, button, dialog_manage
         logger.info(f"OLD Wallet Ордер {order_request.id} user_id: {order_request.user_id} {order_request.to_currency}")
         order_request_wallet = await crud_wallet.get_by_user_id_currency(session, user_id=order_request.user_id,
                                                                          currency=order_request.to_currency)
+        if not order_request_wallet:
+            logger.error(f"Wallet not found Ордер {order_request.id} user_id: {order_request.user_id} {order_request.to_currency}")
+            await cb.message.answer("Возникла ошибка, свяжитесь с поддержкой")
+            return
     logger.info(
         f"Wallet Ордер {order_request.id} user_id: {order_request.user_id} id: {order_request_wallet.id} value: {order_request_wallet.value} wallet_currency:{order_request_wallet.currency}")
 
