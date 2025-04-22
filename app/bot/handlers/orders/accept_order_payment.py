@@ -99,7 +99,7 @@ async def accept_card_transfer_recieved_cb(cb: CallbackQuery, bot: Bot, state: F
                                                                            seller.cancel_order_count)),
 
     all_partner_commissions = 0
-    if seller.partner_id:
+    if seller.structure_path and len(seller.structure_path) > 1:
         partner_commissions = [0.06, 0.03, 0.01]
         index = 0
         for partner_id in seller.structure_path[:-1]:
