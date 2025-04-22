@@ -7,3 +7,4 @@ from .transaction import TransactionCreate, TransactionUpdate, TransactionInDB
 from .message_between import MessageCreate
 from .withdrawal import WithdrawalCreate, WithdrawalUpdate, WithdrawalInDB
 from .chat_channel import ChatChannelCreate
+from .prizm_node_ip import PrizmNodeIPInDB, PrizmNodeIPCreate, PrizmNodeIPUpdate

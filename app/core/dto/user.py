@@ -6,7 +6,7 @@ from pydantic import BaseModel
 
 # Shared properties
 class UserBase(BaseModel):
-    id: int
+    id: Optional[int] = None
 
 
 class UserInDB(UserBase):

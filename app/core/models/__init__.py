@@ -9,3 +9,4 @@ from .message_between import MessageBetween
 from .withdraw_referral import WithdrawReferral
 from .withdrawal import Withdrawal
 from .chat_channel import ChatChannel
+from .prizm_node import PrizmNodeIp

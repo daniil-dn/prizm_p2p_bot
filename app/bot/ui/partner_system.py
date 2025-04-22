@@ -14,7 +14,7 @@ def admin_withdrawal_done(user_id) -> InlineKeyboardMarkup:
     button = InlineKeyboardButton(text='✅Перевел(а)', callback_data=f'admin-done-partner-withdraw-request_{user_id}')
 
     builder = InlineKeyboardBuilder()
-    builder.add(button)ё
+    builder.add(button)
     builder.adjust(1)
 
     return builder.as_markup(resize_keyboard=True)
@@ -29,19 +29,19 @@ cancel_to_my_channels = InlineKeyboardMarkup(inline_keyboard=[
 ], resize_keyboard=True)
 
 accept_add_bot = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text='✅ Бот добавлен в администраторы канала', callback_data='add_bot')],
+    [InlineKeyboardButton(text='✅ Я добавил бота', callback_data='add_bot')],
     [InlineKeyboardButton(text='❌ Отмена', callback_data='group_channel_owners')]
 ], resize_keyboard=True)
 
 owners_menu = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Добавить канал/группу', callback_data='add_channel')],
     [InlineKeyboardButton(text='Мои группы/каналы', callback_data='my_channels')],
-    [InlineKeyboardButton(text='Назад', callback_data='partner_system')]
+    [InlineKeyboardButton(text='🔙 Назад', callback_data='partner_system')]
 ], resize_keyboard=True)
 
 success_add_channel = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Мои группы/каналы', callback_data='my_channels')],
-    [InlineKeyboardButton(text='Назад', callback_data='partner_system')]
+    [InlineKeyboardButton(text='🔙Назад', callback_data='partner_system')]
 ], resize_keyboard=True)
 
 
@@ -50,7 +50,7 @@ def update_chats(chats: list[ChatChannel]):
     for chat in chats:
         kb.button(text=f'✅ {chat.username or chat.name or chat.id}', callback_data=f'update_{chat.id}')
 
-    kb.button(text='Назад', callback_data='partner_system')
+    kb.button(text='🔙Назад', callback_data='partner_system')
     kb.adjust(1)
 
     return kb.as_markup(resize_keyboard=True)

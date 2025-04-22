@@ -27,7 +27,7 @@ async def group_channel_menu(callback: CallbackQuery, state: FSMContext, session
 
 
 @router.message(AddChannel.get_chat_channel_id, F.text)
-async def save_link(message: Message, state: FSMContext, bot: Bot):
+async def save_link(message: Message, state: FSMContext, bot: Bot, session: AsyncSession):
     try:
         await bot.edit_message_reply_markup(chat_id=message.chat.id, message_id=message.message_id - 1, reply_markup=None)
     except Exception:
@@ -35,6 +35,10 @@ async def save_link(message: Message, state: FSMContext, bot: Bot):
     if message.text[0] != '-' or not message.text[1:].isdigit():
         await message.answer('Отправьте, пожалуйста, корректный айди', reply_markup=cancel_partner_system)
         return
+    if await crud_chat_channel.get_by_id(session, id=int(message.text)):
+        await message.answer('Такой канал уже добавлен. Введите другой id или свяжитесь с поддержкой', reply_markup=cancel_partner_system)
+        return
+
     await state.update_data(chat_channel_id=int(message.text))
     await state.set_state(AddChannel.accept)
     await message.answer('Если добавили бота нажмите кнопку 👇 ', reply_markup=accept_add_bot)  # todo
@@ -89,7 +93,7 @@ async def save_count(message: Message, state: FSMContext, session: AsyncSession)
     channel_instance = await message.bot.get_chat(chat_channel_id)
     name = None
     username = None
-    if type(channel_instance) is ChatFullInfo and channel_instance.type == "channel":
+    if type(channel_instance) is ChatFullInfo and channel_instance.type in ("channel", "supergroup"):
         name = channel_instance.title
         username = channel_instance.username
     create_chat_channel = ChatChannelCreate(user_id=message.from_user.id,

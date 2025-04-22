@@ -91,7 +91,7 @@ async def wait_new_value(message: Message, session: AsyncSession, state: FSMCont
             f'Колво в день: {chat.count_in_day}\n'
             f'Время между постами: {chat.interval}\n'
             f'Интервал в течение дня: {chat.interval_in_day}.\n'
-            f'{'На паузе ⏸️' if chat.is_stopped else 'Активен ▶️'}\n\n'
+            f"{'На паузе ⏸️' if chat.is_stopped else 'Активен ▶️'}\n\n"
             f'Выберите, что вы хотите изменить:')
     await state.set_state(UpdateChannel.select_option)
     await message.answer(text, reply_markup=update_chat_options(chat))
@@ -101,13 +101,14 @@ async def wait_new_value(message: Message, session: AsyncSession, state: FSMCont
 async def off_chat(callback: CallbackQuery, session: AsyncSession, state: FSMContext, user_db: User):
     chat_id = await state.get_value('chat_id')
     chat = await crud_chat_channel.update(session, obj_in={'id': chat_id, 'is_stopped': True})
+    slash = "\n"
     text = (f'ID чата: {chat.id}\n'
-            f'{'Username: ' + chat.username + '\n' if chat.username else ''}'
-            f'{'Название:' + chat.name + '\n' if chat.name else ''}'
+            f"{'Username: ' + chat.username + slash if chat.username else ''}"
+            f"{'Название:' + chat.name + slash if chat.name else ''}"
             f'Колво в день: {chat.count_in_day}\n'
             f'Время между постами: {chat.interval}\n'
             f'Интервал в течение дня: {chat.interval_in_day}.\n'
-            f'{'На паузе ⏸️' if chat.is_stopped else 'Активен ▶️'}\n\n'
+            f"{'На паузе ⏸️' if chat.is_stopped else 'Активен ▶️'}\n\n"
             f'Выберите, что вы хотите изменить:')
 
     await state.set_state(UpdateChannel.select_option)
@@ -118,13 +119,14 @@ async def off_chat(callback: CallbackQuery, session: AsyncSession, state: FSMCon
 async def on_chat(callback: CallbackQuery, session: AsyncSession, state: FSMContext, user_db: User):
     chat_id = await state.get_value('chat_id')
     chat = await crud_chat_channel.update(session, obj_in={'id': chat_id, 'is_stopped': False})
+    slash = "\n"
     text = (f'ID чата: {chat.id}\n'
-            f'{'Username: ' + chat.username + '\n' if chat.username else ''}'
-            f'{'Название:' + chat.name + '\n' if chat.name else ''}'
+            f"{'Username: ' + chat.username + slash if chat.username else ''}"
+            f"{'Название:' + chat.name + slash if chat.name else ''}"
             f'Колво в день: {chat.count_in_day}\n'
             f'Время между постами: {chat.interval}\n'
             f'Интервал в течение дня: {chat.interval_in_day}.\n'
-            f'{'На паузе ⏸️' if chat.is_stopped else 'Активен ▶️'}\n\n'
+            f"{'На паузе ⏸️' if chat.is_stopped else 'Активен ▶️'}\n\n"
             f'Выберите, что вы хотите изменить:')
 
     await state.set_state(UpdateChannel.select_option)

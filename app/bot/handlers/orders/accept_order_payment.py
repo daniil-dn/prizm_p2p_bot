@@ -95,20 +95,21 @@ async def accept_card_transfer_recieved_cb(cb: CallbackQuery, bot: Bot, state: F
     order = await crud_order.update(session, db_obj=order, obj_in={'status': Order.WAIT_DONE_TRANSFER})
 
     await cb.message.reply(
-        "Вы подтвердили оплату. Сделка завершена. 🎉🎉🎉 \n" + get_start_text(seller.balance, seller.order_count,
+        "Вы подтвердили оплату. Сделка завершена. 🎉🎉🎉 \n" + get_start_text(seller.balance, seller.referral_balance, seller.order_count,
                                                                            seller.cancel_order_count)),
 
-    partner_commission = 0
+    all_partner_commissions = 0
     if seller.partner_id:
-        partner_commissions = [6, 3, 1]
+        partner_commissions = [0.06, 0.03, 0.01]
         index = 0
         for partner_id in seller.structure_path[:-1]:
             if index <= 2:
                 partner_commission_percent = partner_commissions[index]
                 partner_commission = payout_value * partner_commission_percent
+                all_partner_commissions += partner_commission
                 await crud_user.increase_referral_balance(session, id=int(partner_id.path),
-                                                      summ=round(
-                                                          partner_commission, 2))
+                                                          summ=round(
+                                                              partner_commission, 2))
             else:
                 break
             index += 1
@@ -117,7 +118,7 @@ async def accept_card_transfer_recieved_cb(cb: CallbackQuery, bot: Bot, state: F
                                    obj_in={"order_count": buyer.order_count + 1})
     buyer_wallet = await crud_wallet.get_by_order_user_id(session, user_id=buyer_id, order_id=order.id)
 
-    prizm_fetcher = PrizmWalletFetcher(settings.PRIZM_API_URL)
+    prizm_fetcher = await PrizmWalletFetcher().init_with_active_node(session)
     try:
         result = await prizm_fetcher.send_money(buyer_wallet.value, secret_phrase=main_secret_phrase,
                                                 amount_nqt=int(prizm_value * 100), deadline=60)
@@ -130,24 +131,24 @@ async def accept_card_transfer_recieved_cb(cb: CallbackQuery, bot: Bot, state: F
             f"Ошибка при переводе средств по Сделке №{order.id} на кошелек  {buyer_wallet.value}. Error: {str(err)}")
         await bot.send_message(buyer_id,
                                f"Сделка №{order.id}. Возникла ошибка при переводе PRIZM вам на кошелек. Свяжитесь с поддержкой \n👉 https://t.me/Nikita_Kononenko" + get_start_text(
-                                   buyer.balance, buyer.order_count,
+                                   buyer.balance, buyer.referral_balance, buyer.order_count,
                                    buyer.cancel_order_count),
                                reply_markup=get_menu_kb(is_admin=buyer.role in User.ALL_ADMINS))
     else:
         buyer_text = "Продавец подтвердил оплату. PRIZM переведены вам на кошелек 🎉🎉🎉"
-        await bot.send_message(buyer_id, buyer_text + get_start_text(buyer.balance, buyer.order_count,
+        await bot.send_message(buyer_id, buyer_text + get_start_text(buyer.balance, buyer.referral_balance, buyer.order_count,
                                                                      buyer.cancel_order_count),
                                reply_markup=get_menu_kb(is_admin=buyer.role in User.ALL_ADMINS))
     try:
         result_payout = await prizm_fetcher.send_money(payout_wallet, secret_phrase=main_secret_phrase,
-                                                       amount_nqt=int((payout_value - partner_commission) * 100),
+                                                       amount_nqt=int((payout_value - all_partner_commissions) * 100),
                                                        deadline=60)
         logger.info(
-            f"Перевод прибыли Сделка №{order.id} адрес: {payout_wallet}, сумма: {payout_value - partner_commission}. \npayout: {result_payout}")
-        if partner_commission > 0:
+            f"Перевод прибыли Сделка №{order.id} адрес: {payout_wallet}, сумма: {payout_value - all_partner_commissions}. \npayout: {result_payout}")
+        if all_partner_commissions > 0:
             result_commission = await prizm_fetcher.send_money(settings.PRIZM_WALLET_ADDRESS_PARTNER_COMMISSION,
                                                                secret_phrase=main_secret_phrase,
-                                                               amount_nqt=int(partner_commission * 100),
+                                                               amount_nqt=int(all_partner_commissions * 100),
                                                                deadline=60)
             logger.info(
                 f"Перевод реф прибыли партнера Сделка №{order.id} Partner_id: {buyer.partner_id} адрес: {settings.PRIZM_WALLET_ADDRESS_PARTNER_COMMISSION} -> {result_commission}")
@@ -160,7 +161,7 @@ async def accept_card_transfer_recieved_cb(cb: CallbackQuery, bot: Bot, state: F
     order_request = await crud_order_request.get_by_id(session, id=order.order_request_id)
     if order_request.status == OrderRequest.DELETED and order_request.max_limit == order_request.min_limit:
         await cb.message.reply(
-            f'Остаток призм по вашему ордеру №{order_request.id} менее {admin_settings.min_order_prizm_value} PZM и составляет {order_request.max_limit} PZM. Ордер закрыт. Средства перечислены на ваш общий баланс в боте и будут использованы при создании нового ордера, либо выведены при снятии средств с баланса.')
+            f'Остаток призм по вашему ордеру №{order_request.id} менее {admin_settings.min_order_prizm_value} PZM и составляет {order_request.max_limit} PZM. Ордер закрыт. {"Средства перечислены на ваш общий баланс в боте и будут использованы при создании нового ордера, либо выведены при снятии средств с баланса." if order_request.max_limit > 0 else ""}')
 
     await crud_order.update(session, db_obj=order, obj_in={'status': Order.DONE})
     logger.info(f"Сделка: №{order.id} Перевели {buyer_id} -> {buyer_wallet.value} - {prizm_value}. Сделка завершена")

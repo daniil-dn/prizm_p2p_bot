@@ -26,7 +26,7 @@ class User(Base, ModelBase):
     order_count = Column(BigInteger, default=0)
     cancel_order_count = Column(BigInteger, default=0)
     structure_path = Column(LtreeType, nullable=True)
-    is_wallet_activated = Column(Boolean, default=False, nullable=False)
+    is_wallet_activated = Column(Boolean, default=False, nullable=True)
     last_online = Column(TIMESTAMP(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), index=True, default=func.now())
     updated_at = Column(DateTime(timezone=True), index=True, onupdate=func.now())

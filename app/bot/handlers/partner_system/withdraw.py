@@ -63,10 +63,20 @@ async def check_input_and_withdraw_balance(message: Message, state: FSMContext,
 
     data = await get_partner_data(session, message.from_user.id)
 
-    summ = data.get('summ', None)
-    count_users = data.get('count_users', None)
-    count_orders = data.get('count_orders', None)
+    data = await get_partner_data(session, message.from_user.id)
+
+    descendants_result = data.get('descendants_result', None)
+    partner_commissions = [0.06, 0.03, 0.01]
     percent = data.get('percent', None)
+    text = ""
+    for user_level in range(3):
+        users_by_level = descendants_result[user_level]
+        text += (
+            f"{user_level + 1} уровень ({int(partner_commissions[user_level] * 100)}%) - {users_by_level['user_count']} чел\n"
+            f"Оборот: {users_by_level['summ']} pzm\n"
+            f"Комиссия бота: {users_by_level['bot_commission_summ']} pzm \n"
+            f"Ваша комиссия: {users_by_level['partner_level_commission_summ']} pzm\n\n")
+
 
     withdraw_create = WithdrawRefCreate(user_id=message.from_user.id, summ=amount)
     await crud_withdraw_ref.create(session, obj_in=withdraw_create)
@@ -75,12 +85,10 @@ async def check_input_and_withdraw_balance(message: Message, state: FSMContext,
     try:
         await message.answer('Деньги будут выведены на указанный адрес')
         for main_admin in main_admins:
-            await bot.send_message(main_admin.id, text=f'Количество: {amount}\n'
+            await bot.send_message(main_admin.id, text=f'Количество монет на вывод: {amount} pzm\n'
                                                        f'User: @{message.from_user.username} ({message.from_user.id})\n'
-                                                       f'Кол-во приглашенных {count_users}\n'
-                                                       f'Проведено сделок: {count_orders}\n'
-                                                       f'Общая сумма сделок: {summ:.3f} PZM\n'
-                                                       f'Процент комиссии {percent * 100:.1f}\n'
+                                                       f'Процент комиссии {percent * 100:.1f}\n\n'
+                                                       f'{text}'
                                                        f'Баланс пользователя: {user_db.referral_balance:.3f} PZM\n'
                                                        f'Кошелек: {message.text}')
 

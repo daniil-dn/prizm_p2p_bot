@@ -152,7 +152,7 @@ def update_cource_order() -> Window:
     return Window(
         Format(
             "Укажите желаемую стоимость PRIZM в рублях.\nТекущий курс <b>{prizm_rate}</b> RUB/PZM\n"
-            "https://coinmarketcap.com/currencies/prizm .\nРазница указанного вами курса не должна отличаться "
+            "<a href='https://coinmarketcap.com/currencies/prizm'>🔗Coinmarketcap</a> .\nРазница указанного вами курса не должна отличаться "
             "более чем на {prizm_rate_diff_percent}%"),
         TextInput(
             id='new_cource',

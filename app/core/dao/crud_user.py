@@ -59,6 +59,21 @@ class CRUDUser(CRUDBase[User, dto.UserCreate, dto.UserUpdate]):
         res = await db.execute(q)
         return res.scalars().all()
 
+    async def get_descendant_users(self, db: AsyncSession, user_db: User):
+        q = select(User).filter(User.structure_path.descendant_of(user_db.structure_path)).filter(User.id != user_db.id)
+        res = await db.execute(q)
+        descendants = res.scalars().all()
+        grouped_descendants = {}
+        for desc in descendants:
+            # Считаем уровень вложенности по количеству точек
+            level =str(desc.structure_path).count('.') + 1
+            if level not in grouped_descendants:
+                grouped_descendants[level] = []
+            grouped_descendants[level].append(desc)
+
+        return grouped_descendants
+
+
     async def update_structure(self, db: AsyncSession, db_obj: User, partner_id: int | str):
         structure_path = Ltree(str(db_obj.id))
         if partner_id:

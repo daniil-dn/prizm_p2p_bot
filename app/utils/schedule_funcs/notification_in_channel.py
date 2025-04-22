@@ -22,7 +22,7 @@ async def notification_sheduled(bot: Bot, session):
     now = datetime.now(tz=timezone('Europe/Moscow'))
 
     text = ('Prizm Exchange\n\n'
-            f'Курс руб/PZM {now.strftime("%H:%M")} на {now.strftime("%d.%m.%y")} - {rate:.4f}\n\n'
+            f'Биржевой курс РУБ/PZM <a href="https://coinmarketcap.com/currencies/prizm">🔗Coinmarketcap</a>\n{now.strftime("%H:%M")} на {now.strftime("%d.%m.%y")} - {rate:.4f}\n\n'
             'Самый выгодный ордер на покупку:\n\n'
             f'Ордер : №{best_order_to_buy.id}\n'
             f'Курс 1pzm - {best_order_to_buy.rate:.3f} руб\n'
@@ -54,7 +54,7 @@ async def notification_sheduled(bot: Bot, session):
         link = f'https://t.me/{(await bot.get_me()).username}' + '?start=' + hex(chat.user_id)
 
         try:
-            await bot.send_message(chat.id, text, reply_markup=url_button(link))
+            await bot.send_message(chat.id, text, reply_markup=url_button(link), parse_mode="html", disable_web_page_preview=True)
             await crud_chat_channel.update(session, obj_in={'id': chat.id,
                                                             'current_count': chat.current_count + 1,
                                                             'last_post': now})
