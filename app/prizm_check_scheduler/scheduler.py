@@ -35,7 +35,10 @@ class Scheduler:
             prizm_fetcher = await PrizmWalletFetcher().init_with_active_node(session)
             main_account = settings.PRIZM_WALLET_ADDRESS
             main_secret_phrase = settings.PRIZM_WALLET_SECRET_ADDRESS
-            transactions_data = await prizm_fetcher.get_blockchain_transactions(main_account)
+            try:
+                transactions_data = await prizm_fetcher.get_blockchain_transactions(main_account)
+            except Exception as err:
+                logger.error(f"Get blockchain transactions from base_url: {prizm_fetcher.base_url} account: {main_account} error: {err}")
             transactions = transactions_data['transactions']
             async with Bot(settings.BOT_TOKEN) as bot:
                 for transaction in transactions:

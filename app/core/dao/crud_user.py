@@ -66,22 +66,27 @@ class CRUDUser(CRUDBase[User, dto.UserCreate, dto.UserUpdate]):
         grouped_descendants = {}
         for desc in descendants:
             # Считаем уровень вложенности по количеству точек
-            level =str(desc.structure_path).count('.') + 1
+            level = str(desc.structure_path).count('.') + 1
             if level not in grouped_descendants:
                 grouped_descendants[level] = []
             grouped_descendants[level].append(desc)
 
         return grouped_descendants
 
-
     async def update_structure(self, db: AsyncSession, db_obj: User, partner_id: int | str):
         structure_path = Ltree(str(db_obj.id))
         if partner_id:
+            logger.info(f"Crud update_structure user: {db_obj.id} partner id: {partner_id}")
             partner_db = await crud_user.get_by_id(db, id=int(partner_id))
             if partner_db:
-                partner_structure_path = ( await self.update_structure(db, partner_db, partner_db.partner_id)).structure_path if not partner_db.structure_path else partner_db.structure_path
+                logger.info(f"Crud update_structure partner user: {db_obj.id} partner in db: {partner_db.id}")
+                partner_structure_path = (await self.update_structure(db, partner_db,
+                                                                      partner_db.partner_id)).structure_path if not partner_db.structure_path else partner_db.structure_path
                 structure_path = partner_structure_path + structure_path
 
+        logger.info(f"Crud update_structure user: {db_obj.id} new structure_path: {structure_path}")
         db_obj = await self.update(db, db_obj=db_obj, obj_in={"structure_path": structure_path})
         return db_obj
+
+
 crud_user = CRUDUser(User)
