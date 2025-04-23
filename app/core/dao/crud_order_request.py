@@ -152,7 +152,7 @@ class CRUDOrderRequest(CRUDBase[OrderRequest, dto.OrderRequestCreate, dto.OrderR
                             db: AsyncSession) -> OrderRequest:
         query = select(OrderRequest).where(OrderRequest.status == OrderRequest.IN_PROGRESS,
                                            OrderRequest.from_currency == 'PRIZM').order_by(
-            asc(OrderRequest.rate)).options(joinedload(OrderRequest.user))
+            desc(OrderRequest.rate)).options(joinedload(OrderRequest.user))
 
         res = await db.execute(query)
         return res.scalar()
@@ -162,7 +162,7 @@ class CRUDOrderRequest(CRUDBase[OrderRequest, dto.OrderRequestCreate, dto.OrderR
                             db: AsyncSession) -> OrderRequest:
         query = select(OrderRequest).where(OrderRequest.status == OrderRequest.IN_PROGRESS,
                                            OrderRequest.from_currency == 'RUB').order_by(
-            desc(OrderRequest.rate)).options(joinedload(OrderRequest.user))
+            asc(OrderRequest.rate)).options(joinedload(OrderRequest.user))
 
         res = await db.execute(query)
         return res.scalar()
