@@ -2,10 +2,9 @@ from aiogram import F
 from aiogram_dialog import ShowMode
 from typing import Any
 from aiogram_dialog.widgets.kbd import Group, Select, Back, \
-    StubScroll, LastPage, NextPage, PrevPage, FirstPage, Row, Column, NumberedPager
+    StubScroll, LastPage, NextPage, PrevPage, FirstPage, Row, Column, NumberedPager, Url, Button
 from aiogram_dialog.widgets.text import Const, Format, Case
 from aiogram_dialog.widgets.input import TextInput
-from aiogram_dialog.widgets.kbd import Button
 from aiogram.types import Message
 from aiogram_dialog import (
     DialogManager,
@@ -84,6 +83,7 @@ def get_wallet_info() -> Window:
         ),
         TextInput(id="card_info", on_success=on_card_info_input, on_error=error_card_info,
                   type_factory=str),
+        Url(Const("👛 Создать кошелек"), url=Const("https://wallet.prizm.vip/"), when=F['wallet_mode'] == 'buy'),
         Button(Const("❌ Отмена"), id="cancel", on_click=cancel_logic),
         Button(Const("🔙 Назад"), id="back", on_click=on_back),
 
@@ -139,7 +139,6 @@ def orders_list() -> Window:
         getter=get_orders_getter,
         state=BuyState.orders_list,
     )
-
 
 
 def get_accept_order() -> Window:

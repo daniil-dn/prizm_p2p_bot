@@ -1,6 +1,7 @@
+from aiogram import F
 from aiogram_dialog import ShowMode
 from typing import Any
-from aiogram_dialog.widgets.kbd import Button, Back
+from aiogram_dialog.widgets.kbd import Button, Back, Url
 from aiogram_dialog.widgets.text import Const, Format, Case
 from aiogram_dialog.widgets.input import TextInput
 from aiogram.types import Message
@@ -113,6 +114,7 @@ def get_sell_card_info() -> Window:
 
         TextInput(id="sell_card_info", on_success=on_sell_card_info_selected, on_error=error,
                   type_factory=str),
+        Url(Const("👛 Создать кошелек"), url=Const("https://wallet.prizm.vip/"), when=F['wallet_mode'] == 'buy'),
         Button(Const("❌ Отмена"), id="cancel", on_click=cancel_logic),
         Button(Const("🔙 Назад"), id="back", on_click=on_back),
         getter=get_mode,
