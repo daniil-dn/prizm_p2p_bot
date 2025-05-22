@@ -31,7 +31,7 @@ async def get_currency_rate(from_currency, to_currency, api_key):
         logger.info(f'Курс {from_currency} к {to_currency}: {price} RUB')
         return price
     else:
-        logger.info(f'Данные о курсе {from_currency} не найдены')
+        logger.info(f'Данные о курсе {from_currency} не найдены error:{data}')
 
 
 def rate_difference(rate, value, diff):

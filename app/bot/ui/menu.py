@@ -39,7 +39,7 @@ def get_menu_kb(is_admin: bool = False) -> InlineKeyboardMarkup:
             InlineKeyboardButton(text='Вывести PZM ➡️', callback_data='withdraw_balance')
         ],
         [
-            InlineKeyboardButton(text='🏨 Перевести PZM в МойДом', callback_data='transfer_to_myhome')
+            InlineKeyboardButton(text='🏨 Перевести PZM в МойДом', url='https://t.me/MoyDom_Rielty_bot')
         ]
     ]
     if is_admin:

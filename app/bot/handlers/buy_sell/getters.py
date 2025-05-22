@@ -16,7 +16,7 @@ async def get_orders_getter(dialog_manager: DialogManager, **kwargs):
         exact_value = None
 
     if dialog_manager.start_data['mode'] == 'buy':
-        is_rub = True
+        is_rub = False
         from_currency = "PRIZM"
     else:
         is_rub = False
@@ -47,13 +47,15 @@ async def get_orders_getter(dialog_manager: DialogManager, **kwargs):
         if dialog_manager.start_data['mode'] == 'buy':
             order_text = (f'Ордер: №{order.id}\nКурс 1pzm - {order.rate}руб\n'
                           f'Лимит: {order.min_limit_rub} - {order.max_limit_rub}руб\n'
+                          f'Лимит PZM: {order.min_limit} - {order.max_limit}PZM\n'
                           f'{wallet_text}'
                           f'Число сделок:{order.user.order_count}\n'
                           f'Число отказов: {order.user.cancel_order_count}\n'
                           f'{time_text}\n\n')
         else:
             order_text = (f'Ордер : №{order.id}\nКурс 1pzm - {order.rate}руб\n'
-                          f'Лимит: {order.min_limit} - {order.max_limit}PZM\n'
+                          f'Лимит руб: {order.min_limit_rub} - {order.max_limit_rub}руб\n'
+                          f'Лимит PZM: {order.min_limit} - {order.max_limit}PZM\n'
                           f'Число сделок:{order.user.order_count}\n'
                           f'Число отказов: {order.user.cancel_order_count}\n'
                           f'{time_text}\n\n')
@@ -100,8 +102,8 @@ async def get_accept_order_text(dialog_manager: DialogManager, **kwargs) -> dict
                         f"включая комиссию сервиса {admin_settings.commission_percent * 100:.1f}%\n"
                         )
     else:
-        prizm_value = dialog_manager.dialog_data['exact_value'] / order_request.rate
-        rub_value = dialog_manager.dialog_data['exact_value']
+        prizm_value = dialog_manager.dialog_data['exact_value']
+        rub_value = dialog_manager.dialog_data['exact_value'] * order_request.rate
         success_text = (f"Покупка PZM\n"
                         f"Сумма в рублях: {rub_value:.2f}\n"
                         f"Количество покупаемых PZM: {prizm_value:.2f}\n"

@@ -64,9 +64,9 @@ async def on_value_selected(message: Message, text_widget: ManagedTextInput, dia
         order_request_id = int(dialog_manager.dialog_data['order_id'])
         order_request = await crud_order_request.get_by_id(session, id=order_request_id)
         if dialog_manager.start_data['mode'] == 'buy':
-            check_min_value = order_request.min_limit_rub
-            check_max_value = order_request.max_limit_rub
-            currency_text = "руб"
+            check_min_value = order_request.max_limit
+            check_max_value = order_request.min_limit
+            currency_text = "PZM"
         else:
             check_min_value = order_request.min_limit
             check_max_value = order_request.max_limit
@@ -158,14 +158,13 @@ async def on_accept_order_request_input(cb: CallbackQuery, button, dialog_manage
         f"Wallet Ордер {order_request.id} user_id: {order_request.user_id} id: {order_request_wallet.id} value: {order_request_wallet.value} wallet_currency:{order_request_wallet.currency}")
 
     if dialog_manager.start_data['mode'] == 'sell':
-
         prizm_value = dialog_manager.dialog_data['exact_value']
         value_commission = prizm_value * settings.commission_percent
         rub_value = dialog_manager.dialog_data['exact_value'] * order_request.rate
     else:
-        prizm_value = dialog_manager.dialog_data['exact_value'] / order_request.rate
+        prizm_value = dialog_manager.dialog_data['exact_value']
         value_commission = prizm_value * settings.commission_percent
-        rub_value = dialog_manager.dialog_data['exact_value']
+        rub_value = dialog_manager.dialog_data['exact_value'] * order_request.rate
 
     order = OrderCreate(
         from_user_id=order_request.user_id,

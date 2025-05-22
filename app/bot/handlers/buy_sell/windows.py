@@ -45,7 +45,7 @@ def get_value() -> Window:
     return Window(
         Case(
             {
-                'buy': Const("Укажите в рублях сумму сделки\nУказывайте только цифры"),
+                'buy': Const("Укажите в PZM сумму сделки\nУказывайте только цифры"),
                 'sell': Const("Укажите в PZM сумму сделки\nУказывайте только цифры"),
             },
             selector='mode'
