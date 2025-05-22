@@ -45,17 +45,17 @@ async def get_orders_getter(dialog_manager: DialogManager, **kwargs):
             wallet_text = "Способ оплаты: 💳Карта\n"
         time_text = parce_time(user.last_online)
         if dialog_manager.start_data['mode'] == 'buy':
-            order_text = (f'Ордер: №{order.id}\nКурс 1pzm - {order.rate}руб\n'
-                          f'Лимит: {order.min_limit_rub} - {order.max_limit_rub}руб\n'
-                          f'Лимит PZM: {order.min_limit} - {order.max_limit}PZM\n'
+            order_text = (f'Ордер: №{order.id}\nКурс 1pzm - {order.rate} руб\n'
+                          f'Лимит руб: {order.min_limit_rub} - {order.max_limit_rub} руб\n'
+                          f'Лимит PZM: {order.min_limit} - {order.max_limit} PZM\n'
                           f'{wallet_text}'
                           f'Число сделок:{order.user.order_count}\n'
                           f'Число отказов: {order.user.cancel_order_count}\n'
                           f'{time_text}\n\n')
         else:
-            order_text = (f'Ордер : №{order.id}\nКурс 1pzm - {order.rate}руб\n'
-                          f'Лимит руб: {order.min_limit_rub} - {order.max_limit_rub}руб\n'
-                          f'Лимит PZM: {order.min_limit} - {order.max_limit}PZM\n'
+            order_text = (f'Ордер : №{order.id}\nКурс 1pzm - {order.rate} руб\n'
+                          f'Лимит руб: {order.min_limit_rub} - {order.max_limit_rub} руб\n'
+                          f'Лимит PZM: {order.min_limit} - {order.max_limit} PZM\n'
                           f'Число сделок:{order.user.order_count}\n'
                           f'Число отказов: {order.user.cancel_order_count}\n'
                           f'{time_text}\n\n')
