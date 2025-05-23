@@ -56,5 +56,5 @@ async def get_rate_from_redis(from_currency, to_currency):
         data = await get_currency_rate(from_currency, to_currency, settings.COINMARKETCAP_API_KEY)
     else:
         logger.info(f'Курс из кэша {from_currency} к {to_currency}: {data} RUB')
-        data = Decimal(data)
+        data = float(data)
     return data
