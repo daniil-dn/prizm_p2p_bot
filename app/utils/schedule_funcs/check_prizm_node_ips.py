@@ -1,18 +1,11 @@
-from datetime import datetime, timedelta
 from logging import getLogger
 from typing import List
 
-from pytz import timezone
-from aiogram import Bot
-
-from app.bot.ui.partner_system import url_button
-from app.bot.utils.parce import parce_time
 from app.core import dto
 from app.core.config import settings
 from app.core.dao import crud_prizm_node_ip
 from app.core.models import PrizmNodeIp
 from app.prizm_check_scheduler.prizm_fetcher import PrizmWalletFetcher
-from app.utils.coinmarketcap import get_currency_rate
 
 logger = getLogger(__name__)
 

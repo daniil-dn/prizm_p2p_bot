@@ -7,15 +7,9 @@ from aiogram_dialog.widgets.input import ManagedTextInput
 
 from app.bot.handlers.common import start_cmd_cb
 from app.bot.handlers.new_order.state import NewOrderState
-from app.bot.ui import get_menu_kb
-from app.bot.ui.texts import get_start_text
 from app.bot.utils.create_new_order import create_order_and_wallet, send_notification
-from app.core.config import settings
-from app.core.dao import crud_order_request, crud_settings
-from app.core.dao.crud_wallet import crud_wallet
-from app.core.dto import WalletCreate, OrderRequestCreate
-from app.core.models import OrderRequest, User
-from app.utils.coinmarketcap import get_currency_rate, rate_difference
+from app.core.dao import crud_settings
+from app.utils.coinmarketcap import rate_difference, get_rate_from_redis
 from app.utils.text_check import check_phone_format, check_card_format, check_wallet_format
 
 logger = getLogger(__name__)
@@ -58,7 +52,7 @@ async def on_to_value_selected(message: Message, text_widget: ManagedTextInput, 
 
 async def on_rate_selected(message: Message, text_widget: ManagedTextInput, dialog_manager: DialogManager, data):
     dialog_manager.dialog_data['rate'] = user_rate = text_widget.get_value()
-    rate = await get_currency_rate("PZM", "RUB", settings.COINMARKETCAP_API_KEY)
+    rate = await get_rate_from_redis("PZM", "RUB")
     session = dialog_manager.middleware_data['session']
     admin_settings = await crud_settings.get_by_id(session, id=1)
     prizm_rate_diff_percent = admin_settings.prizm_rate_diff * 100

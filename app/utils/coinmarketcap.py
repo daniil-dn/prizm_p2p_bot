@@ -1,6 +1,10 @@
+from decimal import Decimal
 from logging import getLogger
 
 import aiohttp
+
+from app.bot.services.redis import RedisService
+from app.core.config import settings
 
 logger = getLogger(__name__)
 
@@ -42,3 +46,15 @@ def rate_difference(rate, value, diff):
         return False
     else:
         return True
+
+
+async def get_rate_from_redis(from_currency, to_currency):
+    redis = RedisService()
+    key = redis.get_rate_coinmarketcap_key(from_currency, to_currency)
+    data = await redis.get_data(key)
+    if not data:
+        data = await get_currency_rate(from_currency, to_currency, settings.COINMARKETCAP_API_KEY)
+    else:
+        logger.info(f'Курс из кэша {from_currency} к {to_currency}: {data} RUB')
+        data = Decimal(data)
+    return data

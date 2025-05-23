@@ -7,7 +7,7 @@ from app.bot.ui.partner_system import url_button
 from app.bot.utils.parce import parce_time
 from app.core.config import settings
 from app.core.dao import crud_chat_channel, crud_order_request
-from app.utils.coinmarketcap import get_currency_rate
+from app.utils.coinmarketcap import get_currency_rate, get_rate_from_redis
 
 
 async def notification_sheduled(bot: Bot, session):
@@ -18,7 +18,7 @@ async def notification_sheduled(bot: Bot, session):
 
     buy_last_online_text = parce_time(best_order_to_buy.user.last_online)
     sell_last_online_text = parce_time(best_order_to_sell.user.last_online)
-    rate = await get_currency_rate("PZM", "RUB", settings.COINMARKETCAP_API_KEY)
+    rate = await get_rate_from_redis("PZM", "RUB")
     now = datetime.now(tz=timezone('Europe/Moscow'))
 
     text = ('Prizm Exchange\n\n'

@@ -9,7 +9,7 @@ from app.bot.ui.texts import get_start_text
 from app.core.config import settings
 from app.core.dao import crud_order_request, crud_settings, crud_user
 from app.core.models import User, OrderRequest
-from app.utils.coinmarketcap import get_currency_rate, rate_difference
+from app.utils.coinmarketcap import rate_difference, get_rate_from_redis
 
 
 async def on_back_edit_points_window(callback: CallbackQuery, button: Button, dialog_manager: DialogManager):
@@ -137,7 +137,7 @@ async def update_cource(message: Message,
                         data):
     user_rate = float(data)
     session = dialog_manager.middleware_data['session']
-    rate = await get_currency_rate("PZM", "RUB", settings.COINMARKETCAP_API_KEY)
+    rate = await get_rate_from_redis("PZM", "RUB")
     admin_settings = await crud_settings.get_by_id(session, id=1)
     prizm_rate_diff_percent = admin_settings.prizm_rate_diff * 100
 

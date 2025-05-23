@@ -18,6 +18,7 @@ from app.core.config import settings
 from app.core.dao import crud_chat_channel
 from app.core.db.session import SessionLocal
 from app.utils.schedule_funcs.check_prizm_node_ips import prizm_node_ip_check_sheduled
+from app.utils.schedule_funcs.coinmarketcap_rate import get_coinmarketcap_rate
 from app.utils.schedule_funcs.notification_in_channel import notification_sheduled
 
 
@@ -77,6 +78,10 @@ class Bot:
         self.scheduler.add_job(crud_chat_channel.drop_every_day_data,
                                trigger=CronTrigger(hour=0, minute=0),
                                kwargs={'sessionmaker': SessionLocal})
+        self.scheduler.add_job(get_coinmarketcap_rate,
+                               trigger="interval",
+                               minutes=5, next_run_time=datetime.datetime.now(),
+                               )
         self.scheduler.start()
 
         setup_dialogs(self.dp)
