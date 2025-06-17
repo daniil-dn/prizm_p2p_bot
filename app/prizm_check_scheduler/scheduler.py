@@ -242,18 +242,24 @@ class Scheduler:
                         if (current_time - order_updated_at).total_seconds() > admin_settings.order_wait_minutes * 60:
                             logger.info(
                                 f"Время для ордера {order.id} вышло - {order_updated_at}. Настройка {admin_settings.order_wait_minutes} минут")
-                            await bot.send_message(order.from_user_id,
-                                                   f"Время ожидания ордера превышено. Ордер №{order.id} отменен.\n\n" +
-                                                   get_start_text(order.from_user.balance, order.from_user.referral_balance, order.from_user.order_count,
-                                                                  order.from_user.cancel_order_count),
-                                                   reply_markup=get_menu_kb(
-                                                       is_admin=order.from_user.role in User.ALL_ADMINS))
-                            await bot.send_message(order.to_user_id,
-                                                   f"Время ожидания ордера превышено. Ордер №{order.id} отменен.\n\n" +
-                                                   get_start_text(order.to_user.balance, order.to_user.referral_balance, order.to_user.order_count,
-                                                                  order.to_user.cancel_order_count),
-                                                   reply_markup=get_menu_kb(
-                                                       is_admin=order.to_user.role in User.ALL_ADMINS))
+                            try:
+                                await bot.send_message(order.from_user_id,
+                                                       f"Время ожидания ордера превышено. Ордер №{order.id} отменен.\n\n" +
+                                                       get_start_text(order.from_user.balance, order.from_user.referral_balance, order.from_user.order_count,
+                                                                      order.from_user.cancel_order_count),
+                                                       reply_markup=get_menu_kb(
+                                                           is_admin=order.from_user.role in User.ALL_ADMINS))
+                            except:
+                                pass
+                            try:
+                                await bot.send_message(order.to_user_id,
+                                                       f"Время ожидания ордера превышено. Ордер №{order.id} отменен.\n\n" +
+                                                       get_start_text(order.to_user.balance, order.to_user.referral_balance, order.to_user.order_count,
+                                                                      order.to_user.cancel_order_count),
+                                                       reply_markup=get_menu_kb(
+                                                           is_admin=order.to_user.role in User.ALL_ADMINS))
+                            except:
+                                pass
                             await crud_order.update(db=session, db_obj=order, obj_in={"status": Order.CANCELED})
                             logger.info(
                                 f"Ордер {order.id} - {order_updated_at} отменен. Сообщения для продавца и покупателя отправлены.")
@@ -276,18 +282,24 @@ class Scheduler:
                         logger.info(
                             f" Обработка Ордер {order.id} ACCEPTED. Последнее обновление {order_updated_at}")
                         if (current_time - order_updated_at).total_seconds() > admin_settings.pay_wait_time * 60:
-                            await bot.send_message(order.from_user_id,
-                                                   f"Время ожидания платежа превышено. Ордер №{order.id} отменен.\n\n" +
-                                                   get_start_text(order.from_user.balance, order.from_user.referral_balance, order.from_user.order_count,
-                                                                  order.from_user.cancel_order_count),
-                                                   reply_markup=get_menu_kb(
-                                                       is_admin=order.from_user.role in User.ALL_ADMINS))
-                            await bot.send_message(order.to_user_id,
-                                                   f"Время ожидания платежа превышено. Ордер №{order.id} отменен.\n\n" +
-                                                   get_start_text(order.to_user.balance, order.to_user.referral_balance, order.to_user.order_count,
-                                                                  order.to_user.cancel_order_count),
-                                                   reply_markup=get_menu_kb(
-                                                       is_admin=order.to_user.role in User.ALL_ADMINS))
+                            try:
+                                await bot.send_message(order.from_user_id,
+                                                       f"Время ожидания платежа превышено. Ордер №{order.id} отменен.\n\n" +
+                                                       get_start_text(order.from_user.balance, order.from_user.referral_balance, order.from_user.order_count,
+                                                                      order.from_user.cancel_order_count),
+                                                       reply_markup=get_menu_kb(
+                                                           is_admin=order.from_user.role in User.ALL_ADMINS))
+                            except:
+                                pass
+                            try:
+                                await bot.send_message(order.to_user_id,
+                                                       f"Время ожидания платежа превышено. Ордер №{order.id} отменен.\n\n" +
+                                                       get_start_text(order.to_user.balance, order.to_user.referral_balance, order.to_user.order_count,
+                                                                      order.to_user.cancel_order_count),
+                                                       reply_markup=get_menu_kb(
+                                                           is_admin=order.to_user.role in User.ALL_ADMINS))
+                            except:
+                                pass
                             await crud_order.update(db=session, db_obj=order, obj_in={"status": Order.CANCELED})
                             logger.info(
                                 f" Ордер {order.id} отменен. Сообщения отправлены. Последнее обновление {order_updated_at}. Настройка {admin_settings.pay_wait_time}")
