@@ -92,6 +92,10 @@ async def update_min_sum(message: Message,
         await message.answer('Ордер заблокирован для изменений')
         await dialog_manager.switch_to(state=DeleteEditOrder.update_menu, show_mode=ShowMode.DELETE_AND_SEND)
         return
+    admin_settings = await crud_settings.get_by_id(session, id=1)
+    if float(data) < admin_settings.min_order_prizm_value:
+        await message.answer(f"Минимальная сумма ордера должна быть больше {admin_settings.min_order_prizm_value} PZM.")
+        return
     if float(data) < order.max_limit:
         await crud_order_request.update(session, db_obj=order, obj_in={'min_limit': float(data)})
         await message.answer('Обновлено')
