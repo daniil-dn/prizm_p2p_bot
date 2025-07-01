@@ -64,8 +64,8 @@ async def on_value_selected(message: Message, text_widget: ManagedTextInput, dia
         order_request_id = int(dialog_manager.dialog_data['order_id'])
         order_request = await crud_order_request.get_by_id(session, id=order_request_id)
         if dialog_manager.start_data['mode'] == 'buy':
-            check_min_value = order_request.max_limit
-            check_max_value = order_request.min_limit
+            check_min_value = order_request.min_limit
+            check_max_value = order_request.max_limit
             currency_text = "PZM"
         else:
             check_min_value = order_request.min_limit
