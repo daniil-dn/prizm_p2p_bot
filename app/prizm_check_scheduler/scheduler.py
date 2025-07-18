@@ -266,8 +266,6 @@ class Scheduler:
                             if order.order_request_id:
                                 order_request = await crud_order_request.lock_row(session, id=order.order_request_id)
                                 order_request_update_data = OrderRequestUpdate(
-                                    max_limit=order_request.max_limit + order.prizm_value,
-                                    max_limit_rub=order_request.max_limit_rub + order.rub_value,
                                     status=OrderRequest.IN_PROGRESS
                                 )
                                 await crud_order_request.update(session, db_obj=order_request,
