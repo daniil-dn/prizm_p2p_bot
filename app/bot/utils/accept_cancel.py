@@ -84,3 +84,18 @@ async def send_notification_to_actings(order: Order, bot: Bot, cb: CallbackQuery
             text=f"Ждите перевод {order.rub_value:.2f} рублей от покупателя",
             keyboard=contact_to_user(order.to_user_id, order),
             message_id=message.message_id)
+
+
+async def send_cancel_notification_to_actings(order: Order, bot: Bot, cb: CallbackQuery,
+                                       session: AsyncSession, message_manager: MessageManager) -> None:
+
+    await bot.send_message(
+        cb.from_user.id,
+        f"Сделка №{order.id} отменена. ",
+        reply_markup=contact_to_user(order.to_user_id, order)
+    )
+
+    await bot.send_message(
+        order.to_user_id,
+        f"Сделка №{order.id} отменена.\n Откройте другую сделку"
+    )

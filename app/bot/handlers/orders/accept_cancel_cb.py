@@ -8,9 +8,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.bot.services.message_manager import MessageManager
 from app.bot.ui import get_menu_kb, contact_to_user
 from app.bot.ui.texts import get_start_text
-from app.bot.utils.accept_cancel import send_notification_to_actings
+from app.bot.utils.accept_cancel import send_notification_to_actings, send_cancel_notification_to_actings
 from app.core.dao import crud_order, crud_user, crud_order_request, crud_settings
-from app.core.dto import OrderRequestUpdate
+from app.core.dto import OrderRequestUpdate, OrderUpdate
 from app.core.models import User, Order, OrderRequest
 
 logger = getLogger(__name__)
@@ -26,12 +26,19 @@ async def accept_accept_order_cb(cb: CallbackQuery, bot: Bot, state: FSMContext,
         await cb.message.edit_reply_markup(reply_markup=None)
         return
 
+    order_request = await crud_order_request.lock_row(session, id=order.order_request_id)
+
+    if order.prizm_value > order_request.max_limit or order.rub_value > order_request.max_limit_rub:
+        order = await crud_order.update(session, db_obj=order, obj_in={"status": Order.CANCELED})
+        await send_cancel_notification_to_actings(order=order, bot=bot, cb=cb, session=session,
+                                       message_manager=message_manager)
+        return
+
+    admin_settings = await crud_settings.get_by_id(session, id=1)
+    order = await crud_order.update(session, db_obj=order, obj_in={"status": Order.ACCEPTED})
+
     await send_notification_to_actings(order=order, bot=bot, cb=cb, session=session,
                                        message_manager=message_manager)
-    order_request = await crud_order_request.lock_row(session, id=order.order_request_id)
-    order = await crud_order.update(session, db_obj=order, obj_in={"status": Order.ACCEPTED})
-    admin_settings = await crud_settings.get_by_id(session, id=1)
-
     new_max_limit = order_request.max_limit - order.prizm_value
     new_max_limit_rub = order_request.max_limit_rub - order.rub_value
 
