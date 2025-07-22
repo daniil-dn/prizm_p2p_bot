@@ -91,8 +91,7 @@ async def send_cancel_notification_to_actings(order: Order, bot: Bot, cb: Callba
 
     await bot.send_message(
         cb.from_user.id,
-        f"Сделка №{order.id} отменена. ",
-        reply_markup=contact_to_user(order.to_user_id, order)
+        f"Сделка №{order.id} отменена. "
     )
 
     await bot.send_message(
