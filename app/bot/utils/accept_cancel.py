@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.bot.services.message_manager import MessageManager
 from app.bot.ui import sent_card_transfer
+from app.bot.ui.menu import menu_button
 from app.bot.ui.order_seller_accept import contact_to_user, sended_pzm_transfer_button
 from app.core.config import settings
 from app.core.dao import crud_settings
@@ -91,10 +92,13 @@ async def send_cancel_notification_to_actings(order: Order, bot: Bot, cb: Callba
 
     await bot.send_message(
         cb.from_user.id,
-        f"Сделка №{order.id} отменена. "
+        f"Сделка №{order.id} отменена. ",
+        reply_markup=menu_button
+
     )
 
     await bot.send_message(
         order.to_user_id,
-        f"Сделка №{order.id} отменена.\n Откройте другую сделку"
+        f"Сделка №{order.id} отменена.\n Откройте другую сделку",
+        reply_markup=menu_button
     )
