@@ -12,7 +12,7 @@ class PrizmWalletFetcher:
     def __init__(self, ip=None):
         if ip:
             self.ip = ip
-            self.base_url =  settings.PRIZM_API_URL.format(prizm_node_ip=ip)
+            self.base_url = settings.PRIZM_API_URL.format(prizm_node_ip=ip)
 
     async def init_with_active_node(self, session):
         node = await crud_prizm_node_ip.get_active(session)

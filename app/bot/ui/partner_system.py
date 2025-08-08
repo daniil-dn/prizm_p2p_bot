@@ -6,7 +6,7 @@ from app.core.models import ChatChannel
 withdraw_partner_balance = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text='Вывести вознаграждение', callback_data='withdraw_partner_balance')],
     [InlineKeyboardButton(text='Владельцам групп/каналов', callback_data='group_channel_owners')],
-    [InlineKeyboardButton(text='❌ Отмена', callback_data='cancel_withdraw')]
+    [InlineKeyboardButton(text='❌ Отмена', callback_data='personal')]
 ], resize_keyboard=True)
 
 

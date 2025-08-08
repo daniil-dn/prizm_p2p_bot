@@ -3,6 +3,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
 from app.bot.ui import get_menu_kb
+from app.bot.ui.menu import get_menu_personal_area_kb
 from app.core.models import User
 
 router = Router()
@@ -22,5 +23,5 @@ async def rules_msg(message: Message, bot: Bot, state: FSMContext, user_db: User
 4. Просим вас учесть, что администрация сервиса не поддерживает отмывание средств полученных незаконным путем и сотрудничает в этом отношении с правоохранительными органами.
 5. При любых затруднениях обращайтесь в службу поддержки, мы постараемся решить Ваш вопрос. 
 6. Мы рады получить от Вас любую обратную связь, просьбы и замечания по работе сервиса Вы можете отправить в разделе \"Поддержка\"""",
-        reply_markup=get_menu_kb(is_admin=user_db.role in User.ALL_ADMINS)
+        reply_markup=get_menu_personal_area_kb()
     )

@@ -86,10 +86,10 @@ class CRUDOrderRequest(CRUDBase[OrderRequest, dto.OrderRequestCreate, dto.OrderR
                                              db: AsyncSession,
                                              filter_user_id,
                                              from_currency,
-                                             value,
                                              status,
-                                             limit,
-                                             offset, is_rub: bool = False) -> List[OrderRequest] | int:
+                                             value = None,
+                                             limit = None,
+                                             offset = None, is_rub: bool = False) -> List[OrderRequest] | int:
 
         if is_rub:
             filters = [OrderRequest.user_id != filter_user_id,
@@ -119,8 +119,8 @@ class CRUDOrderRequest(CRUDBase[OrderRequest, dto.OrderRequestCreate, dto.OrderR
                                                                                                   User.id == OrderRequest.user_id).order_by(
             # todo зачем
             User.order_count)
-
-        query = query.limit(limit).offset(offset)
+        if limit and offset:
+            query = query.limit(limit).offset(offset)
         res = await db.execute(query)
         res_count = await db.execute(count_query)
         logger.debug(
@@ -130,13 +130,16 @@ class CRUDOrderRequest(CRUDBase[OrderRequest, dto.OrderRequestCreate, dto.OrderR
 
     async def get_by_status(self,
                             db: AsyncSession,
-                            status) -> List[OrderRequest] | int:
+                            statuses, only_count=False) -> List[OrderRequest] | int:
 
-        filters = [OrderRequest.status == status]
+        filters = [OrderRequest.status.in_(statuses)]
         query = select(OrderRequest).options(joinedload(OrderRequest.user)).filter(*filters)
 
-        res = await db.execute(query)
-        return res.scalars().all()
+        if only_count:
+            res = (await db.execute(func.count(query))).scalar()
+        else:
+            res = (await db.execute(query)).scalars().all()
+        return res
 
     async def get_by_user_id(self,
                              db: AsyncSession,

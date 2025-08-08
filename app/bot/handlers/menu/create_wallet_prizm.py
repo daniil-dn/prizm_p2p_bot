@@ -67,7 +67,7 @@ async def activate_wallet_prizm(message: Message, bot: Bot, state: FSMContext, u
                                        amount_nqt=50, deadline=60)
         await message.answer(f'Кошелек {prizm_wallet} активирован!', reply_markup=menu_button)
         logger.info(f'Кошелек активирован {prizm_wallet} для юзера: {message.from_user.id}')
-        user_db = await crud_user.update(session, db_obj=user_db, obj_in=UserUpdate(is_wallet_activated=True))
+        await crud_user.update(session, db_obj=user_db, obj_in=UserUpdate(is_wallet_activated=True))
     except Exception as err:
         logger.error(f"Send pzm to {prizm_wallet} Error: {err}")
         await message.answer('Возникла ошибка, напишите в поддержку', reply_markup=menu_button)

@@ -4,7 +4,7 @@ from typing import Any, Dict, Generic, List, Optional, Type, TypeVar, Union
 from fastapi.encoders import jsonable_encoder
 from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, delete
+from sqlalchemy import select, delete, func
 
 from app.core.db.base_class import Base
 
@@ -48,6 +48,13 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         q = select(self.model)
         res = await db.execute(q)
         return res.scalars().all()
+
+    async def get_all_count(
+            self, db: AsyncSession
+    ) -> List[ModelType]:
+        q = func.count(self.model.id)
+        res = await db.execute(q)
+        return res.scalar()
 
     async def create(self, db: AsyncSession, *, obj_in: CreateSchemaType) -> ModelType:
         db_obj = self.model(**obj_in.model_dump(exclude_unset=True))  # type: ignore
