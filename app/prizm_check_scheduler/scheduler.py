@@ -123,8 +123,6 @@ class Scheduler:
 
                                     logger.info(
                                         f"Сделка {order.id} принята. баланс продавца {user.id}: {user.balance}. Нужно монет для ордера {order.prizm_value} баланс юзера{upd_user_balance} ")
-                                    logger.info(
-                                        f"Сделка {order.id} user_id: {user.id} new_max_limit: {prizm_max_limit} new_max_limit_rub: {rub_max_limit}")
                                     await crud_order.update(db=session, db_obj=order,
                                                             obj_in={"status": Order.IN_PROGRESS})
 
